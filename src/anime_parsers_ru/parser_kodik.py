@@ -9,7 +9,7 @@ import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
 
-import src.anime_parsers_ru.errors as errors
+import anime_parsers_ru.errors as errors
 
 class KodikParser:
     """

@@ -3,3 +3,5 @@ testconfig.*
 venv
 __pycache__
 dist
+venv10
+.vscode

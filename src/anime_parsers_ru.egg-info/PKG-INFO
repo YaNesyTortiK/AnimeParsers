@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.0.0
+Version: 1.0.5
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -21,9 +21,9 @@ Classifier: Operating System :: OS Independent
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: beautifulsoup4>=4.12.3
-Requires-Dist: requests>=2.32.3
-Requires-Dist: lxml>=5.2.2
+Requires-Dist: beautifulsoup4
+Requires-Dist: requests
+Requires-Dist: lxml
 
 # AnimeParsers
 ## Описание
