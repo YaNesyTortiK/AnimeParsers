@@ -1,4 +1,5 @@
 test.*
+testconfig.*
 venv
 __pycache__
 dist

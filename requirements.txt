@@ -1,0 +1,12 @@
+beautifulsoup4==4.12.3
+build==1.2.1
+certifi==2024.6.2
+charset-normalizer==3.3.2
+colorama==0.4.6
+idna==3.7
+lxml==5.2.2
+packaging==24.1
+pyproject_hooks==1.1.0
+requests==2.32.3
+soupsieve==2.5
+urllib3==2.2.2

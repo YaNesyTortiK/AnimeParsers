@@ -1,21 +1,32 @@
 [project]
-name = "anime-parsers-ru"
-version = "0.0.1"
+name = "anime_parsers_ru"
+version = "1.0.0"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
-description = "Python package for parsing ru anime players"
-readme = "README.md"
-requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+maintainers = [
+  { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
+description = "Python package for parsing russian anime players"
+readme = "README.md"
+requires-python = ">= 3.10"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "beautifulsoup4>=4.12.3",
+  "requests>=2.32.3",
+  "lxml>=5.2.2"
+]
+license = {file = "LICENSE"}
+keywords = ["anime", "parser", "kodik", "parsing", "аниме", "парсинг", "кодик", "парсер"]
 
 [project.urls]
-Homepage = "https://github.com/-In Work-"
-Issues = "https://github.com/-In Work-/issues"
+Homepage = "https://github.com/YaNesyTortiK/AnimeParsers"
+Issues = "https://github.com/YaNesyTortiK/AnimeParsers/issues"
 
 [build-system]
 requires = ["setuptools>=61.0"]
