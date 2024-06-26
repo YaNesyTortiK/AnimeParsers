@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.0.5
+Version: 1.0.6
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
-License: Copyright 2024 YaNesyTortiK
+License: Copyright 2024 YaNesyTortiK ya.nesy.tortik.email@gmail.com
         
         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
         
@@ -21,9 +21,9 @@ Classifier: Operating System :: OS Independent
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: beautifulsoup4
-Requires-Dist: requests
-Requires-Dist: lxml
+Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: requests>=2.32
+Requires-Dist: lxml>=5.2
 
 # AnimeParsers
 ## Описание
@@ -31,6 +31,11 @@ Requires-Dist: lxml
 
 ## Что есть на данный момент
 - [x] Парсер Kodik (автоматическое получение api ключа)
+
+## Установка
+```commandline
+pip install anime-parsers-ru
+```
 
 # Инструкция к парсерам
 
@@ -44,10 +49,10 @@ Requires-Dist: lxml
 
 0. Установите и импортируйте библиотеку
     ```commandline
-    В разработке
+    pip install anime-parsers-ru
     ```
     ```python
-    import В разработке
+    from anime_parsers_ru.parser_kodik import KodikParser
 
     parser = KodikParser(<ваш api ключ>) # Если нет ключа, оставьте пустым
     ```
@@ -100,9 +105,8 @@ Requires-Dist: lxml
     2. Максимально возможное качество
     Прим: `720` (1280x720)
 
-    > [!IMPORTANT]
-    > В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`.
-    > В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`
+> [!IMPORTANT]
+> В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`. В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`
 
 
 4. Получить токен

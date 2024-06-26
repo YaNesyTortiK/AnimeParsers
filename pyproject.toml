@@ -1,6 +1,6 @@
 [project]
 name = "anime_parsers_ru"
-version = "1.0.5"
+version = "1.0.6"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
@@ -17,9 +17,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = [
-  "beautifulsoup4",
-  "requests",
-  "lxml"
+  "beautifulsoup4>=4.12",
+  "requests>=2.32",
+  "lxml>=5.2"
 ]
 license = {file = "LICENSE"}
 keywords = ["anime", "parser", "kodik", "parsing", "аниме", "парсинг", "кодик", "парсер"]
