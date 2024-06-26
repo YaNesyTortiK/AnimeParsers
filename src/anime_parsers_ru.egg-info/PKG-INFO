@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: anime-parsers-ru
+Version: 0.0.1
+Summary: Python package for parsing ru anime players
+Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
+Project-URL: Homepage, https://github.com/-In Work-
+Project-URL: Issues, https://github.com/-In Work-/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# Example Package
+
+This is a simple example package. You can use
+[GitHub-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
+to write your content.
+
+Testing

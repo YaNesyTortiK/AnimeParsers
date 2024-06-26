@@ -1,0 +1,9 @@
+LICENSE
+README.md
+pyproject.toml
+src/anime-parsers-ru/__init__.py
+src/anime-parsers-ru/parsers.py
+src/anime_parsers_ru.egg-info/PKG-INFO
+src/anime_parsers_ru.egg-info/SOURCES.txt
+src/anime_parsers_ru.egg-info/dependency_links.txt
+src/anime_parsers_ru.egg-info/top_level.txt
