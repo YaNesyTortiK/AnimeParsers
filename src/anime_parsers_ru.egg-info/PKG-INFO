@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.0.6
+Version: 1.1.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -112,5 +112,7 @@ pip install anime-parsers-ru
 4. Получить токен
     ```python
     parser.get_token() # строка
+    # Или
+    KodikParser.get_token()
     ```
     Использует один из скриптов кодика в котором указан api ключ, поэтому может не работать из-за внесенных изменений

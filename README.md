@@ -85,5 +85,7 @@ pip install anime-parsers-ru
 4. Получить токен
     ```python
     parser.get_token() # строка
+    # Или
+    KodikParser.get_token()
     ```
     Использует один из скриптов кодика в котором указан api ключ, поэтому может не работать из-за внесенных изменений

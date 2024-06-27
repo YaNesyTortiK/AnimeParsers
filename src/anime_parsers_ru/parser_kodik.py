@@ -403,7 +403,8 @@ class KodikParser:
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
         return b64decode(url.encode()).decode()
 
-    def get_token(self) -> str:
+    @staticmethod
+    def get_token() -> str:
         """
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
