@@ -337,7 +337,8 @@ class AniboomParser:
         if response['status'] != 'success':
             raise errors.UnexpectedBehaviour(f'Сервер не вернул ожидаемый статус "success". Статус: "{response["status"]}"')
         soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'])
-        link = soup.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
+        link = soup.find('div', {'id': 'video-players'})
+        link = link.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
         return 'https:'+link[:link.rfind('?')]
 
     def _get_embed(self, embed_link: str, episode: int, translation: str) -> str:

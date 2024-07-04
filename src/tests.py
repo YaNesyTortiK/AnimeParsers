@@ -4,18 +4,15 @@ class TestKodik(unittest.TestCase):
     def test_import(self):
         from anime_parsers_ru.parser_kodik import KodikParser
         import anime_parsers_ru.errors as errors
-        print('[OK] Test import')
 
     def test_auto_token(self):
         from anime_parsers_ru.parser_kodik import KodikParser
         goten_token = KodikParser.get_token()
         self.assertIsInstance(goten_token, str)
-        print('[OK] Test auto token')
     
     def test_init(self):
         from anime_parsers_ru.parser_kodik import KodikParser
         parser = KodikParser()
-        print('[OK] Test init')
     
     def test_base_search(self):
         from anime_parsers_ru.parser_kodik import KodikParser
@@ -23,12 +20,11 @@ class TestKodik(unittest.TestCase):
         parser = KodikParser()
         search = parser.base_search('Наруто', 10) # Гарантированно существующий результат
         self.assertIsInstance(search, dict)
-        print('[OK] Test guaranteed good base_search query')
         self.assertNotEqual(search['total'], 0)
         try:
             parser.base_search('grtk~Q@@!#JKBNVFLD', 10) # Гарантированно несуществующий резльтат
         except errors.NoResults:
-            print('[OK] Test guaranteed bad base_search query')
+            pass
         except Exception as ex:
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
@@ -52,7 +48,6 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(cur_search['series_count'], int)
         self.assertIsInstance(cur_search['translations'], list)
         self.assertIsInstance(cur_search['translations'][0], dict)
-        print('[OK] Test getting info from serial')
 
     def test_get_info_video(self):
         from anime_parsers_ru.parser_kodik import KodikParser
@@ -74,7 +69,6 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(cur_search['series_count'], int)
         self.assertIsInstance(cur_search['translations'], list)
         self.assertIsInstance(cur_search['translations'][0], dict)
-        print('[OK] Test getting info from video')
 
     def test_get_link_serial(self):
         from anime_parsers_ru.parser_kodik import KodikParser
@@ -83,7 +77,6 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(link, tuple)
         self.assertIsInstance(link[0], str)
         self.assertIsInstance(link[1], int)
-        print('[OK] Test getting link to serial')
     
     def test_get_link_video(self):
         from anime_parsers_ru.parser_kodik import KodikParser
@@ -92,7 +85,79 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(link, tuple)
         self.assertIsInstance(link[0], str)
         self.assertIsInstance(link[1], int)
-        print('[OK] Test getting link to video')
+
+class TestAniboom(unittest.TestCase):
+    def test_import(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        import anime_parsers_ru.errors as errors
+
+    def test_init(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+    
+    def test_fast_search(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        search = parser.fast_search('Наруто')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
+        # Нельзя проверить на то что нет результатов, потому что у animego всегда есть результаты на какой угодно запрос \_(-_-)_/
+        
+    def test_episodes_info(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        data = parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0) # У данного аниме гарантированно есть эпизоды
+        self.assertIsInstance(data[0], dict)
+        if len(data) > 1:
+            self.assertGreater(data[-1]['num'], data[0]['num']) # Проверка сортировки
+    
+    def test_translations_info(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        data = parser.get_translations_info('2546')
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0) # У данного аниме гарантированно есть переводы в плеере aniboom
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(list(data[0].keys()) == ['name', 'translation_id'])
+    
+    def test_anime_info(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        data = parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        self.assertIsInstance(data, dict)
+        self.assertTrue('episodes_info' in data.keys())
+        self.assertTrue('translations' in data.keys())
+    
+    def test_get_embed_link(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        data = parser._get_embed_link('2546')
+        self.assertIsInstance(data, str)
+    
+    def test_get_embed(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        link = parser._get_embed_link('2546')
+        data = parser._get_embed(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+    
+    def test_get_media_src(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        link = parser._get_embed_link('2546')
+        data = parser._get_media_src(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+    
+    def test_get_mpd_playlist(self):
+        from anime_parsers_ru.parser_aniboom import AniboomParser
+        parser = AniboomParser()
+        data = parser.get_mpd_playlist('2546', 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+        first_row = data[:data.find('\n')]
+        self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
 
 if __name__ == "__main__":
     unittest.main()
