@@ -11,3 +11,16 @@
 ## To 1.1.0
 - Written tests for kodik_parser
 - Changed `get_token` function to `@static_method`
+
+## To 1.2.0
+- Added Aniboom parser
+- Written tests for aniboom parser
+- Added new tags for project ('aniboom', 'анибум', 'animego', 'анимего')
+
+## To 1.2.1
+- Fixed search (forgot to change debug value)
+
+## To 1.2.2
+- Fixed getting trailer embed (can be NoneType error)
+- Fixed getting data for films (don't have an episode_num parameter, now required to pass `0` as episode_num)
+- Written tests for new errors

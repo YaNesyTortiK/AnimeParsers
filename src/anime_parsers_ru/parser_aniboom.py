@@ -48,7 +48,7 @@ class AniboomParser:
         }
         params = {
             'type': 'small',
-            'q': 'Кулинарные скитания',
+            'q': title,
         }
         response = requests.get('https://animego.org/search/all', params=params, headers=headers).json()
         if response['status'] != 'success':
@@ -262,7 +262,11 @@ class AniboomParser:
         c_data['screenshots'] = []
         for screenshot in soup.find_all('a', {'class': 'screenshots-item'}):
             c_data['screenshots'].append('https://animego.org'+screenshot.get_attribute_list('href')[0])
-        c_data['trailer'] = soup.find('div', {'class': 'video-block'}).find('a', {'class': 'video-item'}).get_attribute_list('href')[0]
+        trailer_cont = soup.find('div', {'class': 'video-block'})
+        if not trailer_cont is None:
+            c_data['trailer'] = trailer_cont.find('a', {'class': 'video-item'}).get_attribute_list('href')[0]
+        else:
+            c_data['trailer'] = None
         c_data['episodes_info'] = self.episodes_info(link)
         c_data['translations'] = self.get_translations_info(c_data['animego_id'])
         return c_data
@@ -346,17 +350,21 @@ class AniboomParser:
         Возвращает html от embed(iframe) плеера aniboom
 
         :embed_link: ссылка на embed (можно получить из _get_embed_link)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
         """
         headers = {
             'Referer': 'https://animego.org/',
         }
-
-        params = {
-            'episode': episode,
-            'translation': translation,
-        }
+        if episode != 0:
+            params = {
+                'episode': episode,
+                'translation': translation,
+            }
+        else:
+            params = {
+                'translation': translation,
+            }
         response = requests.get(embed_link, headers=headers, params=params)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
@@ -367,7 +375,7 @@ class AniboomParser:
         Возвращает ссылку на mpd файл. Скачивать файл нужно обязательно с header'ами что отправлен запрос от animego.org или aniboom.one (иначе 403 ошибка)
 
         :embed_link: ссылка на embed (можно получить из _get_embed_link)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
 
         Пример возвращаемого: https://sophia.yagami-light.com/7p/7P9qkv26dQ8/v26utto64xx66.mpd
@@ -383,7 +391,7 @@ class AniboomParser:
         Возвращает путь до mpd файла (без самого файла)
 
         :embed_link: ссылка на embed (можно получить из _get_embed_link)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
 
         Пример возвращаемого: https://sophia.yagami-light.com/7p/7P9qkv26dQ8/
@@ -406,7 +414,7 @@ class AniboomParser:
         Получение файла mpd через embed_link
 
         :embed_link: ссылка на embed (можно получить из _get_embed_link)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
 
         Возвращает mpd файл в виде текста. (Можно сохранить результат как res.mpd и при запуске через поддерживающий mpd файлы плеер должна начаться серия)
@@ -430,7 +438,7 @@ class AniboomParser:
         Возвращает mpd файл строкой (содержимое файла)
         
         :animego_id: id аниме на animego.org (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation_id: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
 
         Возвращает mpd файл в виде текста. (Можно сохранить результат как res.mpd и при запуске через поддерживающий mpd файлы плеер должна начаться серия)
@@ -446,7 +454,7 @@ class AniboomParser:
         Сохраняет mpd файл как указанный filename
         
         :animego_id: id аниме на animego.org (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
-        :episode: Номер эпизода (вышедшего)
+        :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation_id: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
         :filename: Имя/путь для сохраняемого файла обязательно чтобы было .mpd расширение (прим: result.mpd или content/result.mpd)
 

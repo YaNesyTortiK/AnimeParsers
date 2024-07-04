@@ -113,20 +113,36 @@ class TestAniboom(unittest.TestCase):
         self.assertIsInstance(data[0], dict)
         if len(data) > 1:
             self.assertGreater(data[-1]['num'], data[0]['num']) # Проверка сортировки
+
+        # Проверка для фильмов
+        data = parser.episodes_info('https://animego.org/anime/psihopasport-film-1327')
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 0)
     
     def test_translations_info(self):
         from anime_parsers_ru.parser_aniboom import AniboomParser
         parser = AniboomParser()
-        data = parser.get_translations_info('2546')
+        data = parser.get_translations_info('2546') # Волчица и пряности 2024
         self.assertIsInstance(data, list)
         self.assertGreater(len(data), 0) # У данного аниме гарантированно есть переводы в плеере aniboom
         self.assertIsInstance(data[0], dict)
         self.assertTrue(list(data[0].keys()) == ['name', 'translation_id'])
     
+        # Проверка для отсутсвующих переводов
+        data = parser.get_translations_info('106') # Наруто: Битва на Хидден-Фолс
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 0)
+
     def test_anime_info(self):
         from anime_parsers_ru.parser_aniboom import AniboomParser
         parser = AniboomParser()
         data = parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        self.assertIsInstance(data, dict)
+        self.assertTrue('episodes_info' in data.keys())
+        self.assertTrue('translations' in data.keys())
+
+        # Проверка без трейлера и переводов
+        data = parser.anime_info('https://animego.org/anime/naruto-bitva-na-hidden-fols-106')
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
@@ -140,21 +156,37 @@ class TestAniboom(unittest.TestCase):
     def test_get_embed(self):
         from anime_parsers_ru.parser_aniboom import AniboomParser
         parser = AniboomParser()
-        link = parser._get_embed_link('2546')
+        link = parser._get_embed_link('2546') # Волчица и пряности 2024
         data = parser._get_embed(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+
+        # Проверка для фильма
+        link = parser._get_embed_link('1327') # Психопаспорт (фильм)
+        data = parser._get_embed(link, 0, '15') # Озвучка от СВ-Дубль
         self.assertIsInstance(data, str)
     
     def test_get_media_src(self):
         from anime_parsers_ru.parser_aniboom import AniboomParser
         parser = AniboomParser()
-        link = parser._get_embed_link('2546')
+        link = parser._get_embed_link('2546') # Волчица и пряности 2024
         data = parser._get_media_src(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+
+        # Проверка для фильма
+        link = parser._get_embed_link('1327') # Психопаспорт (фильм)
+        data = parser._get_media_src(link, 0, '15') # Озвучка от СВ-Дубль
         self.assertIsInstance(data, str)
     
     def test_get_mpd_playlist(self):
         from anime_parsers_ru.parser_aniboom import AniboomParser
         parser = AniboomParser()
         data = parser.get_mpd_playlist('2546', 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+        first_row = data[:data.find('\n')]
+        self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
+
+        # Проверка для фильма
+        data = parser.get_mpd_playlist('1327', 0, '15') # Психопаспорт (фильм) Озвучка от СВ-Дубль
         self.assertIsInstance(data, str)
         first_row = data[:data.find('\n')]
         self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
