@@ -24,3 +24,7 @@
 - Fixed getting trailer embed (can be NoneType error)
 - Fixed getting data for films (don't have an episode_num parameter, now required to pass `0` as episode_num)
 - Written tests for new errors
+
+## To 1.2.3
+- Added flag for testing with or without using lxml parser
+- Moved imports of individual modules to init (now import should be like: `from anime_parsers_ru import KodikParser` instead of `from anime_parsers_ru.parser_kodik import KodikParser`)

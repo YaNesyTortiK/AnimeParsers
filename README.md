@@ -27,7 +27,7 @@ pip install anime-parsers-ru
     pip install anime-parsers-ru
     ```
     ```python
-    from anime_parsers_ru.parser_kodik import KodikParser
+    from anime_parsers_ru import KodikParser
 
     parser = KodikParser(<ваш api ключ>) # Если нет ключа, оставьте пустым
     ```
@@ -98,7 +98,7 @@ pip install anime-parsers-ru
     pip install anime-parsers-ru
     ```
     ```python
-    from anime_parsers_ru.parser_aniboom import AniboomParser
+    from anime_parsers_ru import AniboomParser
 
     parser = AniboomParser()
     ```
@@ -140,8 +140,8 @@ pip install anime-parsers-ru
                 {
                     "num": "Номер эпизода",
                     "title": "Название эпизода",
-                    "date": "Даты выхода (предполагаемые если анонс)
-                    'status': 'вышло' или 'анонс' (Имеется в виду вышло в оригинале, не переведено)",
+                    "date": "Даты выхода (предполагаемые если анонс)",
+                    "status": "'вышло' или 'анонс' (Имеется в виду вышло в оригинале, не переведено)",
                 },
             ],
             "translations": [
@@ -198,15 +198,15 @@ pip install anime-parsers-ru
         "other_titles": ["Альтернативное название 1", "..."],
         "status": "Статус аниме (онгоинг, анонс, вышел, ...)",
         "type": "Тип аниме (ТВ сериал, фильм, ...)",
-        "genres": ["Жанр1", "Жанр2", "..."]
+        "genres": ["Жанр1", "Жанр2", "..."],
         "description": "описание",
         "episodes": "если аниме вышло, то количество серий, если еще идет, то 'вышло / всего'",
         "episodes_info": [
             {
                 "num": "Номер эпизода",
                 "title": "Название эпизода",
-                "date": "Даты выхода (предполагаемые если анонс)
-                'status': 'вышло' или 'анонс' (Имеется в виду вышло в оригинале, не переведено)",
+                "date": "Даты выхода (предполагаемые если анонс)",
+                "status": "'вышло' или 'анонс' (Имеется в виду вышло в оригинале, не переведено)",
             },
         ],
         "translations": [
@@ -256,22 +256,22 @@ pip install anime-parsers-ru
     parser.get_mpd_playlist('animego_id', 'episode_num', 'translation_id')
     # animego_id можно найти в результате поиска по ключу 'animego_id' (либо взять последние цифры в ссылке на страницу аниме на animego.org)
     # episode_num - номер вышедшего эпизода (нужно чтобы эпизод вышел именно с выбранной озвучкой)
-    # translation_id - id перевода в базе aniboom (Можно найти либо в результате поиска, либо через anime_info, лмбо через get_translation_info)
+    # translation_id - id перевода в базе aniboom (Можно найти либо в результате поиска, либо через anime_info, либо через get_translation_info)
     ```
     Возвращает строку - контент mpd файла
     
-    > [!IMPORTANT]
-    > В случае, если аниме является фильмом или содержит только одну серию, в параметр `episode_num` указывается значение `0`.
+> [!IMPORTANT]
+> В случае, если аниме является фильмом или содержит только одну серию, в параметр `episode_num` указывается значение `0`.
 
 6. Сохранить mpd файл (Дополняет предыдущую функцию get_mpd_playlist)
     ```python
     parser.get_as_file('animego_id', 'episode_num', 'translation_id', 'filename')
     # animego_id можно найти в результате поиска по ключу 'animego_id' (либо взять последние цифры в ссылке на страницу аниме на animego.org)
     # episode_num - номер вышедшего эпизода (нужно чтобы эпизод вышел именно с выбранной озвучкой)
-    # translation_id - id перевода в базе aniboom (Можно найти либо в результате поиска, либо через anime_info, лмбо через get_translation_info)
+    # translation_id - id перевода в базе aniboom (Можно найти либо в результате поиска, либо через anime_info, либо через get_translation_info)
     # filename - имя файля или путь
     ```
     Сохраняет файл по указанному имени/пути
 
-    > [!IMPORTANT]
-    > В случае, если аниме является фильмом или содержит только одну серию, в параметр `episode_num` указывается значение `0`.
+> [!IMPORTANT]
+> В случае, если аниме является фильмом или содержит только одну серию, в параметр `episode_num` указывается значение `0`.
