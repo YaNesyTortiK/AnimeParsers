@@ -28,3 +28,8 @@
 ## To 1.2.3
 - Added flag for testing with or without using lxml parser
 - Moved imports of individual modules to init (now import should be like: `from anime_parsers_ru import KodikParser` instead of `from anime_parsers_ru.parser_kodik import KodikParser`)
+
+## To 1.3.0
+- Added Jutsu parser (without search function)
+- Written tests for aniboom parser
+- Added new tags for project ('jutsu', 'джутсу')

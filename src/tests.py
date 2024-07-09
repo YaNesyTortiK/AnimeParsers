@@ -194,6 +194,64 @@ class TestAniboom(unittest.TestCase):
         first_row = data[:data.find('\n')]
         self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
 
+class TestJutsu(unittest.TestCase):
+    USE_LXML = GLOBAL_USE_LXML
+    def test_import(self):
+        from anime_parsers_ru import JutsuParser
+        import anime_parsers_ru.errors as errors
+    
+    def test_get_anime_info(self):
+        from anime_parsers_ru import JutsuParser
+        import anime_parsers_ru.errors as errors
+        parser = JutsuParser(self.USE_LXML)
+        
+        # Проверка на аниме с одним сезоном
+        data = parser.get_anime_info('https://jut.su/tondemo-skill/') # Кулинарные скитания
+        self.assertIsInstance(data, dict)
+        self.assertIsInstance(data['seasons'], list)
+        self.assertTrue(data['title'] == 'Кулинарные скитания в параллельном мире')
+        self.assertTrue(len(data['seasons']) == 1)
+        self.assertTrue(len(data['seasons_names']) == 0)
+        self.assertIsInstance(data['seasons'][0][0], str)
+
+        # Проверка на аниме с несколькими сезонами
+        data = parser.get_anime_info('https://jut.su/ookami-to-koshinryou/') # Волчица и пряности
+        self.assertIsInstance(data, dict)
+        self.assertIsInstance(data['seasons'], list)
+        self.assertTrue(data['title'] == 'Волчица и пряности')
+        self.assertTrue(len(data['seasons']) > 1)
+        self.assertTrue(len(data['seasons_names']) > 0)
+        self.assertIsInstance(data['seasons'][0][0], str)
+
+        # Проверка на аниме с фильмами
+        data = parser.get_anime_info('https://jut.su/fullmeetal-alchemist/') # Стальной алхимик
+        self.assertIsInstance(data, dict)
+        self.assertIsInstance(data['seasons'], list)
+        self.assertTrue(data['title'] == 'Стальной алхимик')
+        self.assertTrue(len(data['seasons']) > 1)
+        self.assertTrue(len(data['seasons_names']) > 0)
+        self.assertTrue(len(data['films']) > 0)
+        self.assertIsInstance(data['seasons'][0][0], str)
+        self.assertIsInstance(data['films'][0], str)
+    
+    def test_get_mp4_link(self):
+        from anime_parsers_ru import JutsuParser
+        import anime_parsers_ru.errors as errors
+        parser = JutsuParser(self.USE_LXML)
+
+        # Проверка без сезонов
+        data = parser.get_mp4_link('https://jut.su/tondemo-skill/episode-1.html') # Кулинарные скитания в параллельном мире 1 серия
+        self.assertIsInstance(data, dict)
+        self.assertTrue(len(data.keys()) > 0)
+        self.assertIsInstance(data['720'], str) # Надеемся на то что есть 720
+
+        # Проверка с сезонами
+        data = parser.get_mp4_link('https://jut.su/ookami-to-koshinryou/season-1/episode-1.html') # Волчица и пряности 1 сезон 1 серия
+        self.assertIsInstance(data, dict)
+        self.assertTrue(len(data.keys()) > 0)
+        self.assertIsInstance(data['720'], str) # Надеемся на то что есть 720
+
+
 if __name__ == "__main__":
     GLOBAL_USE_LXML = True
     unittest.main()

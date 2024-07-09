@@ -1,6 +1,6 @@
 [project]
 name = "anime_parsers_ru"
-version = "1.2.3"
+version = "1.3.0"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
@@ -22,7 +22,7 @@ dependencies = [
   "lxml>=5.2"
 ]
 license = {file = "LICENSE"}
-keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего"]
+keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу"]
 
 [project.urls]
 Homepage = "https://github.com/YaNesyTortiK/AnimeParsers"

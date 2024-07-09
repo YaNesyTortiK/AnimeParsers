@@ -5,6 +5,7 @@ src/tests.py
 src/anime_parsers_ru/__init__.py
 src/anime_parsers_ru/errors.py
 src/anime_parsers_ru/parser_aniboom.py
+src/anime_parsers_ru/parser_jutsu.py
 src/anime_parsers_ru/parser_kodik.py
 src/anime_parsers_ru.egg-info/PKG-INFO
 src/anime_parsers_ru.egg-info/SOURCES.txt

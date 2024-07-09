@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.2.3
+Version: 1.3.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -13,7 +13,7 @@ License: Copyright 2024 YaNesyTortiK ya.nesy.tortik.email@gmail.com
         THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Project-URL: Homepage, https://github.com/YaNesyTortiK/AnimeParsers
 Project-URL: Issues, https://github.com/YaNesyTortiK/AnimeParsers/issues
-Keywords: anime,parser,kodik,parsing,aniboom,animego,аниме,парсинг,кодик,парсер,анибум,анимего
+Keywords: anime,parser,kodik,parsing,aniboom,animego,jutsu,аниме,парсинг,кодик,парсер,анибум,анимего,джутсу
 Classifier: Development Status :: 4 - Beta
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
@@ -32,6 +32,7 @@ Requires-Dist: lxml>=5.2
 ## Что есть на данный момент
 - [x] Парсер Kodik (автоматическое получение api ключа)
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
+- [x] Парсер JutSu (без функции поиска)
 
 ## Установка
 ```commandline
@@ -43,6 +44,7 @@ pip install anime-parsers-ru
 ## Оглавление
 - [Kodik инструкция](#kodik-инструкция)
 - [AniBoom инструкция](#aniboom-инструкция)
+- [JutSu инструкция](#jutsu-инструкция)
 
 ## Kodik инструкция
 
@@ -302,3 +304,76 @@ pip install anime-parsers-ru
 
 > [!IMPORTANT]
 > В случае, если аниме является фильмом или содержит только одну серию, в параметр `episode_num` указывается значение `0`.
+
+## JutSu инструкция
+0. Установите и импортируйте библиотеку
+    ```commandline
+    pip install anime-parsers-ru
+    ```
+    ```python
+    from anime_parsers_ru import JutsuParser
+
+    parser = JutsuParser()
+    ```
+
+1. Данные по аниме (по ссылке на страницу)
+    ```python
+    parser.get_anime_info("Ссылка на страницу")
+    # Пример ссылки: https://jut.su/tondemo-skill/
+    # Для аниме: Кулинарные скитания в параллельном мире
+    ```
+    Возвращает словарь:
+    ```json
+    {
+        "title": "Название аниме",
+        "origin_title": "Оригинальное название (транслит японского названия на английском)",
+        "age_rating": "Возрастное ограничение",
+        "description": "Описание",
+        "years": ["Год выхода 1 сезона", "Год выхода 2 сезона"],
+        "genres": ["Жанр 1", "Жанр 2"],
+        "poster": "Ссылка на картинку (плохое качество)",
+        "seasons": [
+            [ // 1 сезон будет обязательно, даже если у аниме нет других сезонов
+                "ссылка на 1 серию 1 сезона (страница с плеером)",
+                "ссылка на 2 серию 1 сезона (страница с плеером)"
+            ],
+            [ // 2 сезон если есть
+                "ссылка на 1 серию 2 сезона (страница с плеером)",
+                "ссылка на 2 серию 2 сезона (страница с плеером)"
+            ],
+        ],
+        "seasons_names": [ // Если у аниме только 1 сезон, этот список будет пустым
+            "Название 1 сезона", 
+            "Название 2 сезона"
+        ],
+        "films": [ // Если фильмов нет - список пустой
+            "Ссылка на фильм 1 (страница с плеером)",
+            "Ссылка на фильм 2 (страница с плеером)",
+        ]
+    }
+    ```
+
+2. Получить ссылку на mp4 файл
+    ```python
+    parser.get_mp4_link('ссылка на страницу с плеером')
+    # Пример ссылки: https://jut.su/tondemo-skill/episode-1.html
+    # Еще пример ссылки: https://jut.su/ookami-to-koshinryou/season-1/episode-1.html
+    ```
+    Возвращает словарь:
+    ```json
+    {
+        "360": "ссылка на mp4 файл с качеством 360p",
+    }
+    ```
+
+> [!IMPORTANT]
+> Для разных аниме разное количество доступных качеств плеера. (Например для "Наруто" доступно только 360 и 480, для большинства новых аниме доступно качество до 1080)
+> Также jutsu не позволяет выбрать озвучку для аниме.
+
+> [!NOTE]
+> Для jutsu нет функции поиска, потому что он использует поиск яндекса по сайту и из-за того что он "умный" он может работать абсолютно непредсказуемо.
+> В качестве "поиска" вы можете использовать оригинальное название аниме. Так как ссылка формируется по следующей схеме:
+> Название аниме: Волчица и пряности
+> Оригинальное название: Ookami to Koushinryou
+> Ссылка на страницу: https://jut.su/ookami-to-koshinryou/
+
