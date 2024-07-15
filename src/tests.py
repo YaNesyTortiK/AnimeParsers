@@ -308,6 +308,21 @@ class TestShikimori(unittest.TestCase):
         else:
             raise Warning('Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
 
+    def test_additional_anime_info(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.additional_anime_info('https://shikimori.one/animes/z20-naruto')
+        self.assertIsInstance(data, dict)
+        self.assertTrue(len(data['related']) > 0) # У наруто точно есть
+
+        data = parser.additional_anime_info('https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi')
+        self.assertIsInstance(data, dict)
+        self.assertTrue(len(data['main_characters']) > 0) # Точно есть
+
+        data = parser.additional_anime_info('https://shikimori.one/animes/z40456-kimetsu-no-yaiba-movie-mugen-ressha-hen')
+        self.assertIsInstance(data, dict)
+
     def test_link_by_id(self):
         from anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)

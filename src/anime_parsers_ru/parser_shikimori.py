@@ -126,8 +126,6 @@ class ShikimoriParser:
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        #with open('test.html', 'w', encoding='utf-8') as f:
-        #    f.write(response)
         soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
         if not soup.find('p', {'class': 'age-restricted-warning'}) is None:
             raise errors.AgeRestricted(f'Аниме по ссылке "{shikimori_link}" невозможно обработать из-за блокировки по возрастному рейтингу.')
@@ -185,6 +183,142 @@ class ShikimoriParser:
             res['studio'] = None
         return res
     
+    def additional_anime_info(self, shikimori_link: str) -> dict:
+        """
+        Получение дополнительных данных об аниме.
+        Получаемые данные: связанные аниме (продолжение, предыстория, альтернативное и т.п.), Авторы (автор манги, режиссер), Главные герои, Скриншоты, Ролики, Похожее
+        
+        :shikimori_link: ссылка на страницу шикимори с информацией (прим: https://shikimori.one/animes/z20-naruto)
+
+        Возвращает словарь вида:
+        {
+            "related": [
+                {
+                    "date": "Даты выхода/сезон",
+                    "name": "Название",
+                    "picture": "Ссылка на картинку",
+                    "relation": "тип связи (продолжение, предыстория, адаптация и т.п.)",
+                    "type": "Тип (TV сериал, OVA, ONA, манга, ранобэ и т.д.)",
+                    "url": "Ссылка на страницу шикимори"
+                }
+            ],
+            "staff": [
+                {
+                    "name": "Имя человека (на русском)",
+                    "roles": ["Роль1", "Роль2"],
+                    "link": "ссылка шикимори на человека"
+                }
+            ],
+            "main_characters": [
+                {
+                    "name": "Имя персонажа",
+                    "picture": "Картинка (jpeg)"
+                }
+            ],
+            "screenshots": ["Ссылка на скриншот 1", "Ссылка на скриншот 2"],
+            "videos": [
+                {
+                    "name": "Название видео",
+                    "link": "Ссылка на видео (обычно ютуб)"
+                }
+            ],
+            "similar": [
+                {
+                    "name": "Название аниме (похожего)",
+                    "picture": "Картинка (постер)",
+                    "link": "Ссылка на шикимори"
+                }
+            ]
+        }
+        """
+
+        link = shikimori_link+'resources' if shikimori_link[-1] == '/' else shikimori_link+'/resources'
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+        }
+        response = requests.get(link, headers=headers)
+        if response.status_code == 520:
+            raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code != 200:
+            raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
+        response = response.text
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        if not soup.find('p', {'class': 'age-restricted-warning'}) is None:
+            raise errors.AgeRestricted(f'Аниме по ссылке "{shikimori_link}" невозможно обработать из-за блокировки по возрастному рейтингу.')
+        res = {
+            'related': [], 'staff': [], 'main_characters': [], 'screenshots': [], 'videos': [], 'similar': []
+        }
+        r1 = soup.find('div', {'class': 'cc-related-authors'})
+        for col in r1.find_all('div', {'class': 'c-column'}):
+            col_type = col.find('div', {'class': 'subheadline'}).text
+            if col_type == 'Связанное':
+                for entry in col.find_all('div', {'class': 'b-db_entry-variant-list_item'}):
+                    c_data = {}
+                    c_data['url'] = entry.get_attribute_list('data-url')[0]
+                    c_data['picture'] = None
+                    if not entry.find('picture') is None:
+                        c_data['picture'] = entry.find('picture').find('img').get_attribute_list('srcset')[0].replace(' 2x', '')
+                    c_data['name'] = entry.find('div', {'class': 'name'}).find('span', {'class': 'name-ru'}).text
+                    for other in entry.find('div', {'class': 'line'}).find_all('div'):
+                        cls = other.get_attribute_list('class')
+                        if 'b-anime_status_tag' in cls:
+                            c_data['relation'] = other.text
+                        elif 'linkeable' in cls:
+                            link = other.get_attribute_list('data-href')[0]
+                            if '/kind/' in link:
+                                c_data['type'] = other.text
+                            elif '/season/' in link:
+                                c_data['date'] = other.text
+                    # Заполняем пустое
+                    for k in ['relation', 'type', 'date']:
+                        if k not in c_data.keys():
+                            c_data[k] = None
+                    res['related'].append(c_data)
+            
+            elif col_type == 'Авторы':
+                for entry in col.find_all('div', {'class': 'b-db_entry-variant-list_item'}):
+                    c_data = {}
+                    c_data['link'] = entry.get_attribute_list('data-url')[0]
+                    c_data['name'] = entry.get_attribute_list('data-text')[0]
+                    c_data['roles'] = []
+                    for role in entry.find('div', {'class': 'line'}).find_all('div', {'class': 'b-tag'}):
+                        c_data['roles'].append(role.text)
+                    res['staff'].append(c_data)
+
+        r1 = soup.find('div', {'class': 'c-characters'})
+        for char in r1.find_all('article'):
+            c_data = {}
+            c_data['picture'] = None
+            if not char.find('meta', {'itemprop': 'image'}) is None:
+                c_data['picture'] = char.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
+            c_data['name'] = char.find('span', {'class': 'name-ru'}).text
+            res['main_characters'].append(c_data)
+        
+        r1 = soup.find('div', {'class': 'two-videos'})
+        if not r1 is None:
+            if not r1.find('div', {'class': 'c-screenshots'}) is None:
+                for img in r1.find_all('a', {'class': 'c-screenshot'}):
+                    res['screenshots'].append(img.get_attribute_list('href')[0])
+            if not r1.find('div', {'class': 'c-videos'}) is None:
+                for vid in r1.find_all('div', {'class': 'c-video'}):
+                    c_data = {}
+                    c_data['link'] = vid.find('a').get_attribute_list('href')[0]
+                    c_data['name'] = vid.find('span', {'class': 'name'}).text
+                    res['videos'].append(c_data)
+
+        r1 = soup.find('div', {'class': 'block'})
+        if not r1 is None:
+            for sim in r1.find_all('article'):
+                c_data = {}
+                c_data['picture'] = None
+                if not sim.find('meta', {'itemprop': 'image'}) is None:
+                    c_data['picture'] = sim.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
+                c_data['name'] = sim.find('span', {'class': 'name-ru'}).text
+                c_data['link'] = sim.find('div').get_attribute_list('data-href')[0]
+                res['similar'].append(c_data)
+        return res
+
     def link_by_id(self, shikimori_id: str) -> str:
         """
         Получить ссылку на страницу аниме по shikimori_id.
@@ -473,7 +607,7 @@ class ShikimoriParser:
         russian - название на русском (str)
         english - название на английском (str)
         url - ссылка на страницу (str)
-      }
+      } // Скорее всего есть и ранобэ
       relationKind - тип связи (str) ("adaptation" - адаптация, "sequel" - продолжение и так далее)
       relationText - тип связи на русском (str)
     }

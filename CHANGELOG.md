@@ -35,6 +35,9 @@
 - Added new tags for project ('jutsu', 'джутсу')
 
 ## To 1.4.0
-- Added Shikimori parser (with peudo-api wrapper)
+- Added Shikimori parser (with pseudo-api wrapper)
 - Written tests for shikimori parser
 - Added new tags for project ('shikimori', 'шикимори')
+
+## To 1.4.1
+- Added `additional_anime_info` to shikimori parser
