@@ -7,6 +7,7 @@ src/anime_parsers_ru/errors.py
 src/anime_parsers_ru/parser_aniboom.py
 src/anime_parsers_ru/parser_jutsu.py
 src/anime_parsers_ru/parser_kodik.py
+src/anime_parsers_ru/parser_shikimori.py
 src/anime_parsers_ru.egg-info/PKG-INFO
 src/anime_parsers_ru.egg-info/SOURCES.txt
 src/anime_parsers_ru.egg-info/dependency_links.txt

@@ -31,5 +31,10 @@
 
 ## To 1.3.0
 - Added Jutsu parser (without search function)
-- Written tests for aniboom parser
+- Written tests for jutsu parser
 - Added new tags for project ('jutsu', 'джутсу')
+
+## To 1.4.0
+- Added Shikimori parser (with peudo-api wrapper)
+- Written tests for shikimori parser
+- Added new tags for project ('shikimori', 'шикимори')

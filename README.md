@@ -6,6 +6,7 @@
 - [x] Парсер Kodik (автоматическое получение api ключа)
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
 - [x] Парсер JutSu (без функции поиска)
+- [x] Парсер Shikimori (с возможностью использовать псевдо-api)
 
 ## Установка
 ```commandline
@@ -18,6 +19,7 @@ pip install anime-parsers-ru
 - [Kodik инструкция](#kodik-инструкция)
 - [AniBoom инструкция](#aniboom-инструкция)
 - [JutSu инструкция](#jutsu-инструкция)
+- [Shikimori инструкция](#shikimori-инструкция)
 
 ## Kodik инструкция
 
@@ -350,3 +352,107 @@ pip install anime-parsers-ru
 > Оригинальное название: Ookami to Koushinryou
 > Ссылка на страницу: https://jut.su/ookami-to-koshinryou/
 
+## Shikimori инструкция
+0. Установите и импортируйте библиотеку
+    ```commandline
+    pip install anime-parsers-ru
+    ```
+    ```python
+    from anime_parsers_ru import ShikimoriParser
+
+    parser = ShikimoriParser()
+    ```
+
+> [!NOTE]
+> Шикимори ограничивает частоту запросов на сервер
+> Если шикимори возвращает код ответа 520, парсер вернет exception TooManyRequests
+> Для избежания этой ошибки делайте задержку 1-3 секунды между запросами
+
+1. Поиск аниме по названию
+    ```python
+    parser.search('Название аниме')
+    ```
+    Возвращает список словарей:
+    ```json
+    [
+        {
+            "genres": ["Жанр1", "Жанр2"],
+            "link": "Ссылка на страницу аниме",
+            "original_title": "Оригинальное название (транслит японского названия на английском)",
+            "poster": "Ссылка на постер к аниме (плохое качество) если есть, иначе None",
+            "shikimori_id": "id шикимори",
+            "status": "статус (вышло, онгоинг, анонс)",
+            "studio": "студия анимации (если есть, иначе None)",
+            "title": "Название",
+            "type": "тип аниме (TV сериал, OVA, ONA, ...)",
+            "year": "год выхода (если есть, иначе None)"
+        }
+    ]
+    ```
+
+2. Информация об аниме
+    ```python
+    parser.anime_info('shikimori id')
+    # id шикимори можно получить с помощью функции
+    # parser.id_by_link
+    ```
+    Возвращает словарь:
+    ```json
+    {
+        "dates": "Даты выхода",
+        "description": "Описание",
+        "episode_duration": "Средняя продолжительность серии",
+        "episodes": "Количество эпиходов если статус 'вышло' или 'вышедших эпизодов / анонсировано эпизодов' или None (если фильм)",
+        "genres": ["Жанр1", "Жанр2"],
+        "licensed": "Кто лицензировал в РФ или None",
+        "licensed_in_ru": "Название аниме как лицензировано в РФ или None",
+        "next_episode": "Дата выхода следующего эпизода или None",
+        "original_title": "Оригинальное название",
+        "picture": "Ссылка на jpeg постер",
+        "premiere_in_ru": "Дата премьеры в РФ или None",
+        "rating": "возрастной рейтинг",
+        "score": "оценка на шикимори",
+        "status": "статус выхода",
+        "studio": "студия анимации",
+        "themes": ["Тема1", "Тема2"],
+        "title": "Название на русском",
+        "type": "тип аниме (TV Сериал, Фильм, т.п.)"
+    }
+    ```
+
+3. Вспомогательные функции
+    - Ссылка на страницу шикимори по id
+        ```python
+        parser.link_by_id('shikimori_id')
+        ```
+        Возвращает ссылку
+        (id: 53446 результат: https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi)
+    - Id по ссылке на шикимори
+        ```python
+        parser.id_by_link('ссылка на страницу')
+        ```
+        Возвращает shikimori_id
+        (ссылка: https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi id: 53446)
+
+4. Поиск аниме и информации по аниме через псевдо api shikimori
+    Данные функции используют предоставленную shikimori тестовую функцию для api. (https://shikimori.one/api/doc/graphql)
+    Подробные примеры запросов и ответов вы можете посмотреть в файле [SHIKI_API.md](https://github.com/YaNesyTortiK/AnimeParsers/SHIKI_API.md)
+    
+    - Поиск аниме
+        ```python
+        parser.deep_search(
+            title='Название аниме', 
+            search_parameters={'поисковый параметр 1': 'значение поискового параметра 1'},
+            return_parameters=['Параметр результата 1', 'параметр результата 2']
+        )
+        ```
+        Возвращает список словарей
+    
+    - Информация об аниме по id
+        ```python
+        parser.deep_anime_info(
+            shikimori_id='id шикимори',
+            return_parameters=['Параметр результата 1', 'параметр результата 2']
+        )
+        ```
+        Возвращает словарь

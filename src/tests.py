@@ -251,6 +251,123 @@ class TestJutsu(unittest.TestCase):
         self.assertTrue(len(data.keys()) > 0)
         self.assertIsInstance(data['720'], str) # Надеемся на то что есть 720
 
+class TestShikimori(unittest.TestCase):
+    USE_LXML = GLOBAL_USE_LXML
+    def test_import(self):
+        from anime_parsers_ru import ShikimoriParser
+        import anime_parsers_ru.errors as errors
+
+    def test_search(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.search('Кулинарные скитания')
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0) # Точно есть результат
+        self.assertIsInstance(data[0], dict)
+        
+        data = parser.search('Наруто')
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0) # Точно есть результат
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.search('Класс превосходства')
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0) # Точно есть результат
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.search('Клинок рассекающий демонов')
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0) # Точно есть результат
+        self.assertIsInstance(data[0], dict)
+    
+    def test_anime_info(self):
+        from anime_parsers_ru import ShikimoriParser
+        import anime_parsers_ru.errors as errors
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.anime_info('https://shikimori.one/animes/z20-naruto')
+        self.assertIsInstance(data, dict)
+
+        data = parser.anime_info('https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi')
+        self.assertIsInstance(data, dict)
+
+        data = parser.anime_info('https://shikimori.one/animes/58426-shikanoko-nokonoko-koshitantan')
+        self.assertIsInstance(data, dict)
+
+        data = parser.anime_info('https://shikimori.one/animes/z40456-kimetsu-no-yaiba-movie-mugen-ressha-hen')
+        self.assertIsInstance(data, dict)
+
+        # Проверка на ограничение по возрасту
+        try:
+            data = parser.anime_info('https://shikimori.one/animes/53725-class-de-otoko-wa-boku-ichinin')
+        except errors.AgeRestricted:
+            pass
+        except Exception as ex:
+            raise Warning(f'Непредвиденная ошибка "{ex}". Ожидалось: "AgeRestricted"')
+        else:
+            raise Warning('Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
+
+    def test_link_by_id(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.link_by_id('20') # Наруто (реальный id - z20)
+        self.assertIsInstance(data, str)
+
+        data = parser.link_by_id('40456') # Клинок, рассекающий демонов: Бесконечный поезд. Фильм (реальный id - z40456)
+        self.assertIsInstance(data, str)
+
+        data = parser.link_by_id('58426') # Моя подруга-олениха Нокотан (реальный id - 58426)
+        self.assertIsInstance(data, str)
+
+        data = parser.link_by_id('53446') # Кулинарные скитания в параллельном мире (реальный id - 53446)
+        self.assertIsInstance(data, str)
+
+    def test_id_by_link(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.id_by_link('https://shikimori.one/animes/z20-naruto') # Наруто (реальный id - z20 ожидаем - 20)
+        self.assertIsInstance(data, str)
+        self.assertTrue(data == '20')
+
+        data = parser.id_by_link('https://shikimori.one/animes/z40456-kimetsu-no-yaiba-movie-mugen-ressha-hen') # Клинок, рассекающий демонов: Бесконечный поезд. Фильм (реальный id - z40456 ожидаем - 40456)
+        self.assertIsInstance(data, str)
+        self.assertTrue(data == '40456')
+
+        data = parser.id_by_link('https://shikimori.one/animes/58426-shikanoko-nokonoko-koshitantan') # Моя подруга-олениха Нокотан (реальный id - 58426 ожидаем - 58426)
+        self.assertIsInstance(data, str)
+        self.assertTrue(data == '58426')
+    
+    def test_deep_search(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        # Просто проверим доступность ссылки
+        data = parser.deep_search('Кулинарные скитания', {}, ['id', 'name', 'url', 'genres { name russian }'])
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0) # Точно должны быть данные
+        self.assertIsInstance(data[0], dict)
+
+    def test_deep_anime_info(self):
+        from anime_parsers_ru import ShikimoriParser
+        import anime_parsers_ru.errors as errors
+        parser = ShikimoriParser(self.USE_LXML)
+
+        # Просто проверим доступность ссылки
+        data = parser.deep_anime_info('53446', ['id', 'name', 'url', 'genres { name russian }'])
+        self.assertIsInstance(data, dict)
+        self.assertIsInstance(data['name'], str)
+
+        try: # Проверка на несуществующем id
+            data = parser.deep_anime_info('fff', ['id', 'name', 'url', 'genres { name russian }'])
+        except errors.NoResults:
+            pass
+        except Exception as ex:
+            raise Warning(f'Непредвиденная ошиибка "{ex}". Ожидалось: NoResults')
+        else:
+            raise Warning(f'Гарантированно неверный код не вернул ошибку. Ожидалось: NoResults')
 
 if __name__ == "__main__":
     GLOBAL_USE_LXML = True
