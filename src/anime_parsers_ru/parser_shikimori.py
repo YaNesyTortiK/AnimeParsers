@@ -58,7 +58,7 @@ class ShikimoriParser:
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()['content']
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         res = []
         for anime in soup.find_all('div', {'class': 'b-db_entry-variant-list_item'}):
             if anime.get_attribute_list('data-type')[0] != 'anime': # нас интересует только аниме
@@ -126,7 +126,7 @@ class ShikimoriParser:
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         if not soup.find('p', {'class': 'age-restricted-warning'}) is None:
             raise errors.AgeRestricted(f'Аниме по ссылке "{shikimori_link}" невозможно обработать из-за блокировки по возрастному рейтингу.')
         res = {}
@@ -243,7 +243,7 @@ class ShikimoriParser:
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         if not soup.find('p', {'class': 'age-restricted-warning'}) is None:
             raise errors.AgeRestricted(f'Аниме по ссылке "{shikimori_link}" невозможно обработать из-за блокировки по возрастному рейтингу.')
         res = {
@@ -330,7 +330,7 @@ class ShikimoriParser:
         }
         response = requests.get(f'https://shikimori.one/animes/{shikimori_id}', headers=headers)
         if response.status_code == 404:
-            soup = Soup(response.text, 'lxml') if self.USE_LXML else Soup(response.text)
+            soup = Soup(response.text, 'lxml') if self.USE_LXML else Soup(response.text, 'html.parser')
             actual_code = soup.find('p', {'class': 'error-404'}).text
             if actual_code == '404':
                 raise errors.NoResults(f'Страница аниме с shikimori_id "{shikimori_id}" не найдена.')
@@ -414,7 +414,7 @@ class ShikimoriParser:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
         if 'errors' in response.keys():
-            raise errors.PostArgumentsError(f'Ошибка запроса. Ошибка: {response['errors'][0]['message']}')
+            raise errors.PostArgumentsError(f"Ошибка запроса. Ошибка: {response['errors'][0]['message']}")
         response = response['data']
         if 'animes' in response.keys():
             return response['animes']
@@ -465,7 +465,7 @@ class ShikimoriParser:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
         if 'errors' in response.keys():
-            raise errors.PostArgumentsError(f'Ошибка запроса. Ошибка: {response['errors'][0]['message']}')
+            raise errors.PostArgumentsError(f"Ошибка запроса. Ошибка: {response['errors'][0]['message']}")
         response = response['data']
         if 'animes' in response.keys():
             if len(response['animes']) > 0:

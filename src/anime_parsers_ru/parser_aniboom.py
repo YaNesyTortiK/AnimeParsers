@@ -54,7 +54,7 @@ class AniboomParser:
         if response['status'] != 'success':
             raise errors.ServiceError(f'На запрос "{title}" сервер не вернул ожидаемый ответ "status: success". Status: "{response["status"]}"')
 
-        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'])
+        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
         res = []
         for elem in soup.find('div', {'class': 'result-search-anime'}).find_all('div', {'class': 'result-search-item'}):
             c_data = {}
@@ -156,7 +156,7 @@ class AniboomParser:
         response = requests.get(link, headers=headers, params=params).json()
         if response['status'] != 'success':
             raise errors.NoResults(f'По запросу данных эпизодов id "{id}" ничего не найдено')
-        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'])
+        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
         episodes_list = []
         for ep in soup.find_all('div', {'class': ['row', 'm-0']}):
             items = ep.find_all('div')
@@ -222,7 +222,7 @@ class AniboomParser:
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         c_data['link'] = link
         c_data['animego_id'] = link[link.rfind('-')+1:]
         c_data['title'] = soup.find('div', {'class': 'anime-title'}).find('h1').text.strip()
@@ -295,7 +295,7 @@ class AniboomParser:
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
-        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'])
+        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
         translations_container = soup.find('div', {'id': 'video-dubbing'}).find_all('span', {'class': 'video-player-toggle-item'})
         players_container = soup.find('div', {'id': 'video-players'}).find_all('span', {'class': 'video-player-toggle-item'})
         translations = {
@@ -340,7 +340,7 @@ class AniboomParser:
         response = response.json()
         if response['status'] != 'success':
             raise errors.UnexpectedBehaviour(f'Сервер не вернул ожидаемый статус "success". Статус: "{response["status"]}"')
-        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'])
+        soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
         link = soup.find('div', {'id': 'video-players'})
         link = link.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
         return 'https:'+link[:link.rfind('?')]
@@ -381,7 +381,7 @@ class AniboomParser:
         Пример возвращаемого: https://sophia.yagami-light.com/7p/7P9qkv26dQ8/v26utto64xx66.mpd
         """
         embed = self._get_embed(embed_link, episode, translation)
-        soup = Soup(embed, 'lxml') if self.USE_LXML else Soup(embed)
+        soup = Soup(embed, 'lxml') if self.USE_LXML else Soup(embed, 'html.parser')
         data = json.loads(soup.find('div', {'id': 'video'}).get_attribute_list('data-parameters')[0])
         media_src = json.loads(data['dash'])['src']
         return media_src
@@ -423,7 +423,7 @@ class AniboomParser:
         Если вам нужен mp4 файл воспользуйтесь ffmpeg или другими конвертерами
         """
         embed = self._get_embed(embed_link, episode, translation)
-        soup = Soup(embed, 'lxml') if self.USE_LXML else Soup(embed)
+        soup = Soup(embed, 'lxml') if self.USE_LXML else Soup(embed, 'html.parser')
         data = json.loads(soup.find('div', {'id': 'video'}).get_attribute_list('data-parameters')[0])
         media_src = json.loads(data['dash'])['src']
         headers = {

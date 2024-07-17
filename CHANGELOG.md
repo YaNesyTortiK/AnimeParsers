@@ -41,3 +41,7 @@
 
 ## To 1.4.1
 - Added `additional_anime_info` to shikimori parser
+
+## To 1.4.2
+- Fixed bug with single quotes in ShikimoriParser
+- Added prefered 'html.parser' when lxml is not being used

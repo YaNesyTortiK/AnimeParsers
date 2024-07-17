@@ -99,7 +99,7 @@ class KodikParser:
             raise errors.NoResults(f'По запросу "{title}" ничего не найдено')
         return data
     
-    def search(self, title: str, limit: int|None = None) -> dict:
+    def search(self, title: str, limit: int|None = None) -> list:
         """
         ### Для использования требуется токен kodik
         Прямой запрос к базе кодика без дополнительных преобразований
@@ -107,8 +107,9 @@ class KodikParser:
         :title: Название аниме / фильма / сериала
         :limit: Верхнее ограничение количества ответов для base_search (необязательно)
 
-        Возвращает список словарейв следующем виде:
-        [{
+        Возвращает список словарей в следующем виде:
+        [
+        {
             'title': Название,
             'type': тип мультимедия (anime, film, ...)
             'year': Год выпуска фильма,

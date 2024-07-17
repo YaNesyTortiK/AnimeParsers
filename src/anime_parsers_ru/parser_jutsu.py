@@ -39,7 +39,7 @@ class JutsuParser:
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         if soup.find('video', {'id': 'my-player'}) is None:
             raise errors.UnexpectedBehaviour(f'Ожидался тег "video" на странице по ссылке "{link}"')
         sources = soup.find('video', {'id': 'my-player'}).find_all('source')
@@ -93,7 +93,7 @@ class JutsuParser:
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
-        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response)
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         soup = soup.find('div', {'id': 'dle-content'})
 
         if soup.find('a', {'class': 'video'}) is None:
