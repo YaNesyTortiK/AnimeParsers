@@ -245,7 +245,7 @@ class KodikParser:
         """
         link = self._link_to_info(id, id_type)
         data = requests.get(link).text
-        soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data)
+        soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         if self._is_serial(link):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
             try:
@@ -311,7 +311,7 @@ class KodikParser:
         """
         link = self._link_to_info(id, id_type)
         data = requests.get(link).text
-        soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data)
+        soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
         urlParams = json.loads(urlParams[:urlParams.find(';')-1])
         if translation_id != "0" and seria_num != 0: # Обычный сериал с известной озвучкой на более чем 1 серию
@@ -325,7 +325,7 @@ class KodikParser:
                     break
             url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
             data = requests.get(url).text
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data)
+            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         elif translation_id != "0" and seria_num == 0: # Фильм/одна серия с несколькими переводами
             container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
             media_hash = None
@@ -337,7 +337,7 @@ class KodikParser:
                     break
             url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
             data = requests.get(url).text
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data)
+            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
 
         hash_container = soup.find_all('script')[4].text
