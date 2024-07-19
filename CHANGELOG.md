@@ -45,3 +45,6 @@
 ## To 1.4.2
 - Fixed bug with single quotes in ShikimoriParser
 - Added prefered 'html.parser' when lxml is not being used
+
+## To 1.4.3
+- Added exception in AniboomParser for blocked players

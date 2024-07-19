@@ -268,10 +268,13 @@ class AniboomParser:
         else:
             c_data['trailer'] = None
         c_data['episodes_info'] = self.episodes_info(link)
-        c_data['translations'] = self.get_translations_info(c_data['animego_id'])
+        try:
+            c_data['translations'] = self.get_translations_info(c_data['animego_id'])
+        except errors.ContentBlocked:
+            c_data['translations'] = []
         return c_data
     
-    def get_translations_info(self, animego_id: str) -> dict:
+    def get_translations_info(self, animego_id: str) -> list:
         """
         Получает информацию о переводах и их id для плеера aniboom
 
@@ -296,6 +299,10 @@ class AniboomParser:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
         soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
+        if soup.find('div', {'class': 'player-blocked'}):
+            reason_elem = soup.find('div', {'class': 'h5'})
+            reason = reason_elem.text if reason_elem else None
+            raise errors.ContentBlocked(f'Контент по id {animego_id} заблокирован. Причина блокировки: "{reason}"')
         translations_container = soup.find('div', {'id': 'video-dubbing'}).find_all('span', {'class': 'video-player-toggle-item'})
         players_container = soup.find('div', {'id': 'video-players'}).find_all('span', {'class': 'video-player-toggle-item'})
         translations = {

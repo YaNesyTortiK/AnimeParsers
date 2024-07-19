@@ -149,6 +149,20 @@ class TestAniboom(unittest.TestCase):
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
+
+    def test_search(self):
+        from anime_parsers_ru import AniboomParser
+        parser = AniboomParser(use_lxml=self.USE_LXML)
+
+        search = parser.search('Наруто')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
+
+        search = parser.search('Кулинарные скитания')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
     
     def test_get_embed_link(self):
         from anime_parsers_ru import AniboomParser
