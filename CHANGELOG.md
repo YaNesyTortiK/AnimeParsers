@@ -48,3 +48,6 @@
 
 ## To 1.4.3
 - Added exception in AniboomParser for blocked players
+
+## To 1.4.4
+- Fixed AniboomParser - mpd playlist was without full link to server

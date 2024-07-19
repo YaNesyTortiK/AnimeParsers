@@ -348,6 +348,10 @@ class AniboomParser:
         if response['status'] != 'success':
             raise errors.UnexpectedBehaviour(f'Сервер не вернул ожидаемый статус "success". Статус: "{response["status"]}"')
         soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
+        if soup.find('div', {'class': 'player-blocked'}):
+            reason_elem = soup.find('div', {'class': 'h5'})
+            reason = reason_elem.text if reason_elem else None
+            raise errors.ContentBlocked(f'Контент по id {animego_id} заблокирован. Причина блокировки: "{reason}"')
         link = soup.find('div', {'id': 'video-players'})
         link = link.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
         return 'https:'+link[:link.rfind('?')]
@@ -438,6 +442,10 @@ class AniboomParser:
             'Referer': 'https://aniboom.one/',
         }
         playlist = requests.get(media_src, headers=headers).text
+        # Вставляем полный путь до сервера
+        filename = media_src[media_src.rfind('/')+1:media_src.rfind('.')]
+        server_path = media_src[:media_src.rfind('.')]
+        playlist = playlist.replace(filename, server_path)
         return playlist
     
     def get_mpd_playlist(self, animego_id: str, episode: int, translation_id: str) -> str:
