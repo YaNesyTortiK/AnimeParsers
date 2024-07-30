@@ -10,10 +10,12 @@ from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
 
 import anime_parsers_ru.errors as errors
+from anime_parsers_ru.internal_tools import AsyncSession
+import asyncio
 
-class KodikParser:
+class KodikParserAsync:
     """
-    Парсер для плеера Kodik
+    Асинхронный парсер для плеера Kodik
     """
     def __init__(self, token: str|None = None, use_lxml: bool = True) -> None:
         """
@@ -22,15 +24,16 @@ class KodikParser:
         """
         if token is None:
             try:
-                token = self.get_token()
+                token = self.get_token_sync()
             except Exception as ex:
                 raise errors.ServiceError(f'Произошла ошибка при попытке автоматического получения токена kodik. Ошибка: {ex}')
         self.TOKEN = token
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        self.requests = AsyncSession()
 
-    def base_search(self, title: str, limit: int = 50, include_material_data: bool = True) -> dict:
+    async def base_search(self, title: str, limit: int = 50, include_material_data: bool = True) -> dict:
         """
         ### Для использования требуется токен kodik
         Прямой запрос к базе кодика без дополнительных преобразований
@@ -89,7 +92,8 @@ class KodikParser:
             "with_material_data": include_material_data
         }
         url = "https://kodikapi.com/search"
-        data = requests.post(url, data=payload).json()
+        data = await self.requests.post(url, data=payload)
+        data = data.json()
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
@@ -98,8 +102,8 @@ class KodikParser:
         if data['total'] == 0:
             raise errors.NoResults(f'По запросу "{title}" ничего не найдено')
         return data
-    
-    def search(self, title: str, limit: int|None = None) -> list:
+
+    async def search(self, title: str, limit: int|None = None) -> list:
         """
         ### Для использования требуется токен kodik
         Получение только самых основных данных о сериале.
@@ -133,9 +137,9 @@ class KodikParser:
         ]
         """
         if limit is None:
-            search_data = self.base_search(title, include_material_data=True)
+            search_data = await self.base_search(title, include_material_data=True)
         else:
-            search_data = self.base_search(title, limit, include_material_data=True)
+            search_data = await self.base_search(title, limit, include_material_data=True)
         data = []
         added_titles = []
         for res in search_data['results']:
@@ -165,7 +169,7 @@ class KodikParser:
                 added_titles.append(res['title'])
         return data
     
-    def translations(self, id: str, id_type: str) -> list:
+    async def translations(self, id: str, id_type: str) -> list:
         """
         ### Для использования требуется токен kodik
         Возвращает список переводов для медиафайла по id.
@@ -183,9 +187,10 @@ class KodikParser:
             ...
         ]
         """
-        return self.get_info(id, id_type)['translations']
+        data = await self.get_info(id, id_type)
+        return data['translations']
     
-    def series_count(self, id: str, id_type: str) -> int:
+    async def series_count(self, id: str, id_type: str) -> int:
         """
         ### Для использования требуется токен kodik
         Возвращает количество серий для медиафайла по id.
@@ -193,9 +198,10 @@ class KodikParser:
         :id: id медиа
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         """
-        return self.get_info(id, id_type)['series_count']
+        data = await self.get_info(id, id_type)
+        return data['series_count']
 
-    def _link_to_info(self, id: str, id_type: str, https: bool = True) -> str:
+    async def _link_to_info(self, id: str, id_type: str, https: bool = True) -> str:
         """
         ### Для использования требуется токен kodik
         Получить ссылку до страницы с данными.
@@ -215,7 +221,8 @@ class KodikParser:
             serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&imdbID={id}"
         else:
             raise ValueError("Неизвестный тип id")
-        data = requests.get(serv).json()
+        data = await self.requests.get(serv)
+        data = data.json()
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
@@ -224,7 +231,7 @@ class KodikParser:
             raise errors.NoResults(f'Нет данных по {id_type} id "{id}"')
         return 'https:'+data['link'] if https else 'http:'+data['link']
     
-    def get_info(self, id: str, id_type: str) -> dict:
+    async def get_info(self, id: str, id_type: str) -> dict:
         """
         ### Для использования требуется токен kodik
 
@@ -244,8 +251,9 @@ class KodikParser:
             ]
         }
         """
-        link = self._link_to_info(id, id_type)
-        data = requests.get(link).text
+        link = await self._link_to_info(id, id_type)
+        data = await self.requests.get(link)
+        data = data.text
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         if self._is_serial(link):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
@@ -276,7 +284,7 @@ class KodikParser:
     def _is_video(self, iframe_url: str) -> bool:
         return True if iframe_url[iframe_url.find(".info/")+6] == "v" else False
     
-    def _generate_translations_dict(self, translations_div: Soup) -> dict:
+    def _generate_translations_dict(self, translations_div: Soup | None) -> dict:
         if not isinstance(translations_div, Soup) and translations_div != None:
             translations = []
             for translation in translations_div:
@@ -293,7 +301,7 @@ class KodikParser:
             translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
         return translations
 
-    def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
+    async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -310,8 +318,9 @@ class KodikParser:
 
         И максимально возможное качество.
         """
-        link = self._link_to_info(id, id_type)
-        data = requests.get(link).text
+        link = await self._link_to_info(id, id_type)
+        data = await self.requests.get(link)
+        data = data.text
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
         urlParams = json.loads(urlParams[:urlParams.find(';')-1])
@@ -325,7 +334,8 @@ class KodikParser:
                     media_id = translation.get_attribute_list('data-media-id')[0]
                     break
             url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-            data = requests.get(url).text
+            data = await self.requests.get(url)
+            data = data.text
             soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         elif translation_id != "0" and seria_num == 0: # Фильм/одна серия с несколькими переводами
             container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
@@ -337,7 +347,8 @@ class KodikParser:
                     media_id = translation.get_attribute_list('data-media-id')[0]
                     break
             url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-            data = requests.get(url).text
+            data = await self.requests.get(url)
+            data = data.text
             soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
 
@@ -349,14 +360,14 @@ class KodikParser:
         video_id = hash_container[hash_container.find('.id = \'')+7:]
         video_id = video_id[:video_id.find('\'')]
 
-        link_data, max_quality = self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
+        link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
 
         download_url = str(link_data).replace("https://", '')
         download_url = download_url[2:-26] # :hls:manifest.m3u8
 
         return download_url, max_quality
     
-    def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
+    async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
         params={
             "hash": video_hash,
             "id": video_id,
@@ -375,8 +386,9 @@ class KodikParser:
             "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        post_link = self._get_post_link(script_url)
-        data = requests.post(f'https://kodik.info{post_link}', data=params, headers=headers).json()
+        post_link = await self._get_post_link(script_url)
+        data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
+        data = data.json()
         url = self._convert(data['links']['360'][0]['src'])
         max_quality = max([int(x) for x in data['links'].keys()])
         try:
@@ -400,19 +412,35 @@ class KodikParser:
         # Декодирование строки со ссылкой
         return "".join(map(self._convert_char, list(string)))
     
-    def _get_post_link(self, script_url: str):
-        data = requests.get('https://kodik.info'+script_url).text
+    async def _get_post_link(self, script_url: str):
+        data = await self.requests.get('https://kodik.info'+script_url)
+        data = data.text
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
         return b64decode(url.encode()).decode()
 
     @staticmethod
-    def get_token() -> str:
+    async def get_token() -> str:
         """
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
         script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-        data = requests.get(script_url).text
+        req = AsyncSession()
+        data = await req.get(script_url)
+        data = data.text
+        token = data[data.find('token=')+7:]
+        token = token[:token.find('"')]
+        return token
+
+    @staticmethod
+    def get_token_sync() -> str:
+        """
+        Попытка получения токена.
+        Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
+        """
+        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+        data = requests.get(script_url)
+        data = data.text
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token

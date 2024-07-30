@@ -51,3 +51,9 @@
 
 ## To 1.4.4
 - Fixed AniboomParser - mpd playlist was without full link to server
+
+## To 1.5.0
+- Created internal_tools.py with classes for async parsers
+- Added KodikParserAsync
+- Done tests for KodikParserAsync
+- Fix missplelling in docs for `search` function in KodikParser

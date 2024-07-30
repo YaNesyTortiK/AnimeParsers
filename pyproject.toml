@@ -1,6 +1,6 @@
 [project]
 name = "anime_parsers_ru"
-version = "1.4.4"
+version = "1.5.0"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
@@ -18,11 +18,14 @@ classifiers = [
 ]
 dependencies = [
   "beautifulsoup4>=4.12",
-  "requests>=2.32",
-  "lxml>=5.2"
+  "requests>=2.32"
 ]
 license = {file = "LICENSE"}
 keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "shikimori", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори"]
+
+[project.optional-dependencies]
+async = ["aiohttp>=3.9.5"]
+lxml = ["lxml>=5.2"]
 
 [project.urls]
 Homepage = "https://github.com/YaNesyTortiK/AnimeParsers"

@@ -1,4 +1,5 @@
 import unittest
+import asyncio
 
 GLOBAL_USE_LXML = True
 class TestKodik(unittest.TestCase):
@@ -84,6 +85,93 @@ class TestKodik(unittest.TestCase):
         from anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
         link = parser.get_link('2472', 'shikimori', 0, '609')
+        self.assertIsInstance(link, tuple)
+        self.assertIsInstance(link[0], str)
+        self.assertIsInstance(link[1], int)
+
+class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
+    USE_LXML = GLOBAL_USE_LXML
+    def test_import(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+
+    async def test_auto_token(self):
+        from anime_parsers_ru import KodikParserAsync
+        goten_token = await KodikParserAsync.get_token()
+        self.assertIsInstance(goten_token, str)
+    
+    async def test_init(self):
+        from anime_parsers_ru import KodikParserAsync
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+    
+    async def test_base_search(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        search = await parser.base_search('Наруто', 10) # Гарантированно существующий результат
+        self.assertIsInstance(search, dict)
+        self.assertNotEqual(search['total'], 0)
+        try:
+            await parser.base_search('grtk~Q@@!#JKBNVFLD', 10) # Гарантированно несуществующий резльтат
+        except errors.NoResults:
+            pass
+        except Exception as ex:
+            raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
+
+    async def test_get_info_serial(self):
+        from anime_parsers_ru import KodikParserAsync
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        cur_search = await parser.get_info('z20', 'shikimori')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+        
+        cur_search = await parser.get_info('283290', 'kinopoisk')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+        
+        cur_search = await parser.get_info('tt0409591', 'imdb')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+
+    async def test_get_info_video(self):
+        from anime_parsers_ru import KodikParserAsync
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        cur_search = await parser.get_info('2472', 'shikimori')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+        
+        cur_search = await parser.get_info('283418', 'kinopoisk')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+        
+        cur_search = await parser.get_info('tt0988982', 'imdb')
+        self.assertIsInstance(cur_search, dict)
+        self.assertIsInstance(cur_search['series_count'], int)
+        self.assertIsInstance(cur_search['translations'], list)
+        self.assertIsInstance(cur_search['translations'][0], dict)
+
+    async def test_get_link_serial(self):
+        from anime_parsers_ru import KodikParserAsync
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        link = await parser.get_link('z20', 'shikimori', 1, '609')
+        self.assertIsInstance(link, tuple)
+        self.assertIsInstance(link[0], str)
+        self.assertIsInstance(link[1], int)
+    
+    async def test_get_link_video(self):
+        from anime_parsers_ru import KodikParserAsync
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        link = await parser.get_link('2472', 'shikimori', 0, '609')
         self.assertIsInstance(link, tuple)
         self.assertIsInstance(link[0], str)
         self.assertIsInstance(link[1], int)

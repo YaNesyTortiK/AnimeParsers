@@ -4,13 +4,28 @@
 
 ## Что есть на данный момент
 - [x] Парсер Kodik (автоматическое получение api ключа)
+- [x] Асинхронный парсер Kodik
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
 - [x] Парсер JutSu (без функции поиска)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api)
 
 ## Установка
+- Установка без lxml (при импорте классов не забудьте передать параметр use_lxml=False):
+    ```commandline
+    pip install anime-parsers-ru
+    ```
+- Установка с lxml:
+    ```commandline
+    pip install anime-parsers-ru[lxml]
+    ```
+- Установка с асинхронными библиотеками (без lxml):
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+
+Установка lxml вручную:
 ```commandline
-pip install anime-parsers-ru
+pip install lxml
 ```
 
 # Инструкция к парсерам
@@ -27,13 +42,31 @@ pip install anime-parsers-ru
 > В большинстве случаев в комментариях к функциям описаны шаблоны и возможные значения возвращаемых данных
 
 0. Установите и импортируйте библиотеку
+    
+    Без lxml:
     ```commandline
     pip install anime-parsers-ru
+    ```
+    С lxml:
+    ```commandline
+    pip install anime-parsers-ru[lxml]
     ```
     ```python
     from anime_parsers_ru import KodikParser
 
     parser = KodikParser(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    ```
+
+    __Для асинхронного кода__:
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+    (Установка без lxml)
+    ```python
+    from anime_parsers_ru import KodikParserAsync
+
+    parser = KodikParserAsync(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    # Далее перед всеми функциями дополнительно нужно прописывать await
     ```
 
 1. Поиск аниме по названию
