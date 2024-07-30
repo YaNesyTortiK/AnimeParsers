@@ -13,11 +13,13 @@ class Response:
     """
     Класс для удобства использования AsyncSession
     Параметры:
-    status, text
+    status, status_code, text, url
     """
-    def __init__(self, status, text) -> None:
+    def __init__(self, status, text, url) -> None:
         self.status = status
+        self.status_code = status
         self.text = text
+        self.url = url
 
     def json(self):
         return json.loads(self.text)
@@ -34,12 +36,14 @@ class AsyncSession:
         async with aiohttp.request(method='get', url=url, **kwargs) as response:
             return Response(
                 status=response.status,
-                text=await response.text()
+                text=await response.text(),
+                url= response.url.human_repr()
             )
     
     async def post(self, url: str, **kwargs) -> Response:
         async with aiohttp.request(method='post', url=url, **kwargs) as response:
             return Response(
                 status=response.status,
-                text=await response.text()
+                text=await response.text(),
+                url= response.url.human_repr()
             )

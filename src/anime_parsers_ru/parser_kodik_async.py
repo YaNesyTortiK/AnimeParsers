@@ -11,7 +11,6 @@ from base64 import b64decode
 
 import anime_parsers_ru.errors as errors
 from anime_parsers_ru.internal_tools import AsyncSession
-import asyncio
 
 class KodikParserAsync:
     """

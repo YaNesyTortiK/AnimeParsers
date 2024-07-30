@@ -8,6 +8,7 @@
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
 - [x] Парсер JutSu (без функции поиска)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api)
+- [x] Асинхронный парсер Shikimori
 
 ## Установка
 - Установка без lxml (при импорте классов не забудьте передать параметр use_lxml=False):
@@ -394,6 +395,16 @@ pip install lxml
     from anime_parsers_ru import ShikimoriParser
 
     parser = ShikimoriParser()
+    ```
+    __Для асинхронного кода__:
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+    ```python
+    from anime_parsers_ru import ShikimoriParserAsync
+
+    parser = ShikimoriParserAsync(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    # Далее перед всеми функциями дополнительно нужно прописывать await
     ```
 
 > [!NOTE]

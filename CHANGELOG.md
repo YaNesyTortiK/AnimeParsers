@@ -57,3 +57,8 @@
 - Added KodikParserAsync
 - Done tests for KodikParserAsync
 - Fix missplelling in docs for `search` function in KodikParser
+
+## To 1.6.0
+- Added ShikimoriParserAsync
+- Done tests for ShikimoriParserAsync
+- Added `url` and `status_code` parameters to internal_tools.Response
