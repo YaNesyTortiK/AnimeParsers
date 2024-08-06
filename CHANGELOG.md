@@ -65,3 +65,7 @@
 
 ## To 1.6.1
 - Set `use_lxml` as `False` by default.
+
+## To 1.7.0
+- Added AniboomParserAsync
+- Done tests for AniboomParserAsync

@@ -6,8 +6,9 @@
 - [x] Парсер Kodik (автоматическое получение api ключа)
 - [x] Асинхронный парсер Kodik
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
-- [x] Парсер JutSu (без функции поиска)
-- [x] Парсер Shikimori (с возможностью использовать псевдо-api)
+- [x] Асинхронный парсер Aniboom
+- [x] Парсер JutSu (без функции поиска, не требует api ключей)
+- [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей)
 - [x] Асинхронный парсер Shikimori
 
 ## Установка
@@ -140,6 +141,16 @@ pip install lxml
     from anime_parsers_ru import AniboomParser
 
     parser = AniboomParser()
+    ```
+    __Для асинхронного кода__:
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+    ```python
+    from anime_parsers_ru import AniboomParserAsync
+
+    parser = AniboomParserAsync()
+    # Далее перед всеми функциями дополнительно нужно прописывать await
     ```
 
 1. Поиск по названию

@@ -296,6 +296,126 @@ class TestAniboom(unittest.TestCase):
         first_row = data[:data.find('\n')]
         self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
 
+class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
+    USE_LXML = GLOBAL_USE_LXML
+    def test_import(self):
+        from anime_parsers_ru import AniboomParserAsync
+        import anime_parsers_ru.errors as errors
+
+    def test_init(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+    
+    async def test_fast_search(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        search = await parser.fast_search('Наруто')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
+        # Нельзя проверить на то что нет результатов, потому что у animego всегда есть результаты на какой угодно запрос \_(-_-)_/
+        
+    async def test_episodes_info(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        data = await parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0) # У данного аниме гарантированно есть эпизоды
+        self.assertIsInstance(data[0], dict)
+        if len(data) > 1:
+            self.assertGreater(data[-1]['num'], data[0]['num']) # Проверка сортировки
+
+        # Проверка для фильмов
+        data = await parser.episodes_info('https://animego.org/anime/psihopasport-film-1327')
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 0)
+    
+    async def test_translations_info(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        data = await parser.get_translations_info('2546') # Волчица и пряности 2024
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0) # У данного аниме гарантированно есть переводы в плеере aniboom
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(list(data[0].keys()) == ['name', 'translation_id'])
+    
+        # Проверка для отсутсвующих переводов
+        data = await parser.get_translations_info('106') # Наруто: Битва на Хидден-Фолс
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 0)
+
+    async def test_anime_info(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        data = await parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        self.assertIsInstance(data, dict)
+        self.assertTrue('episodes_info' in data.keys())
+        self.assertTrue('translations' in data.keys())
+
+        # Проверка без трейлера и переводов
+        data = await parser.anime_info('https://animego.org/anime/naruto-bitva-na-hidden-fols-106')
+        self.assertIsInstance(data, dict)
+        self.assertTrue('episodes_info' in data.keys())
+        self.assertTrue('translations' in data.keys())
+
+    async def test_search(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+
+        search = await parser.search('Наруто')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
+
+        search = await parser.search('Кулинарные скитания')
+        self.assertGreater(len(search), 0) # Гарантированно имеются данные
+        self.assertIsInstance(search, list)
+        self.assertIsInstance(search[0], dict)
+    
+    async def test_get_embed_link(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        data = await parser._get_embed_link('2546')
+        self.assertIsInstance(data, str)
+    
+    async def test_get_embed(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        link = await parser._get_embed_link('2546') # Волчица и пряности 2024
+        data = await parser._get_embed(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+
+        # Проверка для фильма
+        link = await parser._get_embed_link('1327') # Психопаспорт (фильм)
+        data = await parser._get_embed(link, 0, '15') # Озвучка от СВ-Дубль
+        self.assertIsInstance(data, str)
+    
+    async def test_get_media_src(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        link = await parser._get_embed_link('2546') # Волчица и пряности 2024
+        data = await parser._get_media_src(link, 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+
+        # Проверка для фильма
+        link = await parser._get_embed_link('1327') # Психопаспорт (фильм)
+        data = await parser._get_media_src(link, 0, '15') # Озвучка от СВ-Дубль
+        self.assertIsInstance(data, str)
+    
+    async def test_get_mpd_playlist(self):
+        from anime_parsers_ru import AniboomParserAsync
+        parser = AniboomParserAsync(use_lxml=self.USE_LXML)
+        data = await parser.get_mpd_playlist('2546', 1, '2') # Озвучка от AniLibria
+        self.assertIsInstance(data, str)
+        first_row = data[:data.find('\n')]
+        self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
+
+        # Проверка для фильма
+        data = await parser.get_mpd_playlist('1327', 0, '15') # Психопаспорт (фильм) Озвучка от СВ-Дубль
+        self.assertIsInstance(data, str)
+        first_row = data[:data.find('\n')]
+        self.assertTrue(first_row == '<?xml version="1.0" encoding="utf-8"?>')
+
 class TestJutsu(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.6.1
+Version: 1.7.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -36,8 +36,9 @@ Requires-Dist: lxml>=5.2; extra == "lxml"
 - [x] Парсер Kodik (автоматическое получение api ключа)
 - [x] Асинхронный парсер Kodik
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
-- [x] Парсер JutSu (без функции поиска)
-- [x] Парсер Shikimori (с возможностью использовать псевдо-api)
+- [x] Асинхронный парсер Aniboom
+- [x] Парсер JutSu (без функции поиска, не требует api ключей)
+- [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей)
 - [x] Асинхронный парсер Shikimori
 
 ## Установка
