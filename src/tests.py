@@ -1,7 +1,7 @@
 import unittest
 import asyncio
 
-GLOBAL_USE_LXML = True
+GLOBAL_USE_LXML = False
 class TestKodik(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
@@ -621,5 +621,5 @@ class TestShikimori(unittest.IsolatedAsyncioTestCase):
 
 
 if __name__ == "__main__":
-    GLOBAL_USE_LXML = True
+    GLOBAL_USE_LXML = False
     unittest.main()

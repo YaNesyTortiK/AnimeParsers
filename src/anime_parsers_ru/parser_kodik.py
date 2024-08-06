@@ -15,7 +15,7 @@ class KodikParser:
     """
     Парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = True) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)

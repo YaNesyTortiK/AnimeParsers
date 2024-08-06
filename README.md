@@ -11,7 +11,7 @@
 - [x] Асинхронный парсер Shikimori
 
 ## Установка
-- Установка без lxml (при импорте классов не забудьте передать параметр use_lxml=False):
+- Стандартная установка:
     ```commandline
     pip install anime-parsers-ru
     ```
@@ -19,6 +19,7 @@
     ```commandline
     pip install anime-parsers-ru[lxml]
     ```
+    Для использования lxml при инициализации парсера установите параметр `use_lxml = True`
 - Установка с асинхронными библиотеками (без lxml):
     ```commandline
     pip install anime-parsers-ru[async]
@@ -44,7 +45,7 @@ pip install lxml
 
 0. Установите и импортируйте библиотеку
     
-    Без lxml:
+    Стандартно:
     ```commandline
     pip install anime-parsers-ru
     ```

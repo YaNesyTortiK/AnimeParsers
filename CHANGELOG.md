@@ -62,3 +62,6 @@
 - Added ShikimoriParserAsync
 - Done tests for ShikimoriParserAsync
 - Added `url` and `status_code` parameters to internal_tools.Response
+
+## To 1.6.1
+- Set `use_lxml` as `False` by default.

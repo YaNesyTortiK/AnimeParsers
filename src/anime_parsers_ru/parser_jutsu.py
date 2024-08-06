@@ -13,7 +13,7 @@ class JutsuParser:
     """
     Парсер jut.su
     """
-    def __init__(self, use_lxml: bool = True) -> None:
+    def __init__(self, use_lxml: bool = False) -> None:
         """
         :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
         """

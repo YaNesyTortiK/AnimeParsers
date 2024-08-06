@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.6.0
+Version: 1.6.1
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -38,9 +38,10 @@ Requires-Dist: lxml>=5.2; extra == "lxml"
 - [x] Парсер AniBoom (на основе animego, не требует api ключей)
 - [x] Парсер JutSu (без функции поиска)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api)
+- [x] Асинхронный парсер Shikimori
 
 ## Установка
-- Установка без lxml (при импорте классов не забудьте передать параметр use_lxml=False):
+- Стандартная установка:
     ```commandline
     pip install anime-parsers-ru
     ```
@@ -48,6 +49,7 @@ Requires-Dist: lxml>=5.2; extra == "lxml"
     ```commandline
     pip install anime-parsers-ru[lxml]
     ```
+    Для использования lxml при инициализации парсера установите параметр `use_lxml = True`
 - Установка с асинхронными библиотеками (без lxml):
     ```commandline
     pip install anime-parsers-ru[async]
@@ -73,7 +75,7 @@ pip install lxml
 
 0. Установите и импортируйте библиотеку
     
-    Без lxml:
+    Стандартно:
     ```commandline
     pip install anime-parsers-ru
     ```
@@ -424,6 +426,16 @@ pip install lxml
     from anime_parsers_ru import ShikimoriParser
 
     parser = ShikimoriParser()
+    ```
+    __Для асинхронного кода__:
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+    ```python
+    from anime_parsers_ru import ShikimoriParserAsync
+
+    parser = ShikimoriParserAsync(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    # Далее перед всеми функциями дополнительно нужно прописывать await
     ```
 
 > [!NOTE]

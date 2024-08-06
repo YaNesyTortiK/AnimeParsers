@@ -14,7 +14,7 @@ class ShikimoriParserAsync:
     """
     Парсер шикимори. Не использует встроенный в шикимори api.
     """
-    def __init__(self, use_lxml: bool = True) -> None:
+    def __init__(self, use_lxml: bool = False) -> None:
         """
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         """
