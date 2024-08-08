@@ -69,3 +69,8 @@
 ## To 1.7.0
 - Added AniboomParserAsync
 - Done tests for AniboomParserAsync
+
+## To 1.7.1
+- Added `base_search_by_id` and `search_by_id` for KodikParser and KodikParserAsync
+- Added tests for new functions and test for `search` function (for some reason i forgot to add it earlier)
+- Added `link` parameter to result of `search` function

@@ -31,6 +31,36 @@ class TestKodik(unittest.TestCase):
         except Exception as ex:
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
+    def test_base_search_by_id(self):
+        from anime_parsers_ru import KodikParser
+        import anime_parsers_ru.errors as errors
+        parser = KodikParser(use_lxml=self.USE_LXML)
+        search = parser.base_search_by_id('20', 'shikimori') # Гарантированно существующий результат
+        self.assertIsInstance(search, dict)
+        self.assertNotEqual(search['total'], 0)
+        try:
+            parser.base_search_by_id('0', 'shikimori') # Гарантированно несуществующий резльтат
+        except errors.NoResults:
+            pass
+        except Exception as ex:
+            raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
+
+    def test_search(self):
+        from anime_parsers_ru import KodikParser
+        import anime_parsers_ru.errors as errors
+        parser = KodikParser(use_lxml=self.USE_LXML)
+        search = parser.search('Наруто')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
+    
+    def test_search_by_id(self):
+        from anime_parsers_ru import KodikParser
+        import anime_parsers_ru.errors as errors
+        parser = KodikParser(use_lxml=self.USE_LXML)
+        search = parser.search_by_id('20', 'shikimori')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
+
     def test_get_info_serial(self):
         from anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
@@ -117,6 +147,36 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
             pass
         except Exception as ex:
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
+
+    async def test_base_search_by_id(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        search = await parser.base_search_by_id('20', 'shikimori') # Гарантированно существующий результат
+        self.assertIsInstance(search, dict)
+        self.assertNotEqual(search['total'], 0)
+        try:
+            parser.base_search_by_id('0', 'shikimori') # Гарантированно несуществующий резльтат
+        except errors.NoResults:
+            pass
+        except Exception as ex:
+            raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
+
+    async def test_search(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        search = await parser.search('Наруто')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
+    
+    async def test_search_by_id(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        search = await parser.search_by_id('20', 'shikimori')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
 
     async def test_get_info_serial(self):
         from anime_parsers_ru import KodikParserAsync

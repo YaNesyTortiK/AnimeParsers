@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.7.0
+Version: 1.7.1
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -108,7 +108,14 @@ pip install lxml
     ```
     Возвращает словарь из аниме и их данных (см. комментарии к функции)
 
-2. Получить информацию об аниме
+2. Поиск аниме по id
+    ```python
+    parser.search_by_id("20", "shikimori") # список словарей
+    # Доступные id_type: "shikimori", "kinopoisk", "imdb"
+    ```
+    Возвращает словарь из аниме и их данных (см. комментарии к функции)
+
+3. Получить информацию об аниме
     ```python
     parser.get_info("z20", "shikimori") # Информация по "Наруто"
     ```
@@ -134,7 +141,7 @@ pip install lxml
         ```python
         parser.translations("z20", "shikimori") # список словарей
         ```
-3. Прямая ссылка на видеофайл
+4. Прямая ссылка на видеофайл
     ```python
     parser.get_link(
         id="z20", 
@@ -171,6 +178,16 @@ pip install lxml
     from anime_parsers_ru import AniboomParser
 
     parser = AniboomParser()
+    ```
+    __Для асинхронного кода__:
+    ```commandline
+    pip install anime-parsers-ru[async]
+    ```
+    ```python
+    from anime_parsers_ru import AniboomParserAsync
+
+    parser = AniboomParserAsync()
+    # Далее перед всеми функциями дополнительно нужно прописывать await
     ```
 
 1. Поиск по названию

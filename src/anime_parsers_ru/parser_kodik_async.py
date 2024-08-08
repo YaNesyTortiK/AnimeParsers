@@ -101,6 +101,79 @@ class KodikParserAsync:
         if data['total'] == 0:
             raise errors.NoResults(f'По запросу "{title}" ничего не найдено')
         return data
+    
+    async def base_search_by_id(self, id: str, id_type: str, limit: int = 50, include_material_data: bool = True) -> dict:
+        """
+        ### Для использования требуется токен kodik
+        Прямой запрос к базе кодика без дополнительных преобразований
+
+        :id: id аниме на одном из сайтов
+        :id_type: с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+        :limit: Верхнее ограничение количества ответов
+        :include_material_data: Добавлять в ответ дополнительные данные о сериале
+
+        Возвращает словарь следующего вида (на запрос 'Наруто'):
+        Некоторые параметры могут отличаться в зависимости от типа/состояния контента
+        {
+            "time": "18ms",
+            "total": 50,
+            "results": [
+                {
+                    "id": "movie-20609",
+                    "type": "anime",
+                    "link": "//kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p",
+                    "title": "Наруто 4",
+                    "title_orig": "Gekijô-ban Naruto shippûden",
+                    "other_title": "Наруто (фильм четвёртый) - Смерть Наруто / Наруто: Ураганные Хроники - Адепты Тёмного царства",
+                    "translation": {
+                        "id": 767,
+                        "title": "SHIZA Project",
+                        "type": "voice"
+                    },
+                    "year": 2007,
+                    "kinopoisk_id": "283418",
+                    "imdb_id": "tt0988982",
+                    "worldart_link": "http://www.world-art.ru/animation/animation.php?id=6476",
+                    "shikimori_id": "2472",
+                    "quality": "BDRip 720p",
+                    "camrip": false,
+                    "lgbt": false,
+                    "blocked_countries": [],
+                    "created_at": "2018-01-21T13:18:37Z",
+                    "updated_at": "2019-11-16T22:13:46Z",
+                    "screenshots": [
+                        "https://i.kodik.biz/screenshots/video/20609/1.jpg",
+                        "https://i.kodik.biz/screenshots/video/20609/2.jpg",
+                        "https://i.kodik.biz/screenshots/video/20609/3.jpg",
+                        "https://i.kodik.biz/screenshots/video/20609/4.jpg",
+                        "https://i.kodik.biz/screenshots/video/20609/5.jpg"
+                    ]
+                },
+                ...
+            ],
+        }
+        """
+        if self.TOKEN is None:
+            raise errors.TokenError('Токен kodik не указан')
+        if id_type not in ['shikimori', 'kinopoisk', 'imdb']:
+            raise errors.PostArgumentsError(f'Поддерживаются только id shikimori, kinopoisk, imdb. Получено: {id_type}')
+        payload = {
+            "token": self.TOKEN,
+            f"{id_type}_id": id,
+            "limit": limit,
+            "with_material_data": include_material_data
+        }
+        url = "https://kodikapi.com/search"
+        data = await self.requests.post(url, data=payload)
+        data = data.json()
+        
+        if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
+            raise errors.TokenError('Отсутствует или неверный токен')
+        elif 'error' in data.keys():
+            raise errors.ServiceError(data['error'])
+        if data['total'] == 0:
+            raise errors.NoResults(f'По id {id_type} "{id}" ничего не найдено')
+        return data
 
     async def search(self, title: str, limit: int|None = None) -> list:
         """
@@ -130,7 +203,8 @@ class KodikParserAsync:
             'material_data' {
                 Здесь будут все данные о сериале имеющиеся у кодика.
                 В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое.
-            }
+            },
+            'link': ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)
         },
         ...
         ]
@@ -163,7 +237,77 @@ class KodikParserAsync:
                     'imdb_id': res['imdb_id'] if 'imdb_id' in res.keys() else None,
                     'worldart_link': res['worldart_link'] if 'worldart_link' in res.keys() else None,
                     'additional_data': additional_data,
-                    'material_data': res['material_data']
+                    'material_data': res['material_data'],
+                    'link': res['link']
+                })
+                added_titles.append(res['title'])
+        return data
+    
+    async def search_by_id(self, id: str, id_type: str, limit: int|None = None) -> list:
+        """
+        ### Для использования требуется токен kodik
+        Получение только самых основных данных о сериале.
+        Для получения всех данных воспользуйтесь функцией base_search
+
+        :id: id аниме на одном из сайтов
+        :id_type: с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+        :limit: Верхнее ограничение количества ответов для base_search (необязательно)
+
+        Возвращает список словарей в следующем виде:
+        [
+        {
+            'title': Название,
+            'type': тип мультимедия (anime, film, ...)
+            'year': Год выпуска фильма,
+            'screenshots': [
+                ссылки на скриншоты
+            ],
+            'shikimori_id': Id шикимори, если нет - None,
+            'kinopoisk_id': Id кинопоиска, если нет - None,
+            'imdb_id': Id imdb, если нет - None,
+            'worldart_link': ссылка на worldart, если нет - None
+            'additional_data': {
+                Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом
+            },
+            'material_data' {
+                Здесь будут все данные о сериале имеющиеся у кодика.
+                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое.
+            },
+            'link': ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)
+        },
+        ...
+        ]
+        """
+        if limit is None:
+            search_data = await self.base_search_by_id(id, id_type, include_material_data=True)
+        else:
+            search_data = await self.base_search_by_id(id, id_type, limit, include_material_data=True)
+        data = []
+        added_titles = []
+        for res in search_data['results']:
+            if res['title'] not in added_titles:
+                additional_data = {}
+                for k, i in res.items():
+                    if k not in ['title', 'type', 'year', 'screenshots', 'translation',
+                                 'shikimori_id', 'kinopoisk_id', 'imdb_id', 'worldart_link',
+                                 'id', 'link', 'title_orig', 'other_title', 'created_at', 
+                                 'updated_at', 'quality', 'material_data', 'link']:
+                        additional_data[k] = i
+                
+                data.append({
+                    'title': res['title'],
+                    'title_orig': res['title_orig'],
+                    'other_title': res['other_title'] if 'other_title' in res.keys() else None,
+                    'type': res['type'],
+                    'year': res['year'],
+                    'screenshots': res['screenshots'],
+                    'shikimori_id': res['shikimori_id'] if 'shikimori_id' in res.keys() else None,
+                    'kinopoisk_id': res['kinopoisk_id'] if 'kinopoisk_id' in res.keys() else None,
+                    'imdb_id': res['imdb_id'] if 'imdb_id' in res.keys() else None,
+                    'worldart_link': res['worldart_link'] if 'worldart_link' in res.keys() else None,
+                    'additional_data': additional_data,
+                    'material_data': res['material_data'],
+                    'link': res['link']
                 })
                 added_titles.append(res['title'])
         return data
