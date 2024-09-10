@@ -74,3 +74,6 @@
 - Added `base_search_by_id` and `search_by_id` for KodikParser and KodikParserAsync
 - Added tests for new functions and test for `search` function (for some reason i forgot to add it earlier)
 - Added `link` parameter to result of `search` function
+
+## To 1.7.2
+- Fixed when shikimori parser couldn't get name of related media (if this media is clip, it has different html scheme for naming)

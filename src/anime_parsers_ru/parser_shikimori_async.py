@@ -260,7 +260,13 @@ class ShikimoriParserAsync:
                     c_data['picture'] = None
                     if not entry.find('picture') is None:
                         c_data['picture'] = entry.find('picture').find('img').get_attribute_list('srcset')[0].replace(' 2x', '')
-                    c_data['name'] = entry.find('div', {'class': 'name'}).find('span', {'class': 'name-ru'}).text
+                    try:
+                        c_data['name'] = entry.find('div', {'class': 'name'}).find('span', {'class': 'name-ru'}).text
+                    except AttributeError:
+                        try:
+                            c_data['name'] = entry.find('div', {'class': 'name'}).find('span', {'class': 'name-en'}).text
+                        except AttributeError:
+                            c_data['name'] = None
                     for other in entry.find('div', {'class': 'line'}).find_all('div'):
                         cls = other.get_attribute_list('class')
                         if 'b-anime_status_tag' in cls:
@@ -271,6 +277,12 @@ class ShikimoriParserAsync:
                                 c_data['type'] = other.text
                             elif '/season/' in link:
                                 c_data['date'] = other.text
+                    # Если в связанных клип (по другому отрисовано имя)
+                    if c_data['type'] == 'Клип' and c_data['name'] == None:
+                        try:
+                            c_data['name'] = entry.find('div', {'class': 'name'}).find('a').text
+                        except:
+                            pass                
                     # Заполняем пустое
                     for k in ['relation', 'type', 'date']:
                         if k not in c_data.keys():
