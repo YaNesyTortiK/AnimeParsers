@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.7.2
+Version: 1.8.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -561,7 +561,52 @@ pip install lxml
     }
     ```
 
-4. Вспомогательные функции
+4. Получить список аниме с шикимори по фильтрам
+    ```python
+    parser.get_anime_list('статус аниме', 'тип аниме', 'начальная страница', 'количество страниц для парсинга', 'принцип сортировки')
+    ```
+    Доступные фильтры:
+    - status - текущий статус выхода (по умолчанию all)
+        - all - любой
+        - ongoing - онгоинг
+        - anons - анонс
+        - released - вышло
+        - latest - вышло недавно
+    - anime_type - тип аниме (по умолчанию all)
+        - all - любой
+        - tv - TV Сериал
+        - movie - Фильм
+        - ova - OVA
+        - ona - ONA
+        - special - спецвыпуск
+        - tv_special - TV спецвыпуск
+        - music - клип
+        - pv - проморолик
+        - cm - реклама
+    - start_page - начальная страница (начиная с 1) (по умолчанию 1)
+    - page_limit - какое количество страниц парсить (по умолчанию 3)
+    - sort_by - тип сортировки (по умолчанию rating)
+        - rating - по рэйтингу
+        - popularity - по популярности
+        - name - по алфавиту
+        - aired_on - по дате выхода
+        - ranked_random - случайно
+        - id_desc - по id шикимори
+
+    Возвращает список словарей:
+    ```json
+    {
+        "original_title": "Оригинальное название (на английском)",
+        "poster": "Ссылка на картинку-постер",
+        "shikimori_id": "id шикимори",
+        "title": "Название на русском",
+        "type": "Тип аниме (TV Сериал, ONA, ...)",
+        "url": "Ссылка на страницу аниме",
+        "year": "год выхода аниме"
+    }
+    ```
+
+5. Вспомогательные функции
     - Ссылка на страницу шикимори по id
         ```python
         parser.link_by_id('shikimori_id')
@@ -575,7 +620,7 @@ pip install lxml
         Возвращает shikimori_id
         (ссылка: https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi id: 53446)
 
-5. Поиск аниме и информации по аниме через псевдо api shikimori
+6. Поиск аниме и информации по аниме через псевдо api shikimori
     Данные функции используют предоставленную shikimori тестовую функцию для api. (https://shikimori.one/api/doc/graphql)
     Подробные примеры запросов и ответов вы можете посмотреть в файле [SHIKI_API.md](https://github.com/YaNesyTortiK/AnimeParsers/blob/main/SHIKI_API.md)
     

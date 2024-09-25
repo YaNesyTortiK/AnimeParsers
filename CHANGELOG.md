@@ -77,3 +77,6 @@
 
 ## To 1.7.2
 - Fixed when shikimori parser couldn't get name of related media (if this media is clip, it has different html scheme for naming)
+
+## To 1.8.0
+- Added get_anime_list function to shikimori parser to get list of animes by filters

@@ -636,6 +636,50 @@ class TestShikimori(unittest.TestCase):
         data = parser.id_by_link('https://shikimori.one/animes/58426-shikanoko-nokonoko-koshitantan') # Моя подруга-олениха Нокотан (реальный id - 58426 ожидаем - 58426)
         self.assertIsInstance(data, str)
         self.assertTrue(data == '58426')
+
+    def test_get_anime_list(self):
+        from anime_parsers_ru import ShikimoriParser
+        parser = ShikimoriParser(self.USE_LXML)
+
+        data = parser.get_anime_list()
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.get_anime_list(status='ongoing')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.get_anime_list(status='released')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.get_anime_list(anime_type='tv')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = parser.get_anime_list(anime_type='movie')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'Фильм')
+
+        data = parser.get_anime_list(status='ongoing', anime_type='tv')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = parser.get_anime_list(status='ongoing', anime_type='tv', start_page=3, page_limit=2, sort_by='popularity')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+        
     
     def test_deep_search(self):
         from anime_parsers_ru import ShikimoriParser
@@ -769,6 +813,49 @@ class TestShikimori(unittest.IsolatedAsyncioTestCase):
         data = parser.id_by_link('https://shikimori.one/animes/58426-shikanoko-nokonoko-koshitantan') # Моя подруга-олениха Нокотан (реальный id - 58426 ожидаем - 58426)
         self.assertIsInstance(data, str)
         self.assertTrue(data == '58426')
+
+    async def test_get_anime_list(self):
+        from anime_parsers_ru import ShikimoriParserAsync
+        parser = ShikimoriParserAsync(self.USE_LXML)
+
+        data = await parser.get_anime_list()
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = await parser.get_anime_list(status='ongoing')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = await parser.get_anime_list(status='released')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = await parser.get_anime_list(anime_type='tv')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = await parser.get_anime_list(anime_type='movie')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'Фильм')
+
+        data = await parser.get_anime_list(status='ongoing', anime_type='tv')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = await parser.get_anime_list(status='ongoing', anime_type='tv', start_page=3, page_limit=2, sort_by='popularity')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
     
     async def test_deep_search(self):
         from anime_parsers_ru import ShikimoriParserAsync

@@ -6,6 +6,7 @@ else:
     LXML_WORKS = True
 import re
 from bs4 import BeautifulSoup as Soup
+import json
 
 import anime_parsers_ru.errors as errors
 from anime_parsers_ru.internal_tools import AsyncSession
@@ -331,6 +332,114 @@ class ShikimoriParserAsync:
                 c_data['link'] = sim.find('div').get_attribute_list('data-href')[0]
                 res['similar'].append(c_data)
         return res
+    
+    async def get_anime_list(self, status: str = 'all', anime_type: str = 'all', start_page: int = 1, page_limit: int = 3, sort_by: str = 'rating') -> list:
+        """
+        Получить список аниме по фильтрам
+
+        :status: текущий статус аниме (Доступно: all (любой), ongoing, anons, released, latest) (По умолчанию ongoing)
+        :anime_type: Тип аниме (Доступно: all (все), tv (тв сериал), movie (фильм), ova, ona, special (спецвыпуски), tv_special (ты спецвыпуск), music (клип), pv (проморолик), cm (реклама)) (По умолчанию: all)
+        :start_page: Начальная страница для поиска (По умолчанию 1)
+        :page_limit: ограничение по количеству страниц для парсинга (По умолчанию 3)
+        :sort_by: как сортировать выдачу (Доступно: rating (рэйтинг), popularity (популярность), name (по алфавиту), aired_on (по дате выхода), ranked_random (случайно), id_desc (по id))
+
+        Возвращает список словарей вида:
+        [
+            {
+                'original_title': 'Оригинальное название (на английском)',
+                'poster': 'Ссылка на картинку-постер',
+                'shikimori_id': 'id шикимори',
+                'title': 'Название на русском',
+                'type': 'Тип аниме (TV Сериал, ONA, ...)',
+                'url': 'Ссылка на страницу аниме',
+                'year': 'год выхода аниме'
+            },
+            ...
+        ]
+        """
+        if page_limit <= 0:
+            return []
+
+        if status not in ['all', 'ongoing', 'anons', 'released', 'latest']:
+            status = 'all'
+        if anime_type not in ['all', 'tv', 'movie', 'ova', 'ona', 'special', 'tv_special', 'music', 'pv', 'cm']:
+            anime_type = 'all'
+        if sort_by not in ['rating', 'popularity', 'name', 'aired_on', 'ranked_random', 'id_desc']:
+            sort_by = 'rating' # По умолчанию сортировка по рейтингу
+        
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'https://shikimori.one/animes/status/ongoing',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+
+        search_url = 'https://shikimori.one/animes'
+        if anime_type != 'all':
+            search_url += f'/kind/{anime_type}'
+        if status != 'all':
+            search_url += f'/status/{status}'
+
+        res = []
+        i = start_page
+        total_pages = start_page+1 # (После первого запроса обновится)
+        while i <= start_page+page_limit and i <= total_pages:
+            response = await self.requests.get(f'{search_url}/page/{i}.json?order={sort_by}', headers=headers)
+            if response.status_code != 200:
+                raise errors.ServiceError('Произошла непредвиденная ошибка при получении данных об онгоингах. Ожидался статус ответа 200. Получен: ', response.status_code)
+            try:
+                data = response.json()
+            except json.JSONDecodeError:
+                raise errors.UnexpectedBehaviour('Ошибка парсинга json при получении данных об онгоингах')
+            else:
+                total_pages = data['pages_count']
+                soup = Soup(data['content'], 'lxml') if self.USE_LXML else Soup(data['content'], 'html.parser')
+                articles = soup.find_all('article')
+                if len(articles) == 0 and i > 1:
+                    return res # В случае если страница есть но данных на ней нет
+                elif len(articles) == 0 and i == 1: # Если на первой странице нет данных
+                    raise errors.NoResults('Данные по онгоингам не найдены')
+                for art in articles:
+                    res.append(self._get_anime_info_from_article(art))
+            i += 1
+        return res
+    
+    def _get_anime_info_from_article(self, article: Soup) -> dict:
+        """
+        Используется для получения данных из article
+        """
+        c_data = {}
+        c_data['shikimori_id'] = article.get_attribute_list('id')[0]
+        link = article.find('a')
+        c_data['url'] = link.get_attribute_list('href')[0]
+        try:
+            pict = article.find('picture').find('img')
+            c_data['poster'] = pict.get_attribute_list('srcset')[0][:-3]
+        except:
+            c_data['poster'] = None
+        try:
+            c_data['original_title'] = article.find('span', {'class': 'name-en'}).text
+            c_data['title'] = article.find('span', {'class': 'name-ru'}).text
+        except: # Если не найдено по отдельности, то скорее всего есть только один вариант
+            try:
+                c_data['original_title'] = article.find('span', {'class': 'title'}).text
+                c_data['title'] = c_data['original_title']
+            except:
+                c_data['original_title'] = None
+                c_data['title'] = None
+        c_data['type'] = None
+        c_data['year'] = None
+        try:
+            misc = article.find('span', {'class': 'misc'}).find_all('span')
+            for m in misc:
+                if m.text.isdigit():
+                    c_data['year'] = m.text
+                else:
+                    c_data['type'] = m.text
+        except:
+            pass
+        return c_data
 
     async def link_by_id(self, shikimori_id: str) -> str:
         """
