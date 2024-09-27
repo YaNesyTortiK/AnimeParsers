@@ -646,35 +646,52 @@ class TestShikimori(unittest.TestCase):
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = parser.get_anime_list(status='ongoing')
+        data = parser.get_anime_list(status=['ongoing'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = parser.get_anime_list(status='released')
+        data = parser.get_anime_list(status=['released'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = parser.get_anime_list(anime_type='tv')
+        data = parser.get_anime_list(status=['released', 'ongoing'])
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = parser.get_anime_list(anime_type=['tv'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'TV Сериал')
 
-        data = parser.get_anime_list(anime_type='movie')
+        data = parser.get_anime_list(anime_type=['movie'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'Фильм')
 
-        data = parser.get_anime_list(status='ongoing', anime_type='tv')
+        data = parser.get_anime_list(anime_type=['movie', 'tv'])
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'Фильм' or data[0]['type'] == 'TV Сериал')
+
+        data = parser.get_anime_list(status=['ongoing'], anime_type=['tv'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'TV Сериал')
 
-        data = parser.get_anime_list(status='ongoing', anime_type='tv', start_page=3, page_limit=2, sort_by='popularity')
+        data = parser.get_anime_list(status=['ongoing'], anime_type=['tv'], start_page=3, page_limit=2, sort_by='popularity')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = parser.get_anime_list(status=['ongoing'], anime_type=['tv'], rating='pg_13', genres=['2-Adventure'], start_page=1, page_limit=2, sort_by='popularity')
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
@@ -823,35 +840,52 @@ class TestShikimori(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = await parser.get_anime_list(status='ongoing')
+        data = await parser.get_anime_list(status=['ongoing'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = await parser.get_anime_list(status='released')
+        data = await parser.get_anime_list(status=['released'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
 
-        data = await parser.get_anime_list(anime_type='tv')
+        data = await parser.get_anime_list(status=['released', 'ongoing'])
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+
+        data = await parser.get_anime_list(anime_type=['tv'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'TV Сериал')
 
-        data = await parser.get_anime_list(anime_type='movie')
+        data = await parser.get_anime_list(anime_type=['movie'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'Фильм')
 
-        data = await parser.get_anime_list(status='ongoing', anime_type='tv')
+        data = await parser.get_anime_list(anime_type=['movie', 'tv'])
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'Фильм' or data[0]['type'] == 'TV Сериал')
+
+        data = await parser.get_anime_list(status=['ongoing'], anime_type=['tv'])
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
         self.assertTrue(data[0]['type'] == 'TV Сериал')
 
-        data = await parser.get_anime_list(status='ongoing', anime_type='tv', start_page=3, page_limit=2, sort_by='popularity')
+        data = await parser.get_anime_list(status=['ongoing'], anime_type=['tv'], start_page=3, page_limit=2, sort_by='popularity')
+        self.assertTrue(len(data) > 0)
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], dict)
+        self.assertTrue(data[0]['type'] == 'TV Сериал')
+
+        data = await parser.get_anime_list(status=['ongoing'], anime_type=['tv'], rating='pg_13', genres=['2-Adventure'], start_page=1, page_limit=2, sort_by='popularity')
         self.assertTrue(len(data) > 0)
         self.assertIsInstance(data, list)
         self.assertIsInstance(data[0], dict)
@@ -888,5 +922,5 @@ class TestShikimori(unittest.IsolatedAsyncioTestCase):
 
 
 if __name__ == "__main__":
-    GLOBAL_USE_LXML = False
+    GLOBAL_USE_LXML = True
     unittest.main()

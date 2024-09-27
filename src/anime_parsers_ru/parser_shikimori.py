@@ -15,6 +15,9 @@ class ShikimoriParser:
     """
     Парсер шикимори. Не использует встроенный в шикимори api.
     """
+
+    genres_list = ['1-Action', '2-Adventure', '3-Racing', '4-Comedy', '5-Avant-Garde', '6-Mythology', '7-Mystery', '8-Drama', '9-Ecchi', '10-Fantasy', '11-Strategy-Game', '13-Historical', '14-Horror', '15-Kids', '17-Martial-Arts', '18-Mecha', '19-Music', '20-Parody', '21-Samurai', '22-Romance', '23-School', '24-Sci-Fi', '25-Shoujo', '27-Shounen', '29-Space', '30-Sports', '31-Super-Power', '32-Vampire', '35-Harem', '36-Slice-of-Life', '37-Supernatural', '38-Military', '39-Detective', '40-Psychological', '42-Seinen', '43-Josei', '102-Team-Sports', '103-Video-Game', '104-Adult-Cast', '105-Gore', '106-Reincarnation', '107-Love-Polygon', '108-Visual-Arts', '111-Time-Travel', '112-Gag-Humor', '114-Award-Winning', '117-Suspense', '118-Combat-Sports', '119-CGDCT', '124-Mahou-Shoujo', '125-Reverse-Harem', '130-Isekai', '131-Delinquents', '134-Childcare', '135-Magical-Sex-Shift', '136-Showbiz', '137-Otaku-Culture', '138-Organized-Crime', '139-Workplace', '140-Iyashikei', '141-Survival', '142-Performing-Arts', '143-Anthropomorphic', '144-Crossdressing', '145-Idols-(Female)', '146-High-Stakes-Game', '147-Medical', '148-Pets', '149-Educational', '150-Idols-(Male)', '151-Romantic-Subtext', '543-Gourmet']
+
     def __init__(self, use_lxml: bool = False) -> None:
         """
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
@@ -332,12 +335,88 @@ class ShikimoriParser:
                 res['similar'].append(c_data)
         return res
     
-    def get_anime_list(self, status: str = 'all', anime_type: str = 'all', start_page: int = 1, page_limit: int = 3, sort_by: str = 'rating') -> list:
+    def get_anime_list(self, status: list[str] = [], anime_type: list[str] = [], rating: str | None = None, genres: list[str] = [], start_page: int = 1, page_limit: int = 3, sort_by: str = 'rating') -> list:
         """
         Получить список аниме по фильтрам
 
-        :status: текущий статус аниме (Доступно: all (любой), ongoing, anons, released, latest) (По умолчанию all)
-        :anime_type: Тип аниме (Доступно: all (все), tv (тв сериал), movie (фильм), ova, ona, special (спецвыпуски), tv_special (тв спецвыпуск), music (клип), pv (проморолик), cm (реклама)) (По умолчанию: all)
+        :status: текущий статус аниме (список нужных) (Доступно: ongoing, anons, released, latest) (По умолчанию пусто - любой)
+        :anime_type: Тип аниме (список нужных) (Доступно: tv (тв сериал), movie (фильм), ova, ona, special (спецвыпуски), tv_special (тв спецвыпуск), music (клип), pv (проморолик), cm (реклама)) (По умолчанию пусто - любой)
+        :rating: Возрастной рейтинг (Один вариант) (Доступно: g (нет возрастного ограничения), pg (рекомендуется присутствие родителей), pg_13 (детям до 13 просмотр не желателен), r (Лицам до 17 лет обязательно присутствие взрослого), r_plus (Лицам до 17 лет просмотр запрещен)) (По умолчанию пусто - любой)
+        :genres: Жанры (список нужных) (Доступно: 
+            "1-Action": "Экшен",
+            "2-Adventure": "Приключения",
+            "3-Racing": "Гонки",
+            "4-Comedy": "Комедия",
+            "5-Avant-Garde": "Авангард",
+            "6-Mythology": "Мифология",
+            "7-Mystery": "Тайна",
+            "8-Drama": "Драма",
+            "9-Ecchi": "Этти",
+            "10-Fantasy": "Фэнтези",
+            "11-Strategy-Game": "Стратегические игры",
+            "13-Historical": "Исторический",
+            "14-Horror": "Ужасы",
+            "15-Kids": "Детское",
+            "17-Martial-Arts": "Боевые искусства",
+            "18-Mecha": "Меха",
+            "19-Music": "Музыка",
+            "20-Parody": "Пародия",
+            "21-Samurai": "Самураи",
+            "22-Romance": "Романтика",
+            "23-School": "Школа",
+            "24-Sci-Fi": "Фантастика",
+            "25-Shoujo": "Сёдзё",
+            "27-Shounen": "Сёнен",
+            "29-Space": "Космос",
+            "30-Sports": "Спорт",
+            "31-Super-Power": "Супер сила",
+            "32-Vampire": "Вампиры",
+            "35-Harem": "Гарем",
+            "36-Slice-of-Life": "Повседневность",
+            "37-Supernatural": "Сверхъестественное",
+            "38-Military": "Военное",
+            "39-Detective": "Детектив",
+            "40-Psychological": "Психологическое",
+            "42-Seinen": "Сэйнэн",
+            "43-Josei": "Дзёсей",
+            "102-Team-Sports": "Командный спорт",
+            "103-Video-Game": "Видеоигры",
+            "104-Adult-Cast": "Взрослые персонажи",
+            "105-Gore": "Жестокость",
+            "106-Reincarnation": "Реинкарнация",
+            "107-Love-Polygon": "Любовный многоугольник",
+            "108-Visual-Arts": "Изобразительное искусство",
+            "111-Time-Travel": "Путешествие во времени",
+            "112-Gag-Humor": "Гэг-юмор",
+            "114-Award-Winning": "Удостоено наград",
+            "117-Suspense": "Триллер",
+            "118-Combat-Sports": "Спортивные единоборства",
+            "119-CGDCT": "CGDCT",
+            "124-Mahou-Shoujo": "Махо-сёдзё",
+            "125-Reverse-Harem": "Реверс-гарем",
+            "130-Isekai": "Исэкай",
+            "131-Delinquents": "Хулиганы",
+            "134-Childcare": "Забота о детях",
+            "135-Magical-Sex-Shift": "Магическая смена пола",
+            "136-Showbiz": "Шоу-бизнес",
+            "137-Otaku-Culture": "Культура отаку",
+            "138-Organized-Crime": "Организованная преступность",
+            "139-Workplace": "Работа",
+            "140-Iyashikei": "Иясикэй",
+            "141-Survival": "Выживание",
+            "142-Performing-Arts": "Исполнительское искусство",
+            "143-Anthropomorphic": "Антропоморфизм",
+            "144-Crossdressing": "Кроссдрессинг",
+            "145-Idols-(Female)": "Идолы (Жен.)",
+            "146-High-Stakes-Game": "Игра с высокими ставками",
+            "147-Medical": "Медицина",
+            "148-Pets": "Питомцы",
+            "149-Educational": "Образовательное",
+            "150-Idols-(Male)": "Идолы (Муж.)",
+            "151-Romantic-Subtext": "Романтический подтекст",
+            "543-Gourmet": "Гурман"
+            )
+            (По умолчанию пусто - любой)
         :start_page: Начальная страница для поиска (По умолчанию 1)
         :page_limit: ограничение по количеству страниц для парсинга (По умолчанию 3)
         :sort_by: как сортировать выдачу (Доступно: rating (рэйтинг), popularity (популярность), name (по алфавиту), aired_on (по дате выхода), ranked_random (случайно), id_desc (по id)) (По умолчанию: rating)
@@ -359,13 +438,11 @@ class ShikimoriParser:
         if page_limit <= 0:
             return []
 
-        if status not in ['all', 'ongoing', 'anons', 'released', 'latest']:
-            status = 'all'
-        if anime_type not in ['all', 'tv', 'movie', 'ova', 'ona', 'special', 'tv_special', 'music', 'pv', 'cm']:
-            anime_type = 'all'
+        status = [st for st in status if st in ['ongoing', 'anons', 'released', 'latest']] # Убираем все неизвестные варианты чтобы ничего не сломалось
+        anime_type = [st for st in anime_type if st in ['tv', 'movie', 'ova', 'ona', 'special', 'tv_special', 'music', 'pv', 'cm']] # Убираем все неизвестные варианты чтобы ничего не сломалось
         if sort_by not in ['rating', 'popularity', 'name', 'aired_on', 'ranked_random', 'id_desc']:
             sort_by = 'rating' # По умолчанию сортировка по рейтингу
-        
+        genres = [st for st in genres if st in self.genres_list]
 
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
@@ -375,16 +452,20 @@ class ShikimoriParser:
         }
 
         search_url = 'https://shikimori.one/animes'
-        if anime_type != 'all':
-            search_url += f'/kind/{anime_type}'
-        if status != 'all':
-            search_url += f'/status/{status}'
+        if len(anime_type) > 0:
+            search_url += f'/kind/{",".join(anime_type)}'
+        if len(status) > 0:
+            search_url += f'/status/{",".join(status)}'
+        if len(genres) > 0:
+            search_url += f'/genre/{",".join(genres)}'
+        if rating != None and rating not in ['g', 'pg' 'pg_13', 'r', 'r_plus']:
+            rating = None # Проверяем что введены только доступные (для рэйтинга rx требуется аккаунт или пользуйтесь функцией deep_search)
 
         res = []
         i = start_page
         total_pages = start_page+1 # (После первого запроса обновится)
-        while i <= start_page+page_limit and i <= total_pages:
-            response = requests.get(f'{search_url}/page/{i}.json?order={sort_by}', headers=headers)
+        while i < start_page+page_limit and i <= total_pages:
+            response = requests.get(f'{search_url}/page/{i}.json?order={sort_by}{f"&rating={rating}" if rating != None else ""}', headers=headers)
             if response.status_code != 200:
                 raise errors.ServiceError('Произошла непредвиденная ошибка при получении данных об онгоингах. Ожидался статус ответа 200. Получен: ', response.status_code)
             try:

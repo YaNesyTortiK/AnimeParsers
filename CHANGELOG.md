@@ -80,3 +80,6 @@
 
 ## To 1.8.0
 - Added get_anime_list function to shikimori parser to get list of animes by filters
+
+## To 1.8.1
+- Updated get_anime_list function to shikimori parser to have ability to pass multiple arguments, also added genre and rating filters 
