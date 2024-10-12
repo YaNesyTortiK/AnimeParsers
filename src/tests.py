@@ -156,7 +156,7 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(search, dict)
         self.assertNotEqual(search['total'], 0)
         try:
-            parser.base_search_by_id('0', 'shikimori') # Гарантированно несуществующий резльтат
+            await parser.base_search_by_id('0', 'shikimori') # Гарантированно несуществующий резльтат
         except errors.NoResults:
             pass
         except Exception as ex:
@@ -727,7 +727,7 @@ class TestShikimori(unittest.TestCase):
         else:
             raise Warning(f'Гарантированно неверный код не вернул ошибку. Ожидалось: NoResults')
 
-class TestShikimori(unittest.IsolatedAsyncioTestCase):
+class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
         from anime_parsers_ru import ShikimoriParserAsync

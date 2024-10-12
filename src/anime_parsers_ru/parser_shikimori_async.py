@@ -60,7 +60,11 @@ class ShikimoriParserAsync:
         }
         # Используем autocomplete эндпоинт, потому что обычный поиск тупо блокируется если находит 18+ контент
         response = await self.requests.get('https://shikimori.one/animes/autocomplete/v2', params=params, headers=headers)
-        if response.status_code != 200:
+        if response.status_code == 520:
+            raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code == 429:
+            raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
+        elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()['content']
         soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
@@ -128,6 +132,8 @@ class ShikimoriParserAsync:
         response = await self.requests.get(shikimori_link, headers=headers)
         if response.status_code == 520:
             raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code == 429:
+                raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
@@ -245,6 +251,8 @@ class ShikimoriParserAsync:
         response = await self.requests.get(link, headers=headers)
         if response.status_code == 520:
             raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code == 429:
+                raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
@@ -467,7 +475,11 @@ class ShikimoriParserAsync:
         total_pages = start_page+1 # (После первого запроса обновится)
         while i < start_page+page_limit and i <= total_pages:
             response = await self.requests.get(f'{search_url}/page/{i}.json?order={sort_by}{f"&rating={rating}" if rating != None else ""}', headers=headers)
-            if response.status_code != 200:
+            if response.status_code == 429:
+                raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
+            elif response.status_code == 520:
+                raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+            elif response.status_code != 200:
                 raise errors.ServiceError('Произошла непредвиденная ошибка при получении данных об онгоингах. Ожидался статус ответа 200. Получен: ', response.status_code)
             try:
                 data = response.json()
@@ -537,10 +549,14 @@ class ShikimoriParserAsync:
             actual_code = soup.find('p', {'class': 'error-404'}).text
             if actual_code == '404':
                 raise errors.NoResults(f'Страница аниме с shikimori_id "{shikimori_id}" не найдена.')
+            elif actual_code == '429':
+                raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
             elif actual_code == '302':
                 return soup.find('a').get_attribute_list('href')[0]
             else:
                 raise errors.UnexpectedBehaviour(f'Непредвиденная ошибка при попытке нахождения страницы по id ({shikimori_id}). Ожидались коды: "404", "302", "200". Обнаружен: "{actual_code}"')
+        elif response.status_code == 429:
+            raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
         elif response.status_code == 200 or response.status_code == 302:
             return response.url
         elif response.status_code == 520:
@@ -613,6 +629,8 @@ class ShikimoriParserAsync:
         response = await self.requests.post('https://shikimori.one/api/graphql', headers=headers, json=json_data)
         if response.status_code == 520:
             raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code == 429:
+            raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -664,6 +682,8 @@ class ShikimoriParserAsync:
         response = await self.requests.post('https://shikimori.one/api/graphql', headers=headers, json=json_data)
         if response.status_code == 520:
             raise errors.TooManyRequests(f'Сервер вернул код 520 для обозначения что запросы выполняются слишком часто.')
+        elif response.status_code == 429:
+            raise errors.ServiceIsOverloaded("Сервер вернул статус ответа 429, что означает что он перегружен и не может ответить сразу.")
         elif response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()

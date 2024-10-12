@@ -43,3 +43,9 @@ class ContentBlocked(Exception):
     """
     Ошибка для обозначения заблокированного контента/плеера
     """
+
+class ServiceIsOverloaded(Exception):
+    """
+    Ошибка для обозначения http кода 429
+    Используется в парсере shikimori
+    """

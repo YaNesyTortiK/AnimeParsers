@@ -83,3 +83,8 @@
 
 ## To 1.8.1
 - Updated get_anime_list function to shikimori parser to have ability to pass multiple arguments, also added genre and rating filters 
+
+## To 1.8.2
+- Fixed tests (TestShikimoriParser never actually worked, because async version had same class name)
+- Added new Exception type (errors.ServiceIsOverloaded) to indicate http response code 429 (for shikimori parsers)
+- Added docs about existing Exceptions
