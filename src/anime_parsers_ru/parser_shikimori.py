@@ -38,12 +38,12 @@ class ShikimoriParser:
                 "genres": ["Жанр1", "Жанр2"],
                 "link": "Ссылка на страницу аниме",
                 "original_title": "Оригинальное название (транслит японского названия на английском)",
-                "poster": "Ссылка на постер к аниме (плохое качество) если есть, иначе None",
+                "poster": "Ссылка на постер к аниме (плохое качество) (если есть, иначе None)",
                 "shikimori_id": "id шикимори",
-                "status": "статус (вышло, онгоинг, анонс)",
+                "status": "статус (вышло, онгоинг, анонс) (если есть, иначе None)",
                 "studio": "студия анимации (если есть, иначе None)",
                 "title": "Название",
-                "type": "тип аниме (TV сериал, OVA, ONA, ...)",
+                "type": "тип аниме (TV сериал, OVA, ONA, ...) (если есть, иначе None)",
                 "year": "год выхода (если есть, иначе None)"
             }
         ]
@@ -81,15 +81,21 @@ class ShikimoriParser:
             info = anime.find('div', {'class': 'info'})
             c_data['original_title'] = info.find('div', {'class': 'name'}).find('a').get_attribute_list('title')[0]
             c_data['title'] = info.find('div', {'class': 'name'}).find('a').text.split('/')[0]
-            c_data['type'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find('div', {'class': 'b-tag'}).text
-            c_data['status'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})[-1].get_attribute_list('data-text')[0]
-            if len(info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})) > 1:
-                c_data['studio'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})[0].get_attribute_list('data-text')[0]
+            if info.find('div', {'class': 'line'}).find('div', {'class': 'key'}).text == 'Тип:':
+                c_data['type'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find('div', {'class': 'b-tag'}).text
+                c_data['status'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})[-1].get_attribute_list('data-text')[0]
+                if len(info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})) > 1:
+                    c_data['studio'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-anime_status_tag'})[0].get_attribute_list('data-text')[0]
+                else:
+                    c_data['studio'] = None
+                if len(info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-tag'})) > 1:
+                    c_data['year'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-tag'})[-1].text.replace(' год', '')
+                else:
+                    c_data['year'] = None
             else:
+                c_data['type'] = None # В некоторых случаях возможна ситуация когда не известна ни дата выхода, ни тип аниме.
+                c_data['status'] = None
                 c_data['studio'] = None
-            if len(info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-tag'})) > 1:
-                c_data['year'] = info.find('div', {'class': 'line'}).find('div', {'class': 'value'}).find_all('div', {'class': 'b-tag'})[-1].text.replace(' год', '')
-            else:
                 c_data['year'] = None
             c_data['genres'] = []
             for genre in info.find_all('span', {'class': 'genre-ru'}):

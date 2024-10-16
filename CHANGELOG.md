@@ -88,3 +88,6 @@
 - Fixed tests (TestShikimoriParser never actually worked, because async version had same class name)
 - Added new Exception type (errors.ServiceIsOverloaded) to indicate http response code 429 (for shikimori parsers)
 - Added docs about existing Exceptions
+
+## To 1.8.3
+- Fixed rare bug in shikimori parser `search` function. Some animes don't have any info about type, year, type. Now this values will be `None` if this anime appeared.
