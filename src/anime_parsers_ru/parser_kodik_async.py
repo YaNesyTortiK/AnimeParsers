@@ -88,7 +88,7 @@ class KodikParserAsync:
             "token": self.TOKEN,
             "title": title,
             "limit": limit,
-            "with_material_data": include_material_data
+            "with_material_data": 'true' if include_material_data else 'false'
         }
         url = "https://kodikapi.com/search"
         data = await self.requests.post(url, data=payload)
@@ -161,7 +161,7 @@ class KodikParserAsync:
             "token": self.TOKEN,
             f"{id_type}_id": id,
             "limit": limit,
-            "with_material_data": include_material_data
+            "with_material_data": 'true' if include_material_data else 'false'
         }
         url = "https://kodikapi.com/search"
         data = await self.requests.post(url, data=payload)
@@ -174,8 +174,75 @@ class KodikParserAsync:
         if data['total'] == 0:
             raise errors.NoResults(f'По id {id_type} "{id}" ничего не найдено')
         return data
+    
+    async def get_list(self, limit_per_page: int = 50, pages_to_parse: int = 1, include_material_data: bool = True, only_anime: bool = False, start_from: str|None = None) -> tuple[list[dict],str]:
+        """
+        Получение случайного списка аниме от кодика (скорее всего это будут онгоинги)
 
-    async def search(self, title: str, limit: int|None = None) -> list:
+        :limit_per_page: Ограничение на количество результатов на запрос(страницу), не все элементы в списке будут аниме (по умолчанию 50)
+        :pages_to_parse: Ограничение на количество страниц для обработки (каждая страница - отдельный запрос) (по умолчанию 1)
+        :include_material_data: Добавление дополнительных данных (необязательно, по умолчанию True)
+        :only_anime: Возвращать только варианты аниме (тип anime или anime-serial) (по умолчанию False)
+        :start_from: Поиск следующих страниц по заданному id (id возвращается вторым элементом кортежа) (по умолчанию None)
+
+        Возвращает кортеж из списка словарей и id страницы:
+        (
+            [
+            {
+                "title": "Название",
+                "type": "тип мультимедия (anime, film, ...)",
+                "year": "Год выпуска фильма",
+                "screenshots": [
+                    "ссылки на скриншоты"
+                ],
+                "shikimori_id": "Id шикимори, если нет - None",
+                "kinopoisk_id": "Id кинопоиска, если нет - None",
+                "imdb_id": "Id imdb, если нет - None",
+                "worldart_link": "ссылка на worldart, если нет - None",
+                "additional_data": {
+                    "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
+                },
+                "material_data": { 
+                    "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+                    В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
+                },
+                "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+            },
+            ...
+            ],
+            "next_page_id": "id следующей страницы (для последовательного парсинга нескольких страниц) (может быть None, если след. страниц нет)"
+        )
+        """
+        if self.TOKEN is None:
+            raise errors.TokenError('Токен kodik не указан')
+        results = []
+        next_page = start_from
+        payload = {
+            "token": self.TOKEN,
+            "limit": limit_per_page,
+            "with_material_data": 'true' if include_material_data else 'false'
+        }
+        for _ in range(pages_to_parse):
+            if next_page != None:
+                payload['next'] = next_page
+            url = "https://kodikapi.com/list"
+            data = await self.requests.post(url, data=payload)
+            data = data.json()
+            
+            if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
+                raise errors.TokenError('Отсутствует или неверный токен')
+            elif 'error' in data.keys():
+                raise errors.ServiceError(data['error'])
+            if data['total'] == 0:
+                raise errors.NoResults(f'Ничего не найдено. Скорее всего произошла ошибка, попробуйте позже или сообщите об ошибке на гитхабе.')
+            if 'next_page' in data.keys():
+                next_page = data['next_page'][data['next_page'].rfind('=')+1:]
+            else:
+                next_page = None
+            results += data['results']
+        return (self._prettify_data(results, only_anime=only_anime), next_page)
+
+    async def search(self, title: str, limit: int|None = None, include_material_data: bool = True, only_anime: bool = False) -> list:
         """
         ### Для использования требуется токен kodik
         Получение только самых основных данных о сериале.
@@ -187,61 +254,33 @@ class KodikParserAsync:
         Возвращает список словарей в следующем виде:
         [
         {
-            'title': Название,
-            'type': тип мультимедия (anime, film, ...)
-            'year': Год выпуска фильма,
-            'screenshots': [
-                ссылки на скриншоты
+            "title": "Название",
+            "type": "тип мультимедия (anime, film, ...)",
+            "year": "Год выпуска фильма",
+            "screenshots": [
+                "ссылки на скриншоты"
             ],
-            'shikimori_id': Id шикимори, если нет - None,
-            'kinopoisk_id': Id кинопоиска, если нет - None,
-            'imdb_id': Id imdb, если нет - None,
-            'worldart_link': ссылка на worldart, если нет - None
-            'additional_data': {
-                Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом
+            "shikimori_id": "Id шикимори, если нет - None",
+            "kinopoisk_id": "Id кинопоиска, если нет - None",
+            "imdb_id": "Id imdb, если нет - None",
+            "worldart_link": "ссылка на worldart, если нет - None",
+            "additional_data": {
+                "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
             },
-            'material_data' {
-                Здесь будут все данные о сериале имеющиеся у кодика.
-                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое.
+            "material_data": { 
+                "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
             },
-            'link': ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)
+            "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
         },
         ...
         ]
         """
         if limit is None:
-            search_data = await self.base_search(title, include_material_data=True)
+            search_data = await self.base_search(title, include_material_data=include_material_data)
         else:
-            search_data = await self.base_search(title, limit, include_material_data=True)
-        data = []
-        added_titles = []
-        for res in search_data['results']:
-            if res['title'] not in added_titles:
-                additional_data = {}
-                for k, i in res.items():
-                    if k not in ['title', 'type', 'year', 'screenshots', 'translation',
-                                 'shikimori_id', 'kinopoisk_id', 'imdb_id', 'worldart_link',
-                                 'id', 'link', 'title_orig', 'other_title', 'created_at', 
-                                 'updated_at', 'quality', 'material_data']:
-                        additional_data[k] = i
-                
-                data.append({
-                    'title': res['title'],
-                    'title_orig': res['title_orig'],
-                    'other_title': res['other_title'] if 'other_title' in res.keys() else None,
-                    'type': res['type'],
-                    'year': res['year'],
-                    'screenshots': res['screenshots'],
-                    'shikimori_id': res['shikimori_id'] if 'shikimori_id' in res.keys() else None,
-                    'kinopoisk_id': res['kinopoisk_id'] if 'kinopoisk_id' in res.keys() else None,
-                    'imdb_id': res['imdb_id'] if 'imdb_id' in res.keys() else None,
-                    'worldart_link': res['worldart_link'] if 'worldart_link' in res.keys() else None,
-                    'additional_data': additional_data,
-                    'material_data': res['material_data'],
-                    'link': res['link']
-                })
-                added_titles.append(res['title'])
-        return data
+            search_data = await self.base_search(title, limit, include_material_data=include_material_data)
+        return self._prettify_data(search_data['results'], only_anime=only_anime)
     
     async def search_by_id(self, id: str, id_type: str, limit: int|None = None) -> list:
         """
@@ -256,24 +295,24 @@ class KodikParserAsync:
         Возвращает список словарей в следующем виде:
         [
         {
-            'title': Название,
-            'type': тип мультимедия (anime, film, ...)
-            'year': Год выпуска фильма,
-            'screenshots': [
-                ссылки на скриншоты
+            "title": "Название",
+            "type": "тип мультимедия (anime, film, ...)",
+            "year": "Год выпуска фильма",
+            "screenshots": [
+                "ссылки на скриншоты"
             ],
-            'shikimori_id': Id шикимори, если нет - None,
-            'kinopoisk_id': Id кинопоиска, если нет - None,
-            'imdb_id': Id imdb, если нет - None,
-            'worldart_link': ссылка на worldart, если нет - None
-            'additional_data': {
-                Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом
+            "shikimori_id": "Id шикимори, если нет - None",
+            "kinopoisk_id": "Id кинопоиска, если нет - None",
+            "imdb_id": "Id imdb, если нет - None",
+            "worldart_link": "ссылка на worldart, если нет - None",
+            "additional_data": {
+                "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
             },
-            'material_data' {
-                Здесь будут все данные о сериале имеющиеся у кодика.
-                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое.
+            "material_data": { 
+                "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
             },
-            'link': ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)
+            "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
         },
         ...
         ]
@@ -282,9 +321,20 @@ class KodikParserAsync:
             search_data = await self.base_search_by_id(id, id_type, include_material_data=True)
         else:
             search_data = await self.base_search_by_id(id, id_type, limit, include_material_data=True)
+        return self._prettify_data(search_data['results'])
+
+    def _prettify_data(self, results: list[dict], only_anime: bool = False) -> list[dict]:
+        """
+        Превращает полченные данные от запроса кодику в удобный вариант словаря
+
+        :results: список словарей (response['results'] в json'е от кодика)
+        :only_anime: Возвращать только варианты аниме (тип anime или anime-serial) (по умолчанию False)
+        """
         data = []
         added_titles = []
-        for res in search_data['results']:
+        for res in results:
+            if only_anime and res['type'] not in ['anime-serial', 'anime']:
+                continue
             if res['title'] not in added_titles:
                 additional_data = {}
                 for k, i in res.items():
@@ -306,7 +356,7 @@ class KodikParserAsync:
                     'imdb_id': res['imdb_id'] if 'imdb_id' in res.keys() else None,
                     'worldart_link': res['worldart_link'] if 'worldart_link' in res.keys() else None,
                     'additional_data': additional_data,
-                    'material_data': res['material_data'],
+                    'material_data': res['material_data'] if 'material_data' in res.keys() else None,
                     'link': res['link']
                 })
                 added_titles.append(res['title'])

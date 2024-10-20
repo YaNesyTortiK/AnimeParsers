@@ -91,3 +91,12 @@
 
 ## To 1.8.3
 - Fixed rare bug in shikimori parser `search` function. Some animes don't have any info about type, year, type. Now this values will be `None` if this anime appeared.
+
+## To 1.9.0
+Overall fixes and adjustments to KodikParser and KodikParserAsync
+
+- Added `get_list` function to get ongoings*.
+- Fixed `include_material_data` flag to actually work
+- Added `only_anime` flag to filter only results where type is `anime` or `anime-serial`
+- Moved json parser to separate function `_prettify_data` to avoid repeating code
+- Polished and refactored some parts of README about KodikParser

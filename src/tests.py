@@ -45,6 +45,22 @@ class TestKodik(unittest.TestCase):
         except Exception as ex:
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
+    def test_list(self):
+        from anime_parsers_ru import KodikParser
+        import anime_parsers_ru.errors as errors
+        parser = KodikParser(use_lxml=self.USE_LXML)
+        data = parser.get_list(include_material_data=False)
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
+
+        data = parser.get_list(limit_per_page=10, pages_to_parse=3, only_anime=True)
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
+
     def test_search(self):
         from anime_parsers_ru import KodikParser
         import anime_parsers_ru.errors as errors
@@ -161,6 +177,22 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
             pass
         except Exception as ex:
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
+
+    async def test_list(self):
+        from anime_parsers_ru import KodikParserAsync
+        import anime_parsers_ru.errors as errors
+        parser = KodikParserAsync(use_lxml=self.USE_LXML)
+        data = await parser.get_list(include_material_data=False)
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
+
+        data = await parser.get_list(limit_per_page=10, pages_to_parse=3, only_anime=True)
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
 
     async def test_search(self):
         from anime_parsers_ru import KodikParserAsync

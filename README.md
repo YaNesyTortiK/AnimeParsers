@@ -75,20 +75,114 @@ pip install lxml
 
 1. Поиск аниме по названию
     ```python
-    parser.search("Наруто") # список словарей
+    parser.search(title="Наруто", limit=None, include_material_data=True, only_anime=False) # список словарей
+    # title - Название аниме/фильма/сериала
+    # limit - количество результатов выдачи (int) (результатов будет сильно меньше чем указанное число, так как в выдаче результаты повторяются)
+    # include_material_data - Добавлять дополнительные данные об элементе
+    # only_anime - возвращать только элементы где type in ['anime', 'anime-serial']
     ```
-    Возвращает словарь из аниме и их данных (см. комментарии к функции)
+    Возвращает:
+    ```json
+    [
+    {
+        "title": "Название",
+        "type": "тип мультимедия (anime, film, ...)",
+        "year": "Год выпуска фильма",
+        "screenshots": [
+            "ссылки на скриншоты"
+        ],
+        "shikimori_id": "Id шикимори, если нет - None",
+        "kinopoisk_id": "Id кинопоиска, если нет - None",
+        "imdb_id": "Id imdb, если нет - None",
+        "worldart_link": "ссылка на worldart, если нет - None",
+        "additional_data": {
+            "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
+        },
+        "material_data": { 
+            "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+            В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
+        },
+        "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+    },
+    ]
+    ```
 
 2. Поиск аниме по id
     ```python
-    parser.search_by_id("20", "shikimori") # список словарей
-    # Доступные id_type: "shikimori", "kinopoisk", "imdb"
+    parser.search_by_id(id="20", id_type="shikimori", limit=None)
+    # id - id аниме на одном из сайтов
+    # id_type - с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+    # limit - количество результатов выдачи (int) (результатов будет сильно меньше чем указанное число, так как в выдаче результаты повторяются)
     ```
-    Возвращает словарь из аниме и их данных (см. комментарии к функции)
+    Возвращает:
+    ```json
+    [
+    {
+        "title": "Название",
+        "type": "тип мультимедия (anime, film, ...)",
+        "year": "Год выпуска фильма",
+        "screenshots": [
+            "ссылки на скриншоты"
+        ],
+        "shikimori_id": "Id шикимори, если нет - None",
+        "kinopoisk_id": "Id кинопоиска, если нет - None",
+        "imdb_id": "Id imdb, если нет - None",
+        "worldart_link": "ссылка на worldart, если нет - None",
+        "additional_data": {
+            "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
+        },
+        "material_data": { 
+            "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+            В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
+        },
+        "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+    },
+    ]
+    ```
 
-3. Получить информацию об аниме
+3. Получить список из недавно обновленных
     ```python
-    parser.get_info("z20", "shikimori") # Информация по "Наруто"
+    data = parser.get_list(limit_per_page=50, pages_to_parse=1, include_material_data=True, only_anime=False, start_from=None)
+    # limit_per_page - количество результатов на одной странице (итоговых результатов будет сильно меньше чем указан параметр)
+    # pages_to_parse - количество страниц для обработки (каждая страница - отдельный запрос)
+    # include_material_data - включить в результат дополнительные данные
+    # only_anime - возвращать только элементы где type in ['anime', 'anime-serial']
+    # start_from - начать поиск со страницы под id (id возвращается вторым элементом результата функции)
+    ```
+    Возвращает:
+    ```json
+    (
+        [
+        {
+            "title": "Название",
+            "type": "тип мультимедия (anime, film, ...)",
+            "year": "Год выпуска фильма",
+            "screenshots": [
+                "ссылки на скриншоты"
+            ],
+            "shikimori_id": "Id шикимори, если нет - None",
+            "kinopoisk_id": "Id кинопоиска, если нет - None",
+            "imdb_id": "Id imdb, если нет - None",
+            "worldart_link": "ссылка на worldart, если нет - None",
+            "additional_data": {
+                "Здесь будут находится все остальные данные выданные кодиком, не связанные с отдельным переводом"
+            },
+            "material_data": { 
+                "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
+                В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
+            },
+            "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+        },
+        ],
+        "next_page_id": "id следующей страницы (для последовательного парсинга нескольких страниц) (может быть None, если след. страниц нет)"
+    )
+    ```
+
+4. Получить информацию об аниме
+    ```python
+    parser.get_info(id="z20", id_type="shikimori")
+    # id - id аниме на одном из сайтов
+    # id_type - с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
     ```
     Возвращает:
     ```json
@@ -112,13 +206,17 @@ pip install lxml
         ```python
         parser.translations("z20", "shikimori") # список словарей
         ```
-4. Прямая ссылка на видеофайл
+5. Прямая ссылка на видеофайл
     ```python
     parser.get_link(
         id="z20", 
         id_type="shikimori", 
         seria_num=1, 
         translation_id="609") # Кортеж
+    # id - id медиа
+    # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
+    # seria_num - номер серии (если фильм или одно видео - 0)
+    # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     ```
     Возвращает кортеж: `("//cloud.kodik-storage.com/useruploads/67b6e546-e51d-43d2-bb11-4d8bfbedc2d7/d6f4716bc90bd30694cf09b0062d07a2:2024062705/", 720)`
     
