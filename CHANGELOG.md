@@ -100,3 +100,7 @@ Overall fixes and adjustments to KodikParser and KodikParserAsync
 - Added `only_anime` flag to filter only results where type is `anime` or `anime-serial`
 - Moved json parser to separate function `_prettify_data` to avoid repeating code
 - Polished and refactored some parts of README about KodikParser
+
+## To 1.9.1
+- Added release status filter in search functions to KodikParser (available: released, ongoing)
+- Added `strict` flag to `search` function to KodikParser (kodik will search by title more strictly, less random unrelated results)

@@ -61,11 +61,22 @@ class TestKodik(unittest.TestCase):
         self.assertTrue(len(data[0]) > 0)
         self.assertIsInstance(data[0][0], dict)
 
+        data = parser.get_list(anime_status='ongoing')
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
+
     def test_search(self):
         from anime_parsers_ru import KodikParser
         import anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
+
         search = parser.search('Наруто')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
+
+        search = parser.search('О моем перерождении в слизь', strict=True, only_anime=True)
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
     
@@ -194,11 +205,22 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(len(data[0]) > 0)
         self.assertIsInstance(data[0][0], dict)
 
+        
+        data = await parser.get_list(anime_status='ongoing')
+        self.assertIsInstance(data, tuple)
+        self.assertIsInstance(data[0], list)
+        self.assertTrue(len(data[0]) > 0)
+        self.assertIsInstance(data[0][0], dict)
+
     async def test_search(self):
         from anime_parsers_ru import KodikParserAsync
         import anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         search = await parser.search('Наруто')
+        self.assertIsInstance(search, list)
+        self.assertNotEqual(len(search), 0)
+
+        search = await parser.search('О моем перерождении в слизь', strict=True, only_anime=True)
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
     

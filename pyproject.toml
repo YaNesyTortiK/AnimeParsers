@@ -1,6 +1,6 @@
 [project]
 name = "anime_parsers_ru"
-version = "1.9.0"
+version = "1.9.1"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]

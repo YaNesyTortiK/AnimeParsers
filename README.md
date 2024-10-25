@@ -75,10 +75,12 @@ pip install lxml
 
 1. Поиск аниме по названию
     ```python
-    parser.search(title="Наруто", limit=None, include_material_data=True, only_anime=False) # список словарей
+    parser.search(title="Наруто", limit=None, include_material_data=True, anime_status=None, strict=False, only_anime=False) # список словарей
     # title - Название аниме/фильма/сериала
     # limit - количество результатов выдачи (int) (результатов будет сильно меньше чем указанное число, так как в выдаче результаты повторяются)
     # include_material_data - Добавлять дополнительные данные об элементе
+    # anime_status - Статус выхода аниме (доступно: released, ongoing, None - если ищется не аниме или любой статус)
+    # strict - Исключение названий далеких от оригинального
     # only_anime - возвращать только элементы где type in ['anime', 'anime-serial']
     ```
     Возвращает:
@@ -140,12 +142,13 @@ pip install lxml
     ]
     ```
 
-3. Получить список из недавно обновленных
+3. Получить список аниме
     ```python
-    data = parser.get_list(limit_per_page=50, pages_to_parse=1, include_material_data=True, only_anime=False, start_from=None)
+    data = parser.get_list(limit_per_page=50, pages_to_parse=1, include_material_data=True, anime_status=None, only_anime=False, start_from=None)
     # limit_per_page - количество результатов на одной странице (итоговых результатов будет сильно меньше чем указан параметр)
     # pages_to_parse - количество страниц для обработки (каждая страница - отдельный запрос)
     # include_material_data - включить в результат дополнительные данные
+    # anime_status - Статус выхода аниме (доступно: released, ongoing, None - если ищется не аниме или любой статус)
     # only_anime - возвращать только элементы где type in ['anime', 'anime-serial']
     # start_from - начать поиск со страницы под id (id возвращается вторым элементом результата функции)
     ```

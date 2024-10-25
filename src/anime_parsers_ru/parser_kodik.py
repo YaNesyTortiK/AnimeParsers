@@ -30,7 +30,7 @@ class KodikParser:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
 
-    def base_search(self, title: str, limit: int = 50, include_material_data: bool = True) -> dict:
+    def base_search(self, title: str, limit: int = 50, include_material_data: bool = True, anime_status: str|None = None, strict: bool = False) -> dict:
         """
         ### Для использования требуется токен kodik
         Прямой запрос к базе кодика без дополнительных преобразований
@@ -38,6 +38,8 @@ class KodikParser:
         :title: Название аниме / фильма / сериала
         :limit: Верхнее ограничение количества ответов
         :include_material_data: Добавлять в ответ дополнительные данные о сериале
+        :anime_status: Статус выхода аниме (доступно: released, ongoing, None - если ищется не аниме или любой статус)
+        :strict: Исключение названий далеких от оригинального
 
         Возвращает словарь следующего вида (на запрос 'Наруто'):
         Некоторые параметры могут отличаться в зависимости от типа/состояния контента
@@ -84,10 +86,13 @@ class KodikParser:
             raise errors.TokenError('Токен kodik не указан')
         payload = {
             "token": self.TOKEN,
-            "title": title,
+            "title": title + ' ' if strict else '', # Хз почему, но если не добавить этот пробел, результатов не будет. \_(=-=)_/
             "limit": limit,
-            "with_material_data": 'true' if include_material_data else 'false'
+            "with_material_data": 'true' if include_material_data else 'false',
+            "strict": 'true' if strict else 'false'
         }
+        if anime_status in ['released', 'ongoing']:
+            payload['anime_status'] = anime_status
         url = "https://kodikapi.com/search"
         data = requests.post(url, data=payload).json()
         
@@ -171,13 +176,14 @@ class KodikParser:
             raise errors.NoResults(f'По id {id_type} "{id}" ничего не найдено')
         return data
     
-    def get_list(self, limit_per_page: int = 50, pages_to_parse: int = 1, include_material_data: bool = True, only_anime: bool = False, start_from: str|None = None) -> tuple[list[dict],str]:
+    def get_list(self, limit_per_page: int = 50, pages_to_parse: int = 1, include_material_data: bool = True, anime_status: str|None = None, only_anime: bool = False, start_from: str|None = None) -> tuple[list[dict],str]:
         """
         Получение случайного списка аниме от кодика (скорее всего это будут онгоинги)
 
         :limit_per_page: Ограничение на количество результатов на запрос(страницу), не все элементы в списке будут аниме (по умолчанию 50)
         :pages_to_parse: Ограничение на количество страниц для обработки (каждая страница - отдельный запрос) (по умолчанию 1)
         :include_material_data: Добавление дополнительных данных (необязательно, по умолчанию True)
+        :anime_status: Статус выхода аниме (доступно: released, ongoing, None - если ищется не аниме или любой статус)
         :only_anime: Возвращать только варианты аниме (тип anime или anime-serial) (по умолчанию False)
         :start_from: Поиск следующих страниц по заданному id (id возвращается вторым элементом кортежа) (по умолчанию None)
 
@@ -217,6 +223,8 @@ class KodikParser:
             "limit": limit_per_page,
             "with_material_data": 'true' if include_material_data else 'false'
         }
+        if anime_status in ['released', 'ongoing']:
+            payload['anime_status'] = anime_status
         for _ in range(pages_to_parse):
             if next_page != None:
                 payload['next'] = next_page
@@ -236,7 +244,7 @@ class KodikParser:
             results += data['results']
         return (self._prettify_data(results, only_anime=only_anime), next_page)
     
-    def search(self, title: str, limit: int|None = None, include_material_data: bool = True, only_anime: bool = False) -> list:
+    def search(self, title: str, limit: int|None = None, include_material_data: bool = True, anime_status: str|None = None, strict: bool = False, only_anime: bool = False) -> list:
         """
         ### Для использования требуется токен kodik
         Получение только самых основных данных о сериале.
@@ -245,6 +253,8 @@ class KodikParser:
         :title: Название аниме / фильма / сериала
         :limit: Верхнее ограничение количества ответов для base_search (необязательно)
         :include_material_data: Добавление дополнительных данных (необязательно, по умолчанию True)
+        :anime_status: Статус выхода аниме (доступно: released, ongoing, None - если ищется не аниме или любой статус)
+        :strict: Исключение названий далеких от оригинального
         :only_anime: Возвращать только варианты аниме (тип anime или anime-serial) (по умолчанию False)
 
         Возвращает список словарей в следующем виде:
@@ -273,9 +283,9 @@ class KodikParser:
         ]
         """
         if limit is None:
-            search_data = self.base_search(title, include_material_data=include_material_data)
+            search_data = self.base_search(title, include_material_data=include_material_data, anime_status=anime_status, strict=strict)
         else:
-            search_data = self.base_search(title, limit, include_material_data=include_material_data)
+            search_data = self.base_search(title, limit, include_material_data=include_material_data, anime_status=anime_status, strict=strict)
         return self._prettify_data(search_data['results'], only_anime=only_anime)
     
     def search_by_id(self, id: str, id_type: str, limit: int|None = None) -> list:
