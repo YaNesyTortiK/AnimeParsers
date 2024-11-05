@@ -104,3 +104,6 @@ Overall fixes and adjustments to KodikParser and KodikParserAsync
 ## To 1.9.1
 - Added release status filter in search functions to KodikParser (available: released, ongoing)
 - Added `strict` flag to `search` function to KodikParser (kodik will search by title more strictly, less random unrelated results)
+
+## To 1.9.2
+- Fixed `search` function in KodikParser

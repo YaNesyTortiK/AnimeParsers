@@ -76,7 +76,7 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
 
-        search = parser.search('О моем перерождении в слизь', strict=True, only_anime=True)
+        search = parser.search('О моём перерождении в слизь', strict=True, only_anime=True)
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
     
@@ -220,7 +220,7 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
 
-        search = await parser.search('О моем перерождении в слизь', strict=True, only_anime=True)
+        search = await parser.search('О моём перерождении в слизь', strict=True, only_anime=True)
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
     

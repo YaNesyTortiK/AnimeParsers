@@ -86,7 +86,7 @@ class KodikParser:
             raise errors.TokenError('Токен kodik не указан')
         payload = {
             "token": self.TOKEN,
-            "title": title + ' ' if strict else '', # Хз почему, но если не добавить этот пробел, результатов не будет. \_(=-=)_/
+            "title": title + ' ' if strict else title, # Хз почему, но если не добавить этот пробел, результатов не будет. \_(=-=)_/
             "limit": limit,
             "with_material_data": 'true' if include_material_data else 'false',
             "strict": 'true' if strict else 'false'
