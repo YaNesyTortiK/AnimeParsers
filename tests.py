@@ -5,21 +5,21 @@ GLOBAL_USE_LXML = False
 class TestKodik(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
 
     def test_auto_token(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         goten_token = KodikParser.get_token()
         self.assertIsInstance(goten_token, str)
     
     def test_init(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
     
     def test_base_search(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
         search = parser.base_search('Наруто', 10) # Гарантированно существующий результат
         self.assertIsInstance(search, dict)
@@ -32,8 +32,8 @@ class TestKodik(unittest.TestCase):
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
     def test_base_search_by_id(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
         search = parser.base_search_by_id('20', 'shikimori') # Гарантированно существующий результат
         self.assertIsInstance(search, dict)
@@ -46,8 +46,8 @@ class TestKodik(unittest.TestCase):
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
     def test_list(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
         data = parser.get_list(include_material_data=False)
         self.assertIsInstance(data, tuple)
@@ -68,8 +68,8 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(data[0][0], dict)
 
     def test_search(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
 
         search = parser.search('Наруто')
@@ -81,15 +81,15 @@ class TestKodik(unittest.TestCase):
         self.assertNotEqual(len(search), 0)
     
     def test_search_by_id(self):
-        from anime_parsers_ru import KodikParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParser
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParser(use_lxml=self.USE_LXML)
         search = parser.search_by_id('20', 'shikimori')
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
 
     def test_get_info_serial(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
         cur_search = parser.get_info('z20', 'shikimori')
         self.assertIsInstance(cur_search, dict)
@@ -110,7 +110,7 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(cur_search['translations'][0], dict)
 
     def test_get_info_video(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
         cur_search = parser.get_info('2472', 'shikimori')
         self.assertIsInstance(cur_search, dict)
@@ -131,7 +131,7 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(cur_search['translations'][0], dict)
 
     def test_get_link_serial(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
         link = parser.get_link('z20', 'shikimori', 1, '609')
         self.assertIsInstance(link, tuple)
@@ -139,7 +139,7 @@ class TestKodik(unittest.TestCase):
         self.assertIsInstance(link[1], int)
     
     def test_get_link_video(self):
-        from anime_parsers_ru import KodikParser
+        from src.anime_parsers_ru import KodikParser
         parser = KodikParser(use_lxml=self.USE_LXML)
         link = parser.get_link('2472', 'shikimori', 0, '609')
         self.assertIsInstance(link, tuple)
@@ -149,21 +149,21 @@ class TestKodik(unittest.TestCase):
 class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
 
     async def test_auto_token(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         goten_token = await KodikParserAsync.get_token()
         self.assertIsInstance(goten_token, str)
     
     async def test_init(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
     
     async def test_base_search(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         search = await parser.base_search('Наруто', 10) # Гарантированно существующий результат
         self.assertIsInstance(search, dict)
@@ -176,8 +176,8 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
     async def test_base_search_by_id(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         search = await parser.base_search_by_id('20', 'shikimori') # Гарантированно существующий результат
         self.assertIsInstance(search, dict)
@@ -190,8 +190,8 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
             raise AssertionError(f'Base search with guaranteed bad search query returned error other then NoResults. Exception: {ex}')
 
     async def test_list(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         data = await parser.get_list(include_material_data=False)
         self.assertIsInstance(data, tuple)
@@ -213,8 +213,8 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data[0][0], dict)
 
     async def test_search(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         search = await parser.search('Наруто')
         self.assertIsInstance(search, list)
@@ -225,15 +225,15 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(len(search), 0)
     
     async def test_search_by_id(self):
-        from anime_parsers_ru import KodikParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import KodikParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         search = await parser.search_by_id('20', 'shikimori')
         self.assertIsInstance(search, list)
         self.assertNotEqual(len(search), 0)
 
     async def test_get_info_serial(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         cur_search = await parser.get_info('z20', 'shikimori')
         self.assertIsInstance(cur_search, dict)
@@ -254,7 +254,7 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(cur_search['translations'][0], dict)
 
     async def test_get_info_video(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         cur_search = await parser.get_info('2472', 'shikimori')
         self.assertIsInstance(cur_search, dict)
@@ -275,7 +275,7 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(cur_search['translations'][0], dict)
 
     async def test_get_link_serial(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         link = await parser.get_link('z20', 'shikimori', 1, '609')
         self.assertIsInstance(link, tuple)
@@ -283,7 +283,7 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(link[1], int)
     
     async def test_get_link_video(self):
-        from anime_parsers_ru import KodikParserAsync
+        from src.anime_parsers_ru import KodikParserAsync
         parser = KodikParserAsync(use_lxml=self.USE_LXML)
         link = await parser.get_link('2472', 'shikimori', 0, '609')
         self.assertIsInstance(link, tuple)
@@ -293,15 +293,15 @@ class TestKodikAsync(unittest.IsolatedAsyncioTestCase):
 class TestAniboom(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import AniboomParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import AniboomParser
+        import src.anime_parsers_ru.errors as errors
 
     def test_init(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
     
     def test_fast_search(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         search = parser.fast_search('Наруто')
         self.assertGreater(len(search), 0) # Гарантированно имеются данные
@@ -310,7 +310,7 @@ class TestAniboom(unittest.TestCase):
         # Нельзя проверить на то что нет результатов, потому что у animego всегда есть результаты на какой угодно запрос \_(-_-)_/
         
     def test_episodes_info(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         data = parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, list)
@@ -325,7 +325,7 @@ class TestAniboom(unittest.TestCase):
         self.assertEqual(len(data), 0)
     
     def test_translations_info(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         data = parser.get_translations_info('2546') # Волчица и пряности 2024
         self.assertIsInstance(data, list)
@@ -339,7 +339,7 @@ class TestAniboom(unittest.TestCase):
         self.assertEqual(len(data), 0)
 
     def test_anime_info(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         data = parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, dict)
@@ -353,7 +353,7 @@ class TestAniboom(unittest.TestCase):
         self.assertTrue('translations' in data.keys())
 
     def test_search(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
 
         search = parser.search('Наруто')
@@ -367,13 +367,13 @@ class TestAniboom(unittest.TestCase):
         self.assertIsInstance(search[0], dict)
     
     def test_get_embed_link(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         data = parser._get_embed_link('2546')
         self.assertIsInstance(data, str)
     
     def test_get_embed(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         link = parser._get_embed_link('2546') # Волчица и пряности 2024
         data = parser._get_embed(link, 1, '2') # Озвучка от AniLibria
@@ -385,7 +385,7 @@ class TestAniboom(unittest.TestCase):
         self.assertIsInstance(data, str)
     
     def test_get_media_src(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         link = parser._get_embed_link('2546') # Волчица и пряности 2024
         data = parser._get_media_src(link, 1, '2') # Озвучка от AniLibria
@@ -397,7 +397,7 @@ class TestAniboom(unittest.TestCase):
         self.assertIsInstance(data, str)
     
     def test_get_mpd_playlist(self):
-        from anime_parsers_ru import AniboomParser
+        from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
         data = parser.get_mpd_playlist('2546', 1, '2') # Озвучка от AniLibria
         self.assertIsInstance(data, str)
@@ -413,15 +413,15 @@ class TestAniboom(unittest.TestCase):
 class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import AniboomParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import AniboomParserAsync
+        import src.anime_parsers_ru.errors as errors
 
     def test_init(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
     
     async def test_fast_search(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         search = await parser.fast_search('Наруто')
         self.assertGreater(len(search), 0) # Гарантированно имеются данные
@@ -430,7 +430,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         # Нельзя проверить на то что нет результатов, потому что у animego всегда есть результаты на какой угодно запрос \_(-_-)_/
         
     async def test_episodes_info(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         data = await parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, list)
@@ -445,7 +445,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(data), 0)
     
     async def test_translations_info(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         data = await parser.get_translations_info('2546') # Волчица и пряности 2024
         self.assertIsInstance(data, list)
@@ -459,7 +459,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(data), 0)
 
     async def test_anime_info(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         data = await parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, dict)
@@ -473,7 +473,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertTrue('translations' in data.keys())
 
     async def test_search(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
 
         search = await parser.search('Наруто')
@@ -487,13 +487,13 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(search[0], dict)
     
     async def test_get_embed_link(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         data = await parser._get_embed_link('2546')
         self.assertIsInstance(data, str)
     
     async def test_get_embed(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         link = await parser._get_embed_link('2546') # Волчица и пряности 2024
         data = await parser._get_embed(link, 1, '2') # Озвучка от AniLibria
@@ -505,7 +505,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data, str)
     
     async def test_get_media_src(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         link = await parser._get_embed_link('2546') # Волчица и пряности 2024
         data = await parser._get_media_src(link, 1, '2') # Озвучка от AniLibria
@@ -517,7 +517,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data, str)
     
     async def test_get_mpd_playlist(self):
-        from anime_parsers_ru import AniboomParserAsync
+        from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
         data = await parser.get_mpd_playlist('2546', 1, '2') # Озвучка от AniLibria
         self.assertIsInstance(data, str)
@@ -533,12 +533,12 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
 class TestJutsu(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import JutsuParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import JutsuParser
+        import src.anime_parsers_ru.errors as errors
     
     def test_get_anime_info(self):
-        from anime_parsers_ru import JutsuParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import JutsuParser
+        import src.anime_parsers_ru.errors as errors
         parser = JutsuParser(self.USE_LXML)
         
         # Проверка на аниме с одним сезоном
@@ -571,8 +571,8 @@ class TestJutsu(unittest.TestCase):
         self.assertIsInstance(data['films'][0], str)
     
     def test_get_mp4_link(self):
-        from anime_parsers_ru import JutsuParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import JutsuParser
+        import src.anime_parsers_ru.errors as errors
         parser = JutsuParser(self.USE_LXML)
 
         # Проверка без сезонов
@@ -590,11 +590,11 @@ class TestJutsu(unittest.TestCase):
 class TestShikimori(unittest.TestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import ShikimoriParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParser
+        import src.anime_parsers_ru.errors as errors
 
     def test_search(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.search('Кулинарные скитания')
@@ -618,8 +618,8 @@ class TestShikimori(unittest.TestCase):
         self.assertIsInstance(data[0], dict)
     
     def test_anime_info(self):
-        from anime_parsers_ru import ShikimoriParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParser
+        import src.anime_parsers_ru.errors as errors
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.anime_info('https://shikimori.one/animes/z20-naruto')
@@ -645,7 +645,7 @@ class TestShikimori(unittest.TestCase):
             raise Warning('Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
 
     def test_additional_anime_info(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.additional_anime_info('https://shikimori.one/animes/z20-naruto')
@@ -660,7 +660,7 @@ class TestShikimori(unittest.TestCase):
         self.assertIsInstance(data, dict)
 
     def test_link_by_id(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.link_by_id('20') # Наруто (реальный id - z20)
@@ -676,7 +676,7 @@ class TestShikimori(unittest.TestCase):
         self.assertIsInstance(data, str)
 
     def test_id_by_link(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.id_by_link('https://shikimori.one/animes/z20-naruto') # Наруто (реальный id - z20 ожидаем - 20)
@@ -692,7 +692,7 @@ class TestShikimori(unittest.TestCase):
         self.assertTrue(data == '58426')
 
     def test_get_anime_list(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         data = parser.get_anime_list()
@@ -753,7 +753,7 @@ class TestShikimori(unittest.TestCase):
         
     
     def test_deep_search(self):
-        from anime_parsers_ru import ShikimoriParser
+        from src.anime_parsers_ru import ShikimoriParser
         parser = ShikimoriParser(self.USE_LXML)
 
         # Просто проверим доступность ссылки
@@ -763,8 +763,8 @@ class TestShikimori(unittest.TestCase):
         self.assertIsInstance(data[0], dict)
 
     def test_deep_anime_info(self):
-        from anime_parsers_ru import ShikimoriParser
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParser
+        import src.anime_parsers_ru.errors as errors
         parser = ShikimoriParser(self.USE_LXML)
 
         # Просто проверим доступность ссылки
@@ -784,11 +784,11 @@ class TestShikimori(unittest.TestCase):
 class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
     USE_LXML = GLOBAL_USE_LXML
     def test_import(self):
-        from anime_parsers_ru import ShikimoriParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParserAsync
+        import src.anime_parsers_ru.errors as errors
 
     async def test_search(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = await parser.search('Кулинарные скитания')
@@ -812,8 +812,8 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data[0], dict)
     
     async def test_anime_info(self):
-        from anime_parsers_ru import ShikimoriParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = await parser.anime_info('https://shikimori.one/animes/z20-naruto')
@@ -839,7 +839,7 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
             raise Warning('Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
 
     async def test_additional_anime_info(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = await parser.additional_anime_info('https://shikimori.one/animes/z20-naruto')
@@ -854,7 +854,7 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data, dict)
 
     async def test_link_by_id(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = await parser.link_by_id('20') # Наруто (реальный id - z20)
@@ -870,7 +870,7 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data, str)
 
     def test_id_by_link(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = parser.id_by_link('https://shikimori.one/animes/z20-naruto') # Наруто (реальный id - z20 ожидаем - 20)
@@ -886,7 +886,7 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(data == '58426')
 
     async def test_get_anime_list(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         data = await parser.get_anime_list()
@@ -946,7 +946,7 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(data[0]['type'] == 'TV Сериал')
     
     async def test_deep_search(self):
-        from anime_parsers_ru import ShikimoriParserAsync
+        from src.anime_parsers_ru import ShikimoriParserAsync
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         # Просто проверим доступность ссылки
@@ -956,8 +956,8 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(data[0], dict)
 
     async def test_deep_anime_info(self):
-        from anime_parsers_ru import ShikimoriParserAsync
-        import anime_parsers_ru.errors as errors
+        from src.anime_parsers_ru import ShikimoriParserAsync
+        import src.anime_parsers_ru.errors as errors
         parser = ShikimoriParserAsync(self.USE_LXML)
 
         # Просто проверим доступность ссылки

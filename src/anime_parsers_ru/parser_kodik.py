@@ -9,7 +9,10 @@ import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
 
-import anime_parsers_ru.errors as errors
+try:
+    from . import errors # Импорт если библиотека установлена
+except ImportError:
+    import errors # Импорт если ббилиотека не установлена и файл лежит локально
 
 class KodikParser:
     """
@@ -323,6 +326,11 @@ class KodikParser:
         ...
         ]
         """
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+
         if limit is None:
             search_data = self.base_search_by_id(id, id_type, include_material_data=True)
         else:
@@ -447,6 +455,11 @@ class KodikParser:
             ]
         }
         """
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+    
         link = self._link_to_info(id, id_type)
         data = requests.get(link).text
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
@@ -513,6 +526,21 @@ class KodikParser:
 
         И максимально возможное качество.
         """
+        # Проверка переданных параметров на правильность типа
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+        if type(seria_num) == str and seria_num.isdigit():
+            seria_num = int(seria_num)
+        elif type(seria_num) != int:
+            raise ValueError(f'Для seria_num ожидался тип int, получен "{type(seria_num)}"')
+        if type(translation_id) == int:
+            translation_id = str(translation_id)
+        elif type(translation_id) != str:
+            raise ValueError(f'Для translation_id ожидался тип str, получен "{type(translation_id)}"')
+        
+
         link = self._link_to_info(id, id_type)
         data = requests.get(link).text
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')

@@ -35,8 +35,8 @@ class AgeRestricted(Exception):
 
 class TooManyRequests(Exception):
     """
-    Ошибка для обозначения ошибки сервера из-за слишком частых запросов.
-    В основном для шикимориы
+    Ошибка для обозначения ошибки 429 из-за слишком частых запросов.
+    В основном для шикимори
     """
 
 class ContentBlocked(Exception):
@@ -46,6 +46,6 @@ class ContentBlocked(Exception):
 
 class ServiceIsOverloaded(Exception):
     """
-    Ошибка для обозначения http кода 429
+    Ошибка для обозначения http кода 520
     Используется в парсере shikimori
     """

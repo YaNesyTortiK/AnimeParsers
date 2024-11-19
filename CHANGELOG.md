@@ -107,3 +107,13 @@ Overall fixes and adjustments to KodikParser and KodikParserAsync
 
 ## To 1.9.2
 - Fixed `search` function in KodikParser
+
+## To 1.9.3
+- Fixed timeout bug in AniboomParser (Added `referer` header to request in `fast_search` function)
+- Added additional checks to `get_link`, `get_info`, `search_by_id` functions in KodikParser (now all passed integer parameters will be autoconverted into strings)
+- Change imports of `errors` module to local (from: from anime_parser_ru.errors to from . import errors)
+- Fixed mismatch with `TooManyRequests` and `ServiceIsOverloaded` exceptions and their http codes
+
+Thx to @nichind for pointing these out
+
+- Moved `tests.py` from src to project root directory 

@@ -8,8 +8,12 @@ from bs4 import BeautifulSoup as Soup
 import re
 import json
 
-import anime_parsers_ru.errors as errors
-from anime_parsers_ru.internal_tools import AsyncSession
+try:
+    from . import errors # Импорт если библиотека установлена
+    from .internal_tools import AsyncSession
+except ImportError:
+    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    from internal_tools import AsyncSession
 
 class AniboomParserAsync:
     """
@@ -46,6 +50,7 @@ class AniboomParserAsync:
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://animego.org/'
         }
         params = {
             'type': 'small',

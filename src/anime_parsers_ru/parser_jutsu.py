@@ -7,7 +7,10 @@ else:
     LXML_WORKS = True
 from bs4 import BeautifulSoup as Soup
 
-import anime_parsers_ru.errors as errors
+try:
+    from . import errors # Импорт если библиотека установлена
+except ImportError:
+    import errors # Импорт если ббилиотека не установлена и файл лежит локально
 
 class JutsuParser:
     """

@@ -9,8 +9,12 @@ import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
 
-import anime_parsers_ru.errors as errors
-from anime_parsers_ru.internal_tools import AsyncSession
+try:
+    from . import errors # Импорт если библиотека установлена
+    from .internal_tools import AsyncSession
+except ImportError:
+    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    from internal_tools import AsyncSession
 
 class KodikParserAsync:
     """
@@ -329,6 +333,11 @@ class KodikParserAsync:
         ...
         ]
         """
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+
         if limit is None:
             search_data = await self.base_search_by_id(id, id_type, include_material_data=True)
         else:
@@ -456,6 +465,11 @@ class KodikParserAsync:
             ]
         }
         """
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+
         link = await self._link_to_info(id, id_type)
         data = await self.requests.get(link)
         data = data.text
@@ -523,6 +537,20 @@ class KodikParserAsync:
 
         И максимально возможное качество.
         """
+        # Проверка переданных параметров на правильность типа
+        if type(id) == int:
+            id = str(id)
+        elif type(id) != str:
+            raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+        if type(seria_num) == str and seria_num.isdigit():
+            seria_num = int(seria_num)
+        elif type(seria_num) != int:
+            raise ValueError(f'Для seria_num ожидался тип int, получен "{type(seria_num)}"')
+        if type(translation_id) == int:
+            translation_id = str(translation_id)
+        elif type(translation_id) != str:
+            raise ValueError(f'Для translation_id ожидался тип str, получен "{type(translation_id)}"')
+
         link = await self._link_to_info(id, id_type)
         data = await self.requests.get(link)
         data = data.text

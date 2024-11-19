@@ -7,7 +7,6 @@ else:
     CAN_WORK = True
 
 import json
-import anime_parsers_ru.errors as errors
 
 class Response:
     """
@@ -34,16 +33,20 @@ class AsyncSession:
 
     async def get(self, url: str, **kwargs) -> Response:
         async with aiohttp.request(method='get', url=url, **kwargs) as response:
-            return Response(
+            text = await response.text()
+            res = Response(
                 status=response.status,
-                text=await response.text(),
-                url= response.url.human_repr()
-            )
+                text=text,
+                url=response.url.human_repr()
+            ) 
+        return res
     
     async def post(self, url: str, **kwargs) -> Response:
         async with aiohttp.request(method='post', url=url, **kwargs) as response:
-            return Response(
+            text = await response.text()
+            res = Response(
                 status=response.status,
-                text=await response.text(),
-                url= response.url.human_repr()
+                text=text,
+                url=response.url.human_repr()
             )
+        return res

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.9.2
+Version: 1.9.3
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -877,10 +877,10 @@ pip install lxml
     Обозначает возрастную блокировку (требуется авторизация для доступа к этим данным)
 
 - TooManyRequests
-    Обозначает http статус 520. То есть сервер заблокировал запрос из-за слишком частого обращения
+    Обозначает http статус 429. То есть сервер заблокировал запрос из-за слишком частого обращения
 
 - ContentBlocked
     Обозначает что запрашиваемый контент или плеер заблокирован/недоступен
 
 - ServiceIsOverloaded
-    Обозначает http статус 429. То есть сервер перегружен и не может ответить на запрос
+    Обозначает http статус 520. То есть сервер перегружен и не может ответить на запрос

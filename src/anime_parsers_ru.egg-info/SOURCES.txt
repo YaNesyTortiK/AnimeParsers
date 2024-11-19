@@ -1,7 +1,6 @@
 LICENSE
 README.md
 pyproject.toml
-src/tests.py
 src/anime_parsers_ru/__init__.py
 src/anime_parsers_ru/errors.py
 src/anime_parsers_ru/internal_tools.py
