@@ -1,8 +1,0 @@
-beautifulsoup4>=4.12
-requests>=2.32
-
-[async]
-aiohttp>=3.9.5
-
-[lxml]
-lxml>=5.2

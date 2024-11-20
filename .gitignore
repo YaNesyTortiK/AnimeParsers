@@ -1,7 +1,4 @@
-test.*
-testconfig.*
-venv
-__pycache__
-dist
-venv10
+.venv
 .vscode
+test.py
+.ruff_cache

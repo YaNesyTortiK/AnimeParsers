@@ -1,33 +1,26 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+
+def readme():
+    with open("README.md", "r") as f:
+        return f.read()
+
 
 setup(
-    name="anime_parsers_ru",
-    version="1.9.3",
-    author="YaNesyTortiK",
-    author_email="ya.nesy.tortik.email@gmail.com",
-    maintainer="YaNesyTortiK",
-    maintainer_email="ya.nesy.tortik.email@gmail.com",
-    description="Python package for parsing russian anime players",
-    long_description=open("README.md").read(),
+    name="moe-players",
+    version="2024.11.1",
+    author="nichind",
+    author_email="nichinddev@gmail.com",
+    description="Async aniboom/kodik player parser",
+    long_description=readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/YaNesyTortiK/AnimeParsers",
-    download_url="https://pypi.python.org/pypi/anime_parsers_ru",
-    keywords=["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "shikimori", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори"],
-    install_requires=[
-        "beautifulsoup4>=4.12",
-        "requests>=2.32"
-    ],
-    extras_require={
-        "async": ["aiohttp>=3.9.5"],
-        "lxml": ["lxml>=5.2"]
-    },
+    url="https://github.com/nichind/moe-players",
+    packages=find_packages(),
+    install_requires=["aiohttp", "python-dotenv", "beautifulsoup4"],
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=["anime_parsers_ru"],
-    license="MIT",
-    license_file="LICENSE",
+    python_requires=">=3.10",
 )
