@@ -117,3 +117,7 @@ Overall fixes and adjustments to KodikParser and KodikParserAsync
 Thx to @nichind for pointing these out
 
 - Moved `tests.py` from src to project root directory 
+
+## To 1.9.3 DEV
+- Fixed AniBoom parser (Now _get_embed_link is actually getting aniboom links consistently)
+- Added `mirror` parameter to parsers to allow for changing domains (excluding kodik)

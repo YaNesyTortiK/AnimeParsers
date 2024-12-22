@@ -18,13 +18,18 @@ class AniboomParser:
     """
     Парсер для плеера AniBoom
     """
-    def __init__(self, use_lxml: bool = False) -> None:
+    def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
         :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        if mirror: # Если есть зеркало, то меняем домен на него
+            self._dmn = mirror
+        else:
+            self._dmn = "animego.org"
 
     def fast_search(self, title: str) -> list[dict]:
         """
@@ -48,13 +53,13 @@ class AniboomParser:
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://animego.org/'
+            'Referer': f'https://{self._dmn}/'
         }
         params = {
             'type': 'small',
             'q': title,
         }
-        response = requests.get('https://animego.org/search/all', params=params, headers=headers).json()
+        response = requests.get(f'https://{self._dmn}/search/all', params=params, headers=headers).json()
         if response['status'] != 'success':
             raise errors.ServiceError(f'На запрос "{title}" сервер не вернул ожидаемый ответ "status: success". Status: "{response["status"]}"')
 
@@ -67,7 +72,7 @@ class AniboomParser:
             o_t_c = elem.find('div', {'class': 'text-truncate'})
             c_data['other_title'] = o_t_c.text.strip() if not o_t_c is None else ''
             c_data['type'] = elem.find('a', {'href': re.compile(r'.*anime/type.*')}).text.strip()
-            c_data['link'] = 'https://animego.org'+elem.find('h5').find('a').get_attribute_list('href')[0]
+            c_data['link'] = f'https://{self._dmn}'+elem.find('h5').find('a').get_attribute_list('href')[0]
             c_data['animego_id'] = c_data['link'][c_data['link'].rfind('-')+1:]
             res.append(c_data)
         return res
@@ -150,6 +155,7 @@ class AniboomParser:
         ]
         """
         headers = {
+            'Referer': f'https://{self._dmn}/search/all?q=anime',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
         }
@@ -222,7 +228,7 @@ class AniboomParser:
         }
         """
         c_data = {}
-        response = requests.get(link)
+        response = requests.get(link, headers={'Referer': f'https://{self._dmn}/search/all?q=anime'})
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
@@ -234,7 +240,7 @@ class AniboomParser:
         for syn in soup.find('div', {'class': 'anime-synonyms'}).find_all('li'):
             c_data['other_titles'].append(syn.text.strip())
         c_data['poster_url'] = soup.find('img').get_attribute_list('src')[0]
-        c_data['poster_url'] = 'https://animego.org'+c_data['poster_url'][c_data['poster_url'].find('/upload'):]
+        c_data['poster_url'] = f'https://{self._dmn}'+c_data['poster_url'][c_data['poster_url'].find('/upload'):]
         anime_info = soup.find('div', {'class': 'anime-info'}).find('dl')
         keys = anime_info.find_all('dt')
         values = anime_info.find_all('dd')
@@ -265,7 +271,7 @@ class AniboomParser:
         c_data['description'] = soup.find('div', {'class': 'description'}).text.strip()
         c_data['screenshots'] = []
         for screenshot in soup.find_all('a', {'class': 'screenshots-item'}):
-            c_data['screenshots'].append('https://animego.org'+screenshot.get_attribute_list('href')[0])
+            c_data['screenshots'].append(f'https://{self._dmn}'+screenshot.get_attribute_list('href')[0])
         trailer_cont = soup.find('div', {'class': 'video-block'})
         if not trailer_cont is None:
             c_data['trailer'] = trailer_cont.find('a', {'class': 'video-item'}).get_attribute_list('href')[0]
@@ -294,11 +300,12 @@ class AniboomParser:
         """
         headers = {
             'X-Requested-With': 'XMLHttpRequest',
+            'Referer': f'https://{self._dmn}/search/all?q=anime',
         }
         params = {
             '_allow': 'true',
         }
-        response = requests.get(f'https://animego.org/anime/{animego_id}/player', params=params, headers=headers)
+        response = requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -337,7 +344,7 @@ class AniboomParser:
 
         :animego_id: id аниме на animego.org
 
-        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar
+        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar или None если нет ссылки на Aniboom
         """
         headers = {
             'X-Requested-With': 'XMLHttpRequest',
@@ -345,7 +352,7 @@ class AniboomParser:
         params = {
             '_allow': 'true',
         }
-        response = requests.get(f'https://animego.org/anime/{animego_id}/player', params=params, headers=headers)
+        response = requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -357,7 +364,10 @@ class AniboomParser:
             reason = reason_elem.text if reason_elem else None
             raise errors.ContentBlocked(f'Контент по id {animego_id} заблокирован. Причина блокировки: "{reason}"')
         link = soup.find('div', {'id': 'video-players'})
-        link = link.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
+        try:
+            link = link.find('span', {'class': 'video-player-toggle-item', 'data-provider': '24'}).get_attribute_list('data-player')[0]
+        except AttributeError:
+            return None
         return 'https:'+link[:link.rfind('?')]
 
     def _get_embed(self, embed_link: str, episode: int, translation: str) -> str:
@@ -369,7 +379,7 @@ class AniboomParser:
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
         """
         headers = {
-            'Referer': 'https://animego.org/',
+            'Referer': f'https://{self._dmn}/',
         }
         if episode != 0:
             params = {
@@ -442,8 +452,8 @@ class AniboomParser:
         data = json.loads(soup.find('div', {'id': 'video'}).get_attribute_list('data-parameters')[0])
         media_src = json.loads(data['dash'])['src']
         headers = {
-            'Origin': 'https://aniboom.one',
-            'Referer': 'https://aniboom.one/',
+            'Origin': f'https://aniboom.one',
+            'Referer': f'https://aniboom.one/',
         }
         playlist = requests.get(media_src, headers=headers).text
         # Вставляем полный путь до сервера
@@ -483,3 +493,68 @@ class AniboomParser:
         """
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(self.get_mpd_playlist(animego_id, episode, translation_id))
+
+""" 
+На будущее, если m3u8 будет
+
+    def get_quality_info(self, animego_id: str, episode: int, translation: str):
+        \"""
+        
+        Returns list of available qualities. Example:
+
+        \"""
+        _emb_link = self._get_embed_link(animego_id)
+        master_playlist = self._get_playlist(_emb_link, episode, translation) # Поработать с плэйлистом еще
+
+        if master_playlist[:master_playlist.find('\n')] != "#EXTM3U":
+            raise errors.UnexpectedBehaviour(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
+        res = []
+        while "RESOLUTION" in master_playlist:
+            ind = master_playlist.find('RESOLUTION=')+11
+            res.append(master_playlist[ind:master_playlist.find(',', ind)])
+            master_playlist = master_playlist[ind:]
+        return res
+
+    def _fix_playlist(self, playlist: str, server_path: str) -> str:
+        uri = playlist[playlist.find('#EXT-X-MAP:URI="')+16:]
+        uri = uri[:uri.find('_')+1]
+        print(uri)
+        return playlist.replace(uri, server_path+uri)
+    
+    def get_files(self, animego_id: str, episode: int, translation: str, folder_path: str = ''):
+        _emb_link = self._get_embed_link(animego_id)
+        master_playlist = self._get_playlist(_emb_link, episode, translation)
+        print(master_playlist)
+
+        if master_playlist[:master_playlist.find('\n')] != "#EXTM3U":
+            raise errors.UnexpectedBehaviour(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
+
+        master_copy = master_playlist
+        
+        audio_link = master_playlist[master_playlist.find('URI="')+5:master_playlist.find('"', master_playlist.find('URI="')+6)]
+        
+        available_qualities = []
+        while "RESOLUTION" in master_playlist:
+            ind = master_playlist.find('RESOLUTION=')+11
+            master_playlist = master_playlist[ind:]
+            uri = master_playlist[master_playlist.find('\n')+1:master_playlist.find('\n', master_playlist.find('\n')+1)]
+            available_qualities.append(uri)
+
+        server_path = audio_link[:audio_link.rfind('/')+1]
+        master_playlist = master_playlist.replace(server_path, '')
+        
+        headers = {
+            'Origin': f'https://aniboom.one',
+            'Referer': f'https://aniboom.one/',
+        }
+        with open(folder_path+audio_link[audio_link.rfind('/')+1:], 'w', encoding='utf-8') as f:
+            f.write(self._fix_playlist(requests.get(audio_link, headers=headers).text, server_path))
+        
+        for v in available_qualities:
+            with open(folder_path+v[v.rfind('/')+1:], 'w', encoding='utf-8') as f:
+                 f.write(self._fix_playlist(requests.get(v, headers=headers).text, server_path))
+
+        with open(folder_path+'master.m3u8', 'w', encoding='utf-8') as f:
+            f.write(master_copy.replace(server_path, ''))
+
+"""

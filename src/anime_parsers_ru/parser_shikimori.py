@@ -21,13 +21,18 @@ class ShikimoriParser:
 
     genres_list = ['1-Action', '2-Adventure', '3-Racing', '4-Comedy', '5-Avant-Garde', '6-Mythology', '7-Mystery', '8-Drama', '9-Ecchi', '10-Fantasy', '11-Strategy-Game', '13-Historical', '14-Horror', '15-Kids', '17-Martial-Arts', '18-Mecha', '19-Music', '20-Parody', '21-Samurai', '22-Romance', '23-School', '24-Sci-Fi', '25-Shoujo', '27-Shounen', '29-Space', '30-Sports', '31-Super-Power', '32-Vampire', '35-Harem', '36-Slice-of-Life', '37-Supernatural', '38-Military', '39-Detective', '40-Psychological', '42-Seinen', '43-Josei', '102-Team-Sports', '103-Video-Game', '104-Adult-Cast', '105-Gore', '106-Reincarnation', '107-Love-Polygon', '108-Visual-Arts', '111-Time-Travel', '112-Gag-Humor', '114-Award-Winning', '117-Suspense', '118-Combat-Sports', '119-CGDCT', '124-Mahou-Shoujo', '125-Reverse-Harem', '130-Isekai', '131-Delinquents', '134-Childcare', '135-Magical-Sex-Shift', '136-Showbiz', '137-Otaku-Culture', '138-Organized-Crime', '139-Workplace', '140-Iyashikei', '141-Survival', '142-Performing-Arts', '143-Anthropomorphic', '144-Crossdressing', '145-Idols-(Female)', '146-High-Stakes-Game', '147-Medical', '148-Pets', '149-Educational', '150-Idols-(Male)', '151-Romantic-Subtext', '543-Gourmet']
 
-    def __init__(self, use_lxml: bool = False) -> None:
+    def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
-        :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
+        :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        if mirror: # Если есть зеркало, то меняем домен на него
+            self._dmn = mirror
+        else:
+            self._dmn = "shikimori.one"
 
     def search(self, title: str) -> list:
         """
@@ -61,7 +66,7 @@ class ShikimoriParser:
             'search': title,
         }
         # Используем autocomplete эндпоинт, потому что обычный поиск тупо блокируется если находит 18+ контент
-        response = requests.get('https://shikimori.one/animes/autocomplete/v2', params=params, headers=headers)
+        response = requests.get(f'https://{self._dmn}/animes/autocomplete/v2', params=params, headers=headers)
         if response.status_code == 429:
             raise errors.TooManyRequests(f'Сервер вернул код 429 для обозначения что запросы выполняются слишком часто.')
         elif response.status_code == 520:
@@ -464,11 +469,11 @@ class ShikimoriParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
             'Accept': 'application/json, text/plain, */*',
-            'Referer': 'https://shikimori.one/animes/status/ongoing',
+            'Referer': f'https://{self._dmn}/animes/status/ongoing',
             'X-Requested-With': 'XMLHttpRequest',
         }
 
-        search_url = 'https://shikimori.one/animes'
+        search_url = f'https://{self._dmn}/animes'
         if len(anime_type) > 0:
             search_url += f'/kind/{",".join(anime_type)}'
         if len(status) > 0:
@@ -551,7 +556,7 @@ class ShikimoriParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
         }
-        response = requests.get(f'https://shikimori.one/animes/{shikimori_id}', headers=headers)
+        response = requests.get(f'https://{self._dmn}/animes/{shikimori_id}', headers=headers)
         if response.status_code == 404:
             soup = Soup(response.text, 'lxml') if self.USE_LXML else Soup(response.text, 'html.parser')
             actual_code = soup.find('p', {'class': 'error-404'}).text
@@ -623,9 +628,9 @@ class ShikimoriParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
             'Accept': '*/*',
-            'Referer': 'https://shikimori.one/api/doc/graphql',
+            'Referer': f'https://{self._dmn}/api/doc/graphql',
             'content-type': 'application/json',
-            'Origin': 'https://shikimori.one',
+            'Origin': f'https://{self._dmn}',
         }
 
         json_data = {
@@ -634,7 +639,7 @@ class ShikimoriParser:
             'query': query
         }
         
-        response = requests.post('https://shikimori.one/api/graphql', headers=headers, json=json_data)
+        response = requests.post(f'https://{self._dmn}/api/graphql', headers=headers, json=json_data)
         if response.status_code == 429:
             raise errors.TooManyRequests(f'Сервер вернул код 429 для обозначения что запросы выполняются слишком часто.')
         elif response.status_code == 520:
@@ -676,9 +681,9 @@ class ShikimoriParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
             'Accept': '*/*',
-            'Referer': 'https://shikimori.one/api/doc/graphql',
+            'Referer': f'https://{self._dmn}/api/doc/graphql',
             'content-type': 'application/json',
-            'Origin': 'https://shikimori.one',
+            'Origin': f'https://{self._dmn}',
         }
 
         json_data = {
@@ -687,7 +692,7 @@ class ShikimoriParser:
             'query': query
         }
         
-        response = requests.post('https://shikimori.one/api/graphql', headers=headers, json=json_data)
+        response = requests.post(f'https://{self._dmn}/api/graphql', headers=headers, json=json_data)
         if response.status_code == 429:
             raise errors.TooManyRequests(f'Сервер вернул код 429 для обозначения что запросы выполняются слишком часто.')
         elif response.status_code == 520:

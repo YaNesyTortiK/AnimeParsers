@@ -19,14 +19,19 @@ class AniboomParserAsync:
     """
     Парсер для плеера AniBoom
     """
-    def __init__(self, use_lxml: bool = False) -> None:
+    def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
         :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
         self.requests = AsyncSession()
+        if mirror: # Если есть зеркало, то меняем домен на него
+            self._dmn = mirror
+        else:
+            self._dmn = "animego.org"
 
     async def fast_search(self, title: str) -> list[dict]:
         """
@@ -50,13 +55,13 @@ class AniboomParserAsync:
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'X-Requested-With': 'XMLHttpRequest',
-            'Referer': 'https://animego.org/'
+            'Referer': f'https://{self._dmn}/'
         }
         params = {
             'type': 'small',
             'q': title,
         }
-        response = await self.requests.get('https://animego.org/search/all', params=params, headers=headers)
+        response = await self.requests.get(f'https://{self._dmn}/search/all', params=params, headers=headers)
         response = response.json()
         if response['status'] != 'success':
             raise errors.ServiceError(f'На запрос "{title}" сервер не вернул ожидаемый ответ "status: success". Status: "{response["status"]}"')
@@ -302,7 +307,7 @@ class AniboomParserAsync:
         params = {
             '_allow': 'true',
         }
-        response = await self.requests.get(f'https://animego.org/anime/{animego_id}/player', params=params, headers=headers)
+        response = await self.requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -341,7 +346,7 @@ class AniboomParserAsync:
 
         :animego_id: id аниме на animego.org
 
-        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar
+        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar или None если нет ссылки на Aniboom
         """
         headers = {
             'X-Requested-With': 'XMLHttpRequest',
@@ -349,7 +354,7 @@ class AniboomParserAsync:
         params = {
             '_allow': 'true',
         }
-        response = await self.requests.get(f'https://animego.org/anime/{animego_id}/player', params=params, headers=headers)
+        response = await self.requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -361,7 +366,10 @@ class AniboomParserAsync:
             reason = reason_elem.text if reason_elem else None
             raise errors.ContentBlocked(f'Контент по id {animego_id} заблокирован. Причина блокировки: "{reason}"')
         link = soup.find('div', {'id': 'video-players'})
-        link = link.find('span', {'class': 'video-player-toggle-item'}).get_attribute_list('data-player')[0]
+        try:
+            link = link.find('span', {'class': 'video-player-toggle-item', 'data-provider': '24'}).get_attribute_list('data-player')[0]
+        except AttributeError:
+            return None
         return 'https:'+link[:link.rfind('?')]
 
     async def _get_embed(self, embed_link: str, episode: int, translation: str) -> str:
@@ -373,7 +381,7 @@ class AniboomParserAsync:
         :translation: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
         """
         headers = {
-            'Referer': 'https://animego.org/',
+            'Referer': f'https://{self._dmn}/',
         }
         if episode != 0:
             params = {

@@ -16,13 +16,18 @@ class JutsuParser:
     """
     Парсер jut.su
     """
-    def __init__(self, use_lxml: bool = False) -> None:
+    def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
         :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        if mirror: # Если есть зеркало, то меняем домен на него
+            self._dmn = mirror
+        else:
+            self._dmn = "jut.su"
     
     def get_mp4_link(self, link: str) -> dict:
         """
@@ -142,13 +147,13 @@ class JutsuParser:
                 season_num = int(href[href.find('season')+7:href.rfind('/')])
                 if len(c_data['seasons']) < season_num:
                     c_data['seasons'].append([])
-                c_data['seasons'][season_num-1].append('https://jut.su'+href)
+                c_data['seasons'][season_num-1].append(f'https://{self._dmn}/'+href)
             elif 'film' in href:
-                c_data['films'].append('https://jut.su'+href)
+                c_data['films'].append(f'https://{self._dmn}/'+href)
             else:
                 if len(c_data['seasons']) == 0:
                     c_data['seasons'].append([])
-                c_data['seasons'][-1].append('https://jut.su'+href)
+                c_data['seasons'][-1].append(f'https://{self._dmn}/'+href)
 
         # Если сезонов как минимум 2, то скорее всего у них есть название (либо ремейки, они тоже как отдельный сезон идут)
         c_data['seasons_names'] = []
