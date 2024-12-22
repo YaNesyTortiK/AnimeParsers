@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: anime_parsers_ru
-Version: 1.9.3
+Version: 1.9.4
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -31,6 +31,8 @@ Requires-Dist: lxml>=5.2; extra == "lxml"
 # AnimeParsers
 ## Описание
 Данный проект нацелен на создание наиболее широкого спектра парсеров на python для различных аниме-плееров в русскоязычном/снг сегменте
+
+Актуальная стабильная версия доступна на [pypi](https://pypi.org/project/anime-parsers-ru/) или в [релизах](https://github.com/YaNesyTortiK/AnimeParsers/releases) на гитхабе 
 
 ## Что есть на данный момент
 - [x] Парсер Kodik (автоматическое получение api ключа)
@@ -280,6 +282,7 @@ pip install lxml
     from anime_parsers_ru import AniboomParser
 
     parser = AniboomParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -290,6 +293,7 @@ pip install lxml
 
     parser = AniboomParserAsync()
     # Далее перед всеми функциями дополнительно нужно прописывать await
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 1. Поиск по названию
@@ -474,6 +478,7 @@ pip install lxml
     from anime_parsers_ru import JutsuParser
 
     parser = JutsuParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 1. Данные по аниме (по ссылке на страницу)
@@ -546,6 +551,7 @@ pip install lxml
     from anime_parsers_ru import ShikimoriParser
 
     parser = ShikimoriParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -554,8 +560,9 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParserAsync
 
-    parser = ShikimoriParserAsync(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    parser = ShikimoriParserAsync()
     # Далее перед всеми функциями дополнительно нужно прописывать await
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 > [!NOTE]

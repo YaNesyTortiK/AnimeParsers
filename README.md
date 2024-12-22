@@ -252,6 +252,7 @@ pip install lxml
     from anime_parsers_ru import AniboomParser
 
     parser = AniboomParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -262,6 +263,7 @@ pip install lxml
 
     parser = AniboomParserAsync()
     # Далее перед всеми функциями дополнительно нужно прописывать await
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 1. Поиск по названию
@@ -446,6 +448,7 @@ pip install lxml
     from anime_parsers_ru import JutsuParser
 
     parser = JutsuParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 1. Данные по аниме (по ссылке на страницу)
@@ -518,6 +521,7 @@ pip install lxml
     from anime_parsers_ru import ShikimoriParser
 
     parser = ShikimoriParser()
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -526,8 +530,9 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParserAsync
 
-    parser = ShikimoriParserAsync(<ваш api ключ>) # Если нет ключа, оставьте пустым
+    parser = ShikimoriParserAsync()
     # Далее перед всеми функциями дополнительно нужно прописывать await
+    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
 
 > [!NOTE]
