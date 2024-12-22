@@ -124,3 +124,6 @@ Thx to @nichind for pointing these out
 
 ## To 1.9.4
 - Releasing 1.9.3 DEV
+
+## To 1.9.5
+- Changed returning None in _get_emned_link in Aniboom parser to raising NoResults exception

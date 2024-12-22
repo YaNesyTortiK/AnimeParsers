@@ -344,7 +344,8 @@ class AniboomParser:
 
         :animego_id: id аниме на animego.org
 
-        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar или None если нет ссылки на Aniboom
+        Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar
+        Если ссылка не найдена, выкидывает NoResults exception
         """
         headers = {
             'X-Requested-With': 'XMLHttpRequest',
@@ -367,7 +368,7 @@ class AniboomParser:
         try:
             link = link.find('span', {'class': 'video-player-toggle-item', 'data-provider': '24'}).get_attribute_list('data-player')[0]
         except AttributeError:
-            return None
+            raise errors.NoResults(f'Для указанного id "{animego_id}" не удалось найти aniboom embed_link')
         return 'https:'+link[:link.rfind('?')]
 
     def _get_embed(self, embed_link: str, episode: int, translation: str) -> str:
