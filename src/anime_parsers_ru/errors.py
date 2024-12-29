@@ -18,7 +18,7 @@ class NoResults(Exception):
     Ошибка для обозначения отсутствия результатов
     """
 
-class UnexpectedBehaviour(Exception):
+class UnexpectedBehavior(Exception):
     """
     Ошибка для обозначения неожиданного или необработанного поведения
     """

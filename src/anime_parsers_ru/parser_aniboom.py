@@ -12,7 +12,7 @@ import json
 try:
     from . import errors # Импорт если библиотека установлена
 except ImportError:
-    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    import errors # Импорт если библиотека не установлена и файл лежит локально
 
 class AniboomParser:
     """
@@ -20,7 +20,7 @@ class AniboomParser:
     """
     def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
-        :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :use_lxml: Использовать lxml парсер. В некоторых случаях может не работать, однако работает значительно быстрее стандартного.
         :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
@@ -113,12 +113,12 @@ class AniboomParser:
                 'trailer': Ссылка на ютуб embed трейлер
                 'screenshots': [Список ссылок на скриншоты]
                 'other_info': {
-                    Данная информация может менятся в зависимости от типа или состояния тайтла
+                    Данная информация может меняться в зависимости от типа или состояния тайтла
                     'Возрастные ограничения': (прим: 16+)
                     'Выпуск': (прим: с 2 апреля 2024)
                     'Главные герои': [Список главных героев]
                     'Длительность': (прим: 23 мин. ~ серия)
-                    'Первоисточник': (прим: Легкая новвела)
+                    'Первоисточник': (прим: Легкая новела)
                     'Рейтинг MPAA': (прим: PG-13),
                     'Сезон': (прим. Весна 2024),
                     'Снят по ранобэ': название ранобэ (Или так же может быть 'Снят по манге')
@@ -143,7 +143,7 @@ class AniboomParser:
 
         :link: ссылка на страницу с данными (прим: https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546)
 
-        Возвращает отосртированный по номеру серии список словарей в виде:
+        Возвращает отсортированный по номеру серии список словарей в виде:
         [
             {
                 'num': Номер эпизода
@@ -212,12 +212,12 @@ class AniboomParser:
             'trailer': Ссылка на ютуб embed трейлер
             'screenshots': [Список ссылок на скриншоты]
             'other_info': {
-                Данная информация может менятся в зависимости от типа или состояния тайтла
+                Данная информация может меняться в зависимости от типа или состояния тайтла
                 'Возрастные ограничения': (прим: 16+)
                 'Выпуск': (прим: с 2 апреля 2024)
                 'Главные герои': [Список главных героев]
                 'Длительность': (прим: 23 мин. ~ серия)
-                'Первоисточник': (прим: Легкая новвела)
+                'Первоисточник': (прим: Легкая новела)
                 'Рейтинг MPAA': (прим: PG-13),
                 'Сезон': (прим. Весна 2024),
                 'Снят по ранобэ': название ранобэ (Или так же может быть 'Снят по манге')
@@ -358,7 +358,7 @@ class AniboomParser:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
         if response['status'] != 'success':
-            raise errors.UnexpectedBehaviour(f'Сервер не вернул ожидаемый статус "success". Статус: "{response["status"]}"')
+            raise errors.UnexpectedBehavior(f'Сервер не вернул ожидаемый статус "success". Статус: "{response["status"]}"')
         soup = Soup(response['content'], 'lxml') if self.USE_LXML else Soup(response['content'], 'html.parser')
         if soup.find('div', {'class': 'player-blocked'}):
             reason_elem = soup.find('div', {'class': 'h5'})
@@ -505,10 +505,10 @@ class AniboomParser:
 
         \"""
         _emb_link = self._get_embed_link(animego_id)
-        master_playlist = self._get_playlist(_emb_link, episode, translation) # Поработать с плэйлистом еще
+        master_playlist = self._get_playlist(_emb_link, episode, translation) # Поработать с плейлистом еще
 
         if master_playlist[:master_playlist.find('\n')] != "#EXTM3U":
-            raise errors.UnexpectedBehaviour(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
+            raise errors.UnexpectedBehavior(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
         res = []
         while "RESOLUTION" in master_playlist:
             ind = master_playlist.find('RESOLUTION=')+11
@@ -528,7 +528,7 @@ class AniboomParser:
         print(master_playlist)
 
         if master_playlist[:master_playlist.find('\n')] != "#EXTM3U":
-            raise errors.UnexpectedBehaviour(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
+            raise errors.UnexpectedBehavior(f'Expected m3u8 master playlist, where first line should be "#EXTM3U", but got "{master_playlist[:master_playlist.find('\n')]}" instead')
 
         master_copy = master_playlist
         

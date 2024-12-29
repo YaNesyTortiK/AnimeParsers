@@ -6,7 +6,7 @@
 
 ## To 1.0.5
 - Fixed dependencies
-- Upload to pypi
+- Upload to pypl
 
 ## To 1.1.0
 - Written tests for kodik_parser
@@ -44,7 +44,7 @@
 
 ## To 1.4.2
 - Fixed bug with single quotes in ShikimoriParser
-- Added prefered 'html.parser' when lxml is not being used
+- Added preferred 'html.parser' when lxml is not being used
 
 ## To 1.4.3
 - Added exception in AniboomParser for blocked players
@@ -126,4 +126,4 @@ Thx to @nichind for pointing these out
 - Releasing 1.9.3 DEV
 
 ## To 1.9.5
-- Changed returning None in _get_emned_link in Aniboom parser to raising NoResults exception
+- Changed returning None in _get_embed_link in Aniboom parser to raising NoResults exception

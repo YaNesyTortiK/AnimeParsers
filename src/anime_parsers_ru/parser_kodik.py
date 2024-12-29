@@ -12,7 +12,7 @@ from base64 import b64decode
 try:
     from . import errors # Импорт если библиотека установлена
 except ImportError:
-    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    import errors # Импорт если библиотека не установлена и файл лежит локально
 
 class KodikParser:
     """
@@ -195,7 +195,7 @@ class KodikParser:
             [
             {
                 "title": "Название",
-                "type": "тип мультимедия (anime, film, ...)",
+                "type": "тип мультимедиа (anime, film, ...)",
                 "year": "Год выпуска фильма",
                 "screenshots": [
                     "ссылки на скриншоты"
@@ -264,7 +264,7 @@ class KodikParser:
         [
         {
             "title": "Название",
-            "type": "тип мультимедия (anime, film, ...)",
+            "type": "тип мультимедиа (anime, film, ...)",
             "year": "Год выпуска фильма",
             "screenshots": [
                 "ссылки на скриншоты"
@@ -305,7 +305,7 @@ class KodikParser:
         [
         {
             "title": "Название",
-            "type": "тип мультимедия (anime, film, ...)",
+            "type": "тип мультимедиа (anime, film, ...)",
             "year": "Год выпуска фильма",
             "screenshots": [
                 "ссылки на скриншоты"
@@ -339,7 +339,7 @@ class KodikParser:
     
     def _prettify_data(self, results: list[dict], only_anime: bool = False) -> list[dict]:
         """
-        Превращает полченные данные от запроса кодику в удобный вариант словаря
+        Превращает полученные данные от запроса кодику в удобный вариант словаря
 
         :results: список словарей (response['results'] в json'е от кодика)
         :only_anime: Возвращать только варианты аниме (тип anime или anime-serial) (по умолчанию False)
@@ -484,7 +484,7 @@ class KodikParser:
                 'translations': self._generate_translations_dict(translations_div)
             }
         else:
-            raise errors.UnexpectedBehaviour('Ссылка на данные не была распознана как ссылка на сериал или фильм')
+            raise errors.UnexpectedBehavior('Ссылка на данные не была распознана как ссылка на сериал или фильм')
     
     def _is_serial(self, iframe_url: str) -> bool:
         return True if iframe_url[iframe_url.find(".info/")+6] == "s" else False

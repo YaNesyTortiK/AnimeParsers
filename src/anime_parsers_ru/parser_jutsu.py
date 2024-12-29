@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup as Soup
 try:
     from . import errors # Импорт если библиотека установлена
 except ImportError:
-    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    import errors # Импорт если библиотека не установлена и файл лежит локально
 
 class JutsuParser:
     """
@@ -18,7 +18,7 @@ class JutsuParser:
     """
     def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
-        :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :use_lxml: Использовать lxml парсер. В некоторых случаях может не работать, однако работает значительно быстрее стандартного.
         :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         if not LXML_WORKS and use_lxml:
@@ -49,7 +49,7 @@ class JutsuParser:
         response = response.text
         soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
         if soup.find('video', {'id': 'my-player'}) is None:
-            raise errors.UnexpectedBehaviour(f'Ожидался тег "video" на странице по ссылке "{link}"')
+            raise errors.UnexpectedBehavior(f'Ожидался тег "video" на странице по ссылке "{link}"')
         sources = soup.find('video', {'id': 'my-player'}).find_all('source')
         links = {}
         for src in sources:
@@ -105,7 +105,7 @@ class JutsuParser:
         soup = soup.find('div', {'id': 'dle-content'})
 
         if soup.find('a', {'class': 'video'}) is None:
-            raise errors.UnexpectedBehaviour(f'Предполагалось, что на странице "{link}" будет находится информация об аниме и ссылки на серии, однако они были не найдены. Проверьте ссылку вручную.')
+            raise errors.UnexpectedBehavior(f'Предполагалось, что на странице "{link}" будет находится информация об аниме и ссылки на серии, однако они были не найдены. Проверьте ссылку вручную.')
 
         c_data = {}
         c_data['title'] = soup.find('h1', {'class': 'header_video'}).text.replace('Смотреть ', '', 1).replace(' все серии и сезоны', '', 1).replace(' все серии', '', 1)
@@ -174,5 +174,5 @@ class JutsuParser:
     Ссылка на страницу: https://jut.su/ookami-to-koshinryou/
 
     Ну суть понятна.
-    Правда есть и исключения по типу наруто, которое в приницпе не подчиняется правилам других аниме.
+    Правда есть и исключения по типу наруто, которое в принципе не подчиняется правилам других аниме.
     """

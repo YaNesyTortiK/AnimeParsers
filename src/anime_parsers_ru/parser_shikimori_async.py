@@ -12,7 +12,7 @@ try:
     from . import errors # Импорт если библиотека установлена
     from .internal_tools import AsyncSession
 except ImportError:
-    import errors # Импорт если ббилиотека не установлена и файл лежит локально
+    import errors # Импорт если библиотека не установлена и файл лежит локально
     from internal_tools import AsyncSession
 
 class ShikimoriParserAsync:
@@ -24,7 +24,7 @@ class ShikimoriParserAsync:
 
     def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
         """
-        :use_lxml: Использовать lxml парсер. В некоторых случаях может неработать, однако работает значительно быстрее стандартного.
+        :use_lxml: Использовать lxml парсер. В некоторых случаях может не работать, однако работает значительно быстрее стандартного.
         :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
         """
         self.requests = AsyncSession()
@@ -125,7 +125,7 @@ class ShikimoriParserAsync:
             "dates": "Даты выхода",
             "description": "Описание",
             "episode_duration": "Средняя продолжительность серии",
-            "episodes": "Количество эпиходов если статус 'вышло' или 'вышедших эпизодов / анонсировано эпизодов' или None (если фильм)",
+            "episodes": "Количество эпизодов если статус 'вышло' или 'вышедших эпизодов / анонсировано эпизодов' или None (если фильм)",
             "genres": ["Жанр1", "Жанр2"],
             "licensed": "Кто лицензировал в РФ или None",
             "licensed_in_ru": "Название аниме как лицензировано в РФ или None",
@@ -444,7 +444,7 @@ class ShikimoriParserAsync:
             (По умолчанию пусто - любой)
         :start_page: Начальная страница для поиска (По умолчанию 1)
         :page_limit: ограничение по количеству страниц для парсинга (По умолчанию 3)
-        :sort_by: как сортировать выдачу (Доступно: rating (рэйтинг), popularity (популярность), name (по алфавиту), aired_on (по дате выхода), ranked_random (случайно), id_desc (по id)) (По умолчанию: rating)
+        :sort_by: как сортировать выдачу (Доступно: rating (рейтинг), popularity (популярность), name (по алфавиту), aired_on (по дате выхода), ranked_random (случайно), id_desc (по id)) (По умолчанию: rating)
 
         Возвращает список словарей вида:
         [
@@ -484,7 +484,7 @@ class ShikimoriParserAsync:
         if len(genres) > 0:
             search_url += f'/genre/{",".join(genres)}'
         if rating != None and rating not in ['g', 'pg' 'pg_13', 'r', 'r_plus']:
-            rating = None # Проверяем что введены только доступные (для рэйтинга rx требуется аккаунт или пользуйтесь функцией deep_search)
+            rating = None # Проверяем что введены только доступные (для рейтинга rx требуется аккаунт или пользуйтесь функцией deep_search)
 
         res = []
         i = start_page
@@ -500,7 +500,7 @@ class ShikimoriParserAsync:
             try:
                 data = response.json()
             except json.JSONDecodeError:
-                raise errors.UnexpectedBehaviour('Ошибка парсинга json при получении данных об онгоингах')
+                raise errors.UnexpectedBehavior('Ошибка парсинга json при получении данных об онгоингах')
             else:
                 total_pages = data['pages_count']
                 soup = Soup(data['content'], 'lxml') if self.USE_LXML else Soup(data['content'], 'html.parser')
@@ -570,7 +570,7 @@ class ShikimoriParserAsync:
             elif actual_code == '302':
                 return soup.find('a').get_attribute_list('href')[0]
             else:
-                raise errors.UnexpectedBehaviour(f'Непредвиденная ошибка при попытке нахождения страницы по id ({shikimori_id}). Ожидались коды: "404", "302", "200". Обнаружен: "{actual_code}"')
+                raise errors.UnexpectedBehavior(f'Непредвиденная ошибка при попытке нахождения страницы по id ({shikimori_id}). Ожидались коды: "404", "302", "200". Обнаружен: "{actual_code}"')
         elif response.status_code == 429:
             raise errors.TooManyRequests(f'Сервер вернул код 429 для обозначения что запросы выполняются слишком часто.')
         elif response.status_code == 520:
@@ -578,7 +578,7 @@ class ShikimoriParserAsync:
         elif response.status_code == 200 or response.status_code == 302:
             return response.url
         else:
-            raise errors.UnexpectedBehaviour(f'Непредвиденная ошибка при попытке нахождения страницы по id ({shikimori_id}). Ожидались коды: "404", "302", "200". Обнаружен: "{response.status_code}"')
+            raise errors.UnexpectedBehavior(f'Непредвиденная ошибка при попытке нахождения страницы по id ({shikimori_id}). Ожидались коды: "404", "302", "200". Обнаружен: "{response.status_code}"')
 
     def id_by_link(self, shikimori_link: str) -> str:
         """
@@ -604,7 +604,7 @@ class ShikimoriParserAsync:
         :title: Название аниме
         :search_parameters: Параметры поиска. Конкретнее читайте в документации. 
             Пример параметров: {'limit': 10, 'kind': 'tv', 'status': 'released'}
-        :return_parameters: Какие данные возвращать. Примеры параметров можно постореть тут: https://shikimori.one/api/doc/graphql.
+        :return_parameters: Какие данные возвращать. Примеры параметров можно посмотреть тут: https://shikimori.one/api/doc/graphql.
             Пример параметров: ['id', 'name', 'russian', 'genres { id name russian kind }', 'status', 'url']
             Вы можете прочитать пример запроса в файле: SHIKI_API.md
         
@@ -666,7 +666,7 @@ class ShikimoriParserAsync:
         Вы можете прочитать пример запроса в файле: SHIKI_API.md
 
         :shikimori_id: id шикимори
-        :return_parameters: Какие данные возвращать. Примеры параметров можно постореть тут: https://shikimori.one/api/doc/graphql.
+        :return_parameters: Какие данные возвращать. Примеры параметров можно посмотреть тут: https://shikimori.one/api/doc/graphql.
             Пример параметров: ['id', 'name', 'russian', 'genres { id name russian kind }', 'status', 'url']
             Вы можете прочитать пример запроса в файле: SHIKI_API.md
         
@@ -801,7 +801,7 @@ class ShikimoriParserAsync:
       updatedAt - дата обновления (str)
     }
 
-    personRoles { - роли-люди (продюссеры, аниматоры, звуковики и т.п.) (list[dict])
+    personRoles { - роли-люди (продюсеры, аниматоры, звуковики и т.п.) (list[dict])
       id - id чего-то (str)
       rolesRu - список ролей на русском (list[str])
       rolesEn - список ролей на английском (list[str])
