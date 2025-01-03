@@ -36,6 +36,42 @@ class KodikParserAsync:
         self.USE_LXML = use_lxml
         self.requests = AsyncSession()
 
+    async def api_request(self, endpoint: str, filters: dict = {}, parameters: dict = {}) -> dict:
+        """
+        Запрос к апи кодика по указанным фильтрам и параметрам. Требует токен.
+        Более полная документация в файле KODIK_API.md (см. репозиторий https://github.com/YaNesyTortiK/Kodik-Download-Watch)
+        
+        :endpoint: Эндпоинт для запроса (search, list, translations)
+        :filters: Фильтры (по умолчанию {})
+        :parameters: Дополнительные параметры (по умолчанию {})
+
+        Возвращает неизмененный ответ сервера.
+        """
+        if endpoint not in ['search', 'list', 'translations']:
+            raise errors.PostArgumentsError(f'Неизвестный эндпоинт. Ожидался один из "search", "list", "translations". Получен: "{endpoint}"')
+        if self.TOKEN is None:
+            raise errors.TokenError('Токен kodik не указан')
+        
+        payload = {"token": self.TOKEN}
+        for item, val in filters.items():
+            payload[item] = val
+        for item, val in parameters.items():
+            payload[item] = val
+
+        url = f"https://kodikapi.com/{endpoint}"
+        data = await self.requests.post(url, data=payload)
+        if data.status_code != 200:
+            raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
+        data = data.json()
+        
+        if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
+            raise errors.TokenError('Отсутствует или неверный токен')
+        elif 'error' in data.keys():
+            raise errors.ServiceError(data['error'])
+        if data['total'] == 0:
+            raise errors.NoResults('Сервер вернул ответ с пустым списком результатов.')
+        return data
+
     async def base_search(self, title: str, limit: int = 50, include_material_data: bool = True, anime_status: str|None = None, strict: bool = False) -> dict:
         """
         ### Для использования требуется токен kodik
@@ -88,26 +124,20 @@ class KodikParserAsync:
             ],
         }
         """
-        if self.TOKEN is None:
-            raise errors.TokenError('Токен kodik не указан')
-        payload = {
-            "token": self.TOKEN,
-            "title": title + ' ' if strict else title, # Хз почему, но если не добавить этот пробел, результатов не будет. \_(=-=)_/
-            "limit": limit,
-            "with_material_data": 'true' if include_material_data else 'false',
-            "strict": 'true' if strict else 'false'
-        }
-        if anime_status in ['released', 'ongoing']:
-            payload['anime_status'] = anime_status
-        url = "https://kodikapi.com/search"
-        data = await self.requests.post(url, data=payload)
-        data = data.json()
-        
-        if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
-            raise errors.TokenError('Отсутствует или неверный токен')
-        elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
-        if data['total'] == 0:
+        try:
+            payload = {
+                "title": title + ' ' if strict else title, # Хз почему, но если не добавить этот пробел, результатов не будет. \_(=-=)_/
+                "limit": limit,
+                "with_material_data": 'true' if include_material_data else 'false',
+                "strict": 'true' if strict else 'false'
+            }
+            if anime_status in ['released', 'ongoing']:
+                payload['anime_status'] = anime_status
+            data = await self.api_request(
+                'search',
+                payload
+            )
+        except errors.NoResults:
             raise errors.NoResults(f'По запросу "{title}" ничего не найдено')
         return data
     
@@ -162,25 +192,18 @@ class KodikParserAsync:
             ],
         }
         """
-        if self.TOKEN is None:
-            raise errors.TokenError('Токен kodik не указан')
         if id_type not in ['shikimori', 'kinopoisk', 'imdb']:
             raise errors.PostArgumentsError(f'Поддерживаются только id shikimori, kinopoisk, imdb. Получено: {id_type}')
-        payload = {
-            "token": self.TOKEN,
-            f"{id_type}_id": id,
-            "limit": limit,
-            "with_material_data": 'true' if include_material_data else 'false'
-        }
-        url = "https://kodikapi.com/search"
-        data = await self.requests.post(url, data=payload)
-        data = data.json()
-        
-        if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
-            raise errors.TokenError('Отсутствует или неверный токен')
-        elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
-        if data['total'] == 0:
+        try:
+            data = await self.api_request(
+                'search',
+                {
+                    f"{id_type}_id": id,
+                    "limit": limit,
+                    "with_material_data": 'true' if include_material_data else 'false'
+                }
+            )
+        except errors.NoResults:
             raise errors.NoResults(f'По id {id_type} "{id}" ничего не найдено')
         return data
     
@@ -223,8 +246,6 @@ class KodikParserAsync:
             "next_page_id": "id следующей страницы (для последовательного парсинга нескольких страниц) (может быть None, если след. страниц нет)"
         )
         """
-        if self.TOKEN is None:
-            raise errors.TokenError('Токен kodik не указан')
         results = []
         next_page = start_from
         payload = {
@@ -237,16 +258,13 @@ class KodikParserAsync:
         for _ in range(pages_to_parse):
             if next_page != None:
                 payload['next'] = next_page
-            url = "https://kodikapi.com/list"
-            data = await self.requests.post(url, data=payload)
-            data = data.json()
-            
-            if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
-                raise errors.TokenError('Отсутствует или неверный токен')
-            elif 'error' in data.keys():
-                raise errors.ServiceError(data['error'])
-            if data['total'] == 0:
-                raise errors.NoResults(f'Ничего не найдено. Скорее всего произошла ошибка, попробуйте позже или сообщите об ошибке на гитхабе.')
+            try:
+                data = await self.api_request(
+                    'list',
+                    payload
+                )
+            except errors.NoResults:
+                data = {'results': []}
             if 'next_page' in data.keys():
                 next_page = data['next_page'][data['next_page'].rfind('=')+1:]
             else:

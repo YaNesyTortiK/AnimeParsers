@@ -127,3 +127,9 @@ Thx to @nichind for pointing these out
 
 ## To 1.9.5
 - Changed returning None in _get_embed_link in Aniboom parser to raising NoResults exception
+
+## To 1.10.0
+- Global spelling fix (renamed errors.UnexpectedBehaviour -> errors.UnexpectedBehavior)
+- Added KODIK_API.md file with docs for kodikapi.com
+- Added `api_request` for KodikParser and KodikParserAsync to make straight api calls with minimum checks
+- Changed functions in kodik parsers to work on `api_request` (base_search, base_search_by_id, get_list)
