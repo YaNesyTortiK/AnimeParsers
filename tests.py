@@ -974,6 +974,50 @@ class TestShikimoriAsync(unittest.IsolatedAsyncioTestCase):
         else:
             raise Warning(f'Гарантированно неверный код не вернул ошибку. Ожидалось: NoResults')
 
+class TestKodikApi(unittest.TestCase):
+    def test_init(self):
+        from src.anime_parsers_ru import KodikList
+        from src.anime_parsers_ru import KodikSearch
+        from src.anime_parsers_ru.api_kodik import Response
+        s = KodikSearch()
+        l = KodikList()
+    
+    def test_search(self):
+        from src.anime_parsers_ru import KodikSearch
+        from src.anime_parsers_ru.api_kodik import Response, Api
+        s = KodikSearch().title('Кулинарные скитания').limit(2).with_material_data().with_episodes_data()
+        self.assertIsInstance(s, Api)
+        data = s.execute()
+        self.assertIsInstance(data, Response)
+        self.assertTrue(len(data.results) > 0)
+        self.assertIsInstance(data.results[0], Response.Element)
+        self.assertIsInstance(data.results[0].raw_data, dict)
+        self.assertIsInstance(data.results[0].translation, Response.Translation)
+        self.assertIsInstance(data.results[0].material_data, Response.MaterialData)
+        self.assertIsInstance(data.results[0].seasons, dict)
+        r = list(data.results[0].seasons.keys())
+        self.assertIsInstance(data.results[0].seasons[r[0]], Response.Season)
+        t = list(data.results[0].seasons[r[0]].episodes.keys())
+        self.assertIsInstance(data.results[0].seasons[r[0]].episodes[t[0]], Response.Season.Episode)
+        
+    def test_list(self):
+        from src.anime_parsers_ru import KodikList
+        from src.anime_parsers_ru.api_kodik import Response, Api
+        s = KodikList().anime_status('ongoing').limit(2).with_material_data().with_episodes_data()
+        self.assertIsInstance(s, Api)
+        data = s.execute()
+        self.assertIsInstance(data, Response)
+        self.assertTrue(len(data.results) > 0)
+        self.assertIsInstance(data.results[0], Response.Element)
+        self.assertIsInstance(data.results[0].raw_data, dict)
+        self.assertIsInstance(data.results[0].translation, Response.Translation)
+        self.assertIsInstance(data.results[0].material_data, Response.MaterialData)
+        self.assertIsInstance(data.results[0].seasons, dict)
+        r = list(data.results[0].seasons.keys())
+        self.assertIsInstance(data.results[0].seasons[r[0]], Response.Season)
+        t = list(data.results[0].seasons[r[0]].episodes.keys())
+        self.assertIsInstance(data.results[0].seasons[r[0]].episodes[t[0]], Response.Season.Episode)
+        
 
 if __name__ == "__main__":
     GLOBAL_USE_LXML = True

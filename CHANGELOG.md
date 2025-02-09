@@ -133,3 +133,7 @@ Thx to @nichind for pointing these out
 - Added KODIK_API.md file with docs for kodikapi.com
 - Added `api_request` for KodikParser and KodikParserAsync to make straight api calls with minimum checks
 - Changed functions in kodik parsers to work on `api_request` (base_search, base_search_by_id, get_list)
+
+## To 1.11.0
+- Added `api_kodik` file with abstraction for using kodik api. 
+- Docs for KODIK_API now include docs for internal api_kodik documentation
