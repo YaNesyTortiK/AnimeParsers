@@ -31,11 +31,11 @@ class AniboomParserAsync:
         if mirror: # Если есть зеркало, то меняем домен на него
             self._dmn = mirror
         else:
-            self._dmn = "animego.org"
+            self._dmn = "animego.me"
 
     async def fast_search(self, title: str) -> list[dict]:
         """
-        Быстрый поиск через animego.org
+        Быстрый поиск через animego.me
         
         :title: Название аниме
 
@@ -75,14 +75,14 @@ class AniboomParserAsync:
             o_t_c = elem.find('div', {'class': 'text-truncate'})
             c_data['other_title'] = o_t_c.text.strip() if not o_t_c is None else ''
             c_data['type'] = elem.find('a', {'href': re.compile(r'.*anime/type.*')}).text.strip()
-            c_data['link'] = 'https://animego.org'+elem.find('h5').find('a').get_attribute_list('href')[0]
+            c_data['link'] = 'https://animego.me'+elem.find('h5').find('a').get_attribute_list('href')[0]
             c_data['animego_id'] = c_data['link'][c_data['link'].rfind('-')+1:]
             res.append(c_data)
         return res
     
     async def search(self, title: str) -> list[dict]:
         """
-        Расширенный поиск через animego.org. Собирает дополнительные данные об аниме.
+        Расширенный поиск через animego.me. Собирает дополнительные данные об аниме.
 
         :title: Название
 
@@ -144,7 +144,7 @@ class AniboomParserAsync:
         """
         Возвращает данные по эпизодам.
 
-        :link: ссылка на страницу с данными (прим: https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546)
+        :link: ссылка на страницу с данными (прим: https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546)
 
         Возвращает отсортированный по номеру серии список словарей в виде:
         [
@@ -183,9 +183,9 @@ class AniboomParserAsync:
 
     async def anime_info(self, link: str) -> dict:
         """
-        Получение данных об аниме с его страницы на animego.org.
+        Получение данных об аниме с его страницы на animego.me.
 
-        :link: Ссылка на страницу (прим: https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546)
+        :link: Ссылка на страницу (прим: https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546)
 
         Возвращает словарь следующего вида:
         {
@@ -243,7 +243,7 @@ class AniboomParserAsync:
         for syn in soup.find('div', {'class': 'anime-synonyms'}).find_all('li'):
             c_data['other_titles'].append(syn.text.strip())
         c_data['poster_url'] = soup.find('img').get_attribute_list('src')[0]
-        c_data['poster_url'] = 'https://animego.org'+c_data['poster_url'][c_data['poster_url'].find('/upload'):]
+        c_data['poster_url'] = 'https://animego.me'+c_data['poster_url'][c_data['poster_url'].find('/upload'):]
         anime_info = soup.find('div', {'class': 'anime-info'}).find('dl')
         keys = anime_info.find_all('dt')
         values = anime_info.find_all('dd')
@@ -274,7 +274,7 @@ class AniboomParserAsync:
         c_data['description'] = soup.find('div', {'class': 'description'}).text.strip()
         c_data['screenshots'] = []
         for screenshot in soup.find_all('a', {'class': 'screenshots-item'}):
-            c_data['screenshots'].append('https://animego.org'+screenshot.get_attribute_list('href')[0])
+            c_data['screenshots'].append('https://animego.me'+screenshot.get_attribute_list('href')[0])
         trailer_cont = soup.find('div', {'class': 'video-block'})
         if not trailer_cont is None:
             c_data['trailer'] = trailer_cont.find('a', {'class': 'video-item'}).get_attribute_list('href')[0]
@@ -291,7 +291,7 @@ class AniboomParserAsync:
         """
         Получает информацию о переводах и их id для плеера aniboom
 
-        :animego_id: id аниме на animego.org
+        :animego_id: id аниме на animego.me
 
         Возвращает список словарей:
         [
@@ -344,7 +344,7 @@ class AniboomParserAsync:
         """
         Возвращает ссылку на embed от aniboom. Сама по себе ссылка не может быть использована, однако требуется для дальнейшего парсинга.
 
-        :animego_id: id аниме на animego.org
+        :animego_id: id аниме на animego.me
 
         Возвращает ссылку в виде: https://aniboom.one/embed/yxVdenrqNar
         Если ссылка не найдена, выкидывает NoResults exception
@@ -400,7 +400,7 @@ class AniboomParserAsync:
     
     async def _get_media_src(self, embed_link: str, episode: int, translation: str) -> str:
         """
-        Возвращает ссылку на mpd файл. Скачивать файл нужно обязательно с header'ами что отправлен запрос от animego.org или aniboom.one (иначе 403 ошибка)
+        Возвращает ссылку на mpd файл. Скачивать файл нужно обязательно с header'ами что отправлен запрос от animego.me или aniboom.one (иначе 403 ошибка)
 
         :embed_link: ссылка на embed (можно получить из _get_embed_link)
         :episode: Номер эпизода (вышедшего) (Если фильм - 0)
@@ -470,7 +470,7 @@ class AniboomParserAsync:
         """
         Возвращает mpd файл строкой (содержимое файла)
         
-        :animego_id: id аниме на animego.org (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
+        :animego_id: id аниме на animego.me (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
         :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation_id: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
 
@@ -486,7 +486,7 @@ class AniboomParserAsync:
         """
         Сохраняет mpd файл как указанный filename
         
-        :animego_id: id аниме на animego.org (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
+        :animego_id: id аниме на animego.me (может быть найдена из fast_search по ключу 'animego_id' для нужного аниме или из search по ключу 'animego_id' для нужного аниме) (из ссылки на страницу аниме https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546 > 2546)
         :episode: Номер эпизода (вышедшего) (Если фильм - 0)
         :translation_id: id перевода (который именно для aniboom плеера) (можно получить из get_translations_info)
         :filename: Имя/путь для сохраняемого файла обязательно чтобы было .mpd расширение (прим: result.mpd или content/result.mpd)

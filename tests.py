@@ -312,7 +312,7 @@ class TestAniboom(unittest.TestCase):
     def test_episodes_info(self):
         from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
-        data = parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        data = parser.episodes_info('https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, list)
         self.assertGreater(len(data), 0) # У данного аниме гарантированно есть эпизоды
         self.assertIsInstance(data[0], dict)
@@ -320,7 +320,7 @@ class TestAniboom(unittest.TestCase):
             self.assertGreater(data[-1]['num'], data[0]['num']) # Проверка сортировки
 
         # Проверка для фильмов
-        data = parser.episodes_info('https://animego.org/anime/psihopasport-film-1327')
+        data = parser.episodes_info('https://animego.me/anime/psihopasport-film-1327')
         self.assertIsInstance(data, list)
         self.assertEqual(len(data), 0)
     
@@ -341,13 +341,13 @@ class TestAniboom(unittest.TestCase):
     def test_anime_info(self):
         from src.anime_parsers_ru import AniboomParser
         parser = AniboomParser(use_lxml=self.USE_LXML)
-        data = parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        data = parser.anime_info('https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
 
         # Проверка без трейлера и переводов
-        data = parser.anime_info('https://animego.org/anime/naruto-bitva-na-hidden-fols-106')
+        data = parser.anime_info('https://animego.me/anime/naruto-bitva-na-hidden-fols-106')
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
@@ -432,7 +432,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
     async def test_episodes_info(self):
         from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
-        data = await parser.episodes_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        data = await parser.episodes_info('https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, list)
         self.assertGreater(len(data), 0) # У данного аниме гарантированно есть эпизоды
         self.assertIsInstance(data[0], dict)
@@ -440,7 +440,7 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
             self.assertGreater(data[-1]['num'], data[0]['num']) # Проверка сортировки
 
         # Проверка для фильмов
-        data = await parser.episodes_info('https://animego.org/anime/psihopasport-film-1327')
+        data = await parser.episodes_info('https://animego.me/anime/psihopasport-film-1327')
         self.assertIsInstance(data, list)
         self.assertEqual(len(data), 0)
     
@@ -461,13 +461,13 @@ class TestAniboomAsync(unittest.IsolatedAsyncioTestCase):
     async def test_anime_info(self):
         from src.anime_parsers_ru import AniboomParserAsync
         parser = AniboomParserAsync(use_lxml=self.USE_LXML)
-        data = await parser.anime_info('https://animego.org/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
+        data = await parser.anime_info('https://animego.me/anime/volchica-i-pryanosti-torgovec-vstrechaet-mudruyu-volchicu-2546')
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
 
         # Проверка без трейлера и переводов
-        data = await parser.anime_info('https://animego.org/anime/naruto-bitva-na-hidden-fols-106')
+        data = await parser.anime_info('https://animego.me/anime/naruto-bitva-na-hidden-fols-106')
         self.assertIsInstance(data, dict)
         self.assertTrue('episodes_info' in data.keys())
         self.assertTrue('translations' in data.keys())
