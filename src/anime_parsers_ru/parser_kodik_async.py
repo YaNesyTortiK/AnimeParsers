@@ -613,8 +613,9 @@ class KodikParserAsync:
 
         link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
 
-        download_url = str(link_data).replace("https://", '')
-        download_url = download_url[:-26] # :hls:manifest.m3u8
+        download_url = str(link_data).replace("https://", "")
+        download_url = download_url.replace("//", "")
+        download_url = download_url[:-26]  # :hls:manifest.m3u8
 
         return download_url, max_quality
     
