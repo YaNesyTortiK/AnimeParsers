@@ -640,28 +640,13 @@ class KodikParserAsync:
         post_link = await self._get_post_link(script_url)
         data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
         data = data.json()
-        url = self._convert(data['links']['360'][0]['src'])
+        url = data['links']['360'][0]['src']
         max_quality = max([int(x) for x in data['links'].keys()])
         try:
-            return b64decode(url.encode()), max_quality
+            return url, max_quality
         except:
-            return str(b64decode(url.encode()+b'==')).replace("https:", ''), max_quality
+            return url.replace("https:", ''), max_quality
         
-    def _convert_char(self, char: str):
-        low = char.islower()
-        alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        if char.upper() in alph:
-            ch = alph[(alph.index(char.upper())+13)%len(alph)]
-            if low:
-                return ch.lower()
-            else:
-                return ch
-        else:
-            return char
-
-    def _convert(self, string: str):
-        # Декодирование строки со ссылкой
-        return "".join(map(self._convert_char, list(string)))
     
     async def _get_post_link(self, script_url: str):
         data = await self.requests.get('https://kodik.info'+script_url)
