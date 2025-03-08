@@ -220,11 +220,13 @@ pip install lxml
         id="z20", 
         id_type="shikimori", 
         seria_num=1, 
-        translation_id="609") # Кортеж
+        translation_id="609",
+        crypted=False) # Кортеж
     # id - id медиа
     # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
     # seria_num - номер серии (если фильм или одно видео - 0)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
+    # crypted - используется ли шифрование ссылок кодиком (по умолчанию False, можно не указывать)
     ```
     Возвращает кортеж: `("//cloud.kodik-storage.com/useruploads/67b6e546-e51d-43d2-bb11-4d8bfbedc2d7/d6f4716bc90bd30694cf09b0062d07a2:2024062705/", 720)`
     

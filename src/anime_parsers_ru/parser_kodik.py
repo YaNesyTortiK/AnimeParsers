@@ -530,14 +530,8 @@ class KodikParser:
             translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
         return translations
 
-    def get_link(
-        self,
-        id: str,
-        id_type: str,
-        seria_num: int,
-        translation_id: str,
-        crypted: bool = False,
-    ) -> tuple[str, int]:
+    def get_link(self, id: str, id_type: str, seria_num: int, 
+                 translation_id: str, crypted: bool = False) -> tuple[str, int]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -546,7 +540,7 @@ class KodikParser:
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         :seria_num: номер серии (если фильм или одно видео, укажите 0)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
-        :crypted: bool:
+        :crypted: Используется ли шифрование ссылки кодиком. По умолчанию False.
 
         Возвращает ссылку в стиле:
         //cloud.kodik-storage.com/useruploads/351182fc-e1ac-4521-a9e3-261303e69687/ba18e7c1a8ac055a61b0d2e528f9eb8c:2024062702/
@@ -624,18 +618,11 @@ class KodikParser:
             video_type, video_hash, video_id, urlParams, script_url, crypted
         )
 
-        download_url = str(link_data).replace("https:", "")[:-27]
+        download_url = str(link_data).replace("https:", "")[:-25]
         return download_url, max_quality
 
-    def _get_link_with_data(
-        self,
-        video_type: str,
-        video_hash: str,
-        video_id: str,
-        urlParams: dict,
-        script_url: str,
-        crypted: bool,
-    ):
+    def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, 
+                            urlParams: dict, script_url: str, crypted: bool = False):
         params = {
             "hash": video_hash,
             "id": video_id,

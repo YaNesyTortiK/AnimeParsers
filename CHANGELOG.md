@@ -137,3 +137,6 @@ Thx to @nichind for pointing these out
 ## To 1.11.0
 - Added `api_kodik` file with abstraction for using kodik api. 
 - Docs for KODIK_API now include docs for internal api_kodik documentation
+
+## To 1.11.1
+- Fixed issue with KodikParser (links are now not crypted), added toggle to enable decryption functions back. (Thx to @reihitotsu)
