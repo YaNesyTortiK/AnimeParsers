@@ -530,7 +530,14 @@ class KodikParser:
             translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
         return translations
 
-    def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
+    def get_link(
+        self,
+        id: str,
+        id_type: str,
+        seria_num: int,
+        translation_id: str,
+        crypted: bool = False,
+    ) -> tuple[str, int]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -539,6 +546,7 @@ class KodikParser:
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         :seria_num: номер серии (если фильм или одно видео, укажите 0)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
+        :crypted: bool:
 
         Возвращает ссылку в стиле:
         //cloud.kodik-storage.com/useruploads/351182fc-e1ac-4521-a9e3-261303e69687/ba18e7c1a8ac055a61b0d2e528f9eb8c:2024062702/
@@ -555,62 +563,80 @@ class KodikParser:
         if type(seria_num) == str and seria_num.isdigit():
             seria_num = int(seria_num)
         elif type(seria_num) != int:
-            raise ValueError(f'Для seria_num ожидался тип int, получен "{type(seria_num)}"')
+            raise ValueError(
+                f'Для seria_num ожидался тип int, получен "{type(seria_num)}"'
+            )
         if type(translation_id) == int:
             translation_id = str(translation_id)
         elif type(translation_id) != str:
-            raise ValueError(f'Для translation_id ожидался тип str, получен "{type(translation_id)}"')
-        
+            raise ValueError(
+                f'Для translation_id ожидался тип str, получен "{type(translation_id)}"'
+            )
 
         link = self._link_to_info(id, id_type)
         data = requests.get(link).text
-        soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
-        urlParams = data[data.find('urlParams')+13:]
-        urlParams = json.loads(urlParams[:urlParams.find(';')-1])
-        if translation_id != "0" and seria_num != 0: # Обычный сериал с известной озвучкой на более чем 1 серию
-            container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
+        soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
+        urlParams = data[data.find("urlParams") + 13 :]
+        urlParams = json.loads(urlParams[: urlParams.find(";") - 1])
+        if (
+            translation_id != "0" and seria_num != 0
+        ):  # Обычный сериал с известной озвучкой на более чем 1 серию
+            container = soup.find("div", {"class": "serial-translations-box"}).find(
+                "select"
+            )
             media_hash = None
             media_id = None
-            for translation in container.find_all('option'):
-                if translation.get_attribute_list('data-id')[0] == translation_id:
-                    media_hash = translation.get_attribute_list('data-media-hash')[0]
-                    media_id = translation.get_attribute_list('data-media-id')[0]
+            for translation in container.find_all("option"):
+                if translation.get_attribute_list("data-id")[0] == translation_id:
+                    media_hash = translation.get_attribute_list("data-media-hash")[0]
+                    media_id = translation.get_attribute_list("data-media-id")[0]
                     break
-            url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+            url = f"https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
             data = requests.get(url).text
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
-        elif translation_id != "0" and seria_num == 0: # Фильм/одна серия с несколькими переводами
-            container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
+            soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
+        elif (
+            translation_id != "0" and seria_num == 0
+        ):  # Фильм/одна серия с несколькими переводами
+            container = soup.find("div", {"class": "movie-translations-box"}).find(
+                "select"
+            )
             media_hash = None
             media_id = None
-            for translation in container.find_all('option'):
-                if translation.get_attribute_list('data-id')[0] == translation_id:
-                    media_hash = translation.get_attribute_list('data-media-hash')[0]
-                    media_id = translation.get_attribute_list('data-media-id')[0]
+            for translation in container.find_all("option"):
+                if translation.get_attribute_list("data-id")[0] == translation_id:
+                    media_hash = translation.get_attribute_list("data-media-hash")[0]
+                    media_id = translation.get_attribute_list("data-media-id")[0]
                     break
-            url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+            url = f"https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
             data = requests.get(url).text
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
-        script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
+            soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
+        script_url = soup.find_all("script")[1].get_attribute_list("src")[0]
 
-        hash_container = soup.find_all('script')[4].text
-        video_type = hash_container[hash_container.find('.type = \'')+9:]
-        video_type = video_type[:video_type.find('\'')]
-        video_hash = hash_container[hash_container.find('.hash = \'')+9:]
-        video_hash = video_hash[:video_hash.find('\'')]
-        video_id = hash_container[hash_container.find('.id = \'')+7:]
-        video_id = video_id[:video_id.find('\'')]
+        hash_container = soup.find_all("script")[4].text
+        video_type = hash_container[hash_container.find(".type = '") + 9 :]
+        video_type = video_type[: video_type.find("'")]
+        video_hash = hash_container[hash_container.find(".hash = '") + 9 :]
+        video_hash = video_hash[: video_hash.find("'")]
+        video_id = hash_container[hash_container.find(".id = '") + 7 :]
+        video_id = video_id[: video_id.find("'")]
 
-        link_data, max_quality = self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
+        link_data, max_quality = self._get_link_with_data(
+            video_type, video_hash, video_id, urlParams, script_url, crypted
+        )
 
-        download_url = str(link_data).replace("https://", "")
-        download_url = download_url.replace("//", "")[:-26]
-        download_url = download_url[:-26]  # :hls:manifest.m3u8
-
+        download_url = str(link_data).replace("https:", "")[:-27]
         return download_url, max_quality
-    
-    def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
-        params={
+
+    def _get_link_with_data(
+        self,
+        video_type: str,
+        video_hash: str,
+        video_id: str,
+        urlParams: dict,
+        script_url: str,
+        crypted: bool,
+    ):
+        params = {
             "hash": video_hash,
             "id": video_id,
             "type": video_type,
@@ -624,22 +650,39 @@ class KodikParser:
             'cdn_is_working': 'true',
         }
 
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         post_link = self._get_post_link(script_url)
-        data = requests.post(f'https://kodik.info{post_link}', data=params, headers=headers).json()
-        url = data['links']['360'][0]['src']
-        max_quality = max([int(x) for x in data['links'].keys()])
+        data = requests.post(f"https://kodik.info{post_link}", data=params, headers=headers).json()
+        data_url = data["links"]["360"][0]["src"]
+        url = data_url if not crypted else self._convert(data_url)
+        max_quality = max([int(x) for x in data["links"].keys()])
+
+        return url, max_quality
+
+    def _convert_char(self, char: str):
+        low = char.islower()
+        alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if char.upper() in alph:
+            ch = alph[(alph.index(char.upper()) + 13) % len(alph)]
+            if low:
+                return ch.lower()
+            else:
+                return ch
+        else:
+            return char
+
+    def _convert(self, string: str):
+        # Декодирование строки со ссылкой
+        crypted_url = "".join(map(self._convert_char, list(string)))
         try:
-            return url, max_quality
+            return b64decode(crypted_url.encode())
         except:
-            return url.replace("https:", ''), max_quality
-            
+            return str(b64decode(crypted_url.encode() + b"=="))
+
     def _get_post_link(self, script_url: str):
-        data = requests.get('https://kodik.info'+script_url).text
-        url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
+        data = requests.get("https://kodik.info" + script_url).text
+        url = data[data.find("$.ajax") + 30 : data.find("cache:!1") - 3]
         return b64decode(url.encode()).decode()
 
     @staticmethod

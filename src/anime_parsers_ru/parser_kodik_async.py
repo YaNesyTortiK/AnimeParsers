@@ -538,7 +538,14 @@ class KodikParserAsync:
             translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
         return translations
 
-    async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
+    async def get_link(
+        self,
+        id: str,
+        id_type: str,
+        seria_num: int,
+        translation_id: str,
+        crypted: bool = False,
+    ) -> tuple[str, int]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -611,15 +618,14 @@ class KodikParserAsync:
         video_id = hash_container[hash_container.find('.id = \'')+7:]
         video_id = video_id[:video_id.find('\'')]
 
-        link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
+        link_data, max_quality = await self._get_link_with_data(
+            video_type, video_hash, video_id, urlParams, script_url, crypted
+        )
 
-        download_url = str(link_data).replace("https://", "")
-        download_url = download_url.replace("//", "")
-        download_url = download_url[:-26]  # :hls:manifest.m3u8
-
+        download_url = str(link_data).replace("https:", "")[:-26]
         return download_url, max_quality
     
-    async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
+    async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str, crypted:bool):
         params={
             "hash": video_hash,
             "id": video_id,
@@ -641,19 +647,38 @@ class KodikParserAsync:
         post_link = await self._get_post_link(script_url)
         data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
         data = data.json()
-        url = data['links']['360'][0]['src']
-        max_quality = max([int(x) for x in data['links'].keys()])
+        data_url = data["links"]["360"][0]["src"]
+        url = data_url if not crypted else self._convert(data_url)
+        max_quality = max([int(x) for x in data["links"].keys()])
+
+        return url, max_quality
+
+    def _convert_char(self, char: str):
+        low = char.islower()
+        alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if char.upper() in alph:
+            ch = alph[(alph.index(char.upper()) + 13) % len(alph)]
+            if low:
+                return ch.lower()
+            else:
+                return ch
+        else:
+            return char
+
+    def _convert(self, string: str):
+        # Декодирование строки со ссылкой
+        crypted_url = "".join(map(self._convert_char, list(string)))
         try:
-            return url, max_quality
+            return b64decode(crypted_url.encode())
         except:
-            return url.replace("https:", ''), max_quality
-        
-    
+            return str(b64decode(crypted_url.encode() + b"=="))
+
     async def _get_post_link(self, script_url: str):
         data = await self.requests.get('https://kodik.info'+script_url)
         data = data.text
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
         return b64decode(url.encode()).decode()
+
 
     @staticmethod
     async def get_token() -> str:
@@ -681,3 +706,4 @@ class KodikParserAsync:
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token
+
