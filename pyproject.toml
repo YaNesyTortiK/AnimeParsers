@@ -13,14 +13,13 @@ requires-python = ">= 3.10"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
 dependencies = [
   "beautifulsoup4>=4.12",
   "requests>=2.32"
 ]
-license = {file = "LICENSE"}
+license-files = ["LICENSE"]
 keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "shikimori", "kodikapi", "kodik api", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори", "кодик апи"]
 
 [project.optional-dependencies]
