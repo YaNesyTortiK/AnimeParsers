@@ -240,6 +240,7 @@ pip install lxml
 > В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`. В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`
 
 6. Прямое обращение к апи кодика
+    Рекомендуется использовать модули KodikSearch и KodikList для обращения к апи.
     ```python
     parser.api_request (
         endpoint="list",
@@ -589,9 +590,9 @@ pip install lxml
 
 2. Информация об аниме
     ```python
-    parser.anime_info('shikimori id')
-    # id шикимори можно получить с помощью функции
-    # parser.id_by_link
+    parser.anime_info('shikimori_link')
+    # Ссылку на шикимори можно получить с помощью функции
+    # parser.link_by_id
     ```
     Возвращает словарь:
     ```json

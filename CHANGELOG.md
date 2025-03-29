@@ -140,3 +140,7 @@ Thx to @nichind for pointing these out
 
 ## To 1.11.1
 - Fixed issue with KodikParser (links are now not crypted), added toggle to enable decryption functions back. (Thx to @reihitotsu)
+
+## To 1.11.2
+- Added function to get translations and episodes info to Response class in kodik_api.py
+- Fixed readme (ShikimoriParser.anime_info requires link, not id)

@@ -1,6 +1,6 @@
-Metadata-Version: 2.2
+Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.11.1
+Version: 1.11.2
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -27,6 +27,7 @@ Provides-Extra: async
 Requires-Dist: aiohttp>=3.9.5; extra == "async"
 Provides-Extra: lxml
 Requires-Dist: lxml>=5.2; extra == "lxml"
+Dynamic: license-file
 
 # AnimeParsers
 ## Описание
@@ -270,6 +271,7 @@ pip install lxml
 > В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`. В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`
 
 6. Прямое обращение к апи кодика
+    Рекомендуется использовать модули KodikSearch и KodikList для обращения к апи.
     ```python
     parser.api_request (
         endpoint="list",
@@ -619,9 +621,9 @@ pip install lxml
 
 2. Информация об аниме
     ```python
-    parser.anime_info('shikimori id')
-    # id шикимори можно получить с помощью функции
-    # parser.id_by_link
+    parser.anime_info('shikimori_link')
+    # Ссылку на шикимори можно получить с помощью функции
+    # parser.link_by_id
     ```
     Возвращает словарь:
     ```json

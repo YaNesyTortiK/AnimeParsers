@@ -362,6 +362,68 @@ class Response:
             else:
                 self._material_data = Response.MaterialData(value)
 
+        def get_episodes_and_translations(self, token: str | None = None) -> list[dict]:
+            """
+            :token: Api ключ для кодика. Не обязателен. По умолчанию None, и используется стандартный встроенный ключ.
+            Возвращает список словарей с информацией о переводе.
+            Пример результата:
+            [
+                {
+                    "title": "Название озвучки",
+                    "type": "Тип перевода (озвучка/субтитры)",
+                    "episodes_count": количество переведенных эпизодов с этой озвучкой,
+                    "translation_id": "id перевода"
+                }
+            ]
+            """
+            if self.shikimori_id:
+                data = KodikSearch(token=token).limit(100).shikimori_id(self.shikimori_id).execute()
+            elif self.kinopoisk_id:
+                data = KodikSearch(token=token).limit(100).kinopoisk_id(self.kinopoisk_id).execute()
+            elif self.imdb_id:
+                data = KodikSearch(token=token).limit(100).imdb_id(self.imdb_id).execute()
+            elif self.mdl_id:
+                data = KodikSearch(token=token).limit(100).mdl_id(self.mdl_id).execute()
+            else:
+                raise ValueError('Function requires aty least one of IDs to be, but all IDs are None.')
+            return self._prepare_episodes_and_translations_data(data)
+        
+        async def get_episodes_and_translations_async(self, token: str | None) -> list[dict]:
+            """
+            :token: Api ключ для кодика. Не обязателен. По умолчанию None, и используется стандартный встроенный ключ.
+            Возвращает список словарей с информацией о переводе.
+            Пример результата:
+            [
+                {
+                    "title": "Название озвучки",
+                    "type": "Тип перевода (озвучка/субтитры)",
+                    "episodes_count": количество переведенных эпизодов с этой озвучкой,
+                    "translation_id": "id перевода"
+                }
+            ]
+            """
+            if self.shikimori_id:
+                data = await KodikSearch(token=token).limit(100).shikimori_id(self.shikimori_id).execute_async()
+            elif self.kinopoisk_id:
+                data = await KodikSearch(token=token).limit(100).kinopoisk_id(self.kinopoisk_id).execute_async()
+            elif self.imdb_id:
+                data = await KodikSearch(token=token).limit(100).imdb_id(self.imdb_id).execute_async()
+            elif self.mdl_id:
+                data = await KodikSearch(token=token).limit(100).mdl_id(self.mdl_id).execute_async()
+            else:
+                raise ValueError('Function requires aty least one of IDs to be, but all IDs are None.')
+            return self._prepare_episodes_and_translations_data(data)
+            
+        def _prepare_episodes_and_translations_data(self, data: 'Response') -> list[dict]:
+            return [
+                {
+                    "title": item.translation.title,
+                    "type": item.translation.type,
+                    "episodes_count": item.episodes_count,
+                    "translation_id": item.translation.id
+                } for item in data.results
+            ]
+
     def __init__(self, raw_data: dict):
         self.raw_data = raw_data
         self.total = self.raw_data['total'] # Гарантируется не менее одного результата т.к. при выполнении api_request происходит проверка на наличие результатов. При их отсутствии выходит NoResults exception

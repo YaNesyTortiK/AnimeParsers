@@ -190,6 +190,38 @@ print(data2.results[-1].id) # Результат: serial-64685
 
 Для запроса на предыдущую страницу просто используется функция `prev_page` вместо `next_page` как в примере выше.
 
+#### Пример получения списка переводов и количества серий
+Для получения информации о переводах и количестве серий в каждом переводе, требуется выполнить запрос для получения какого-либо элемента, а затем функция вызывается от требуемого элемента.
+```python
+# Выполняем первичный поиск (Наруто)
+initial = KodikSearch().shikimori_id('20').execute()
+# Получаем список переводов и серий
+data = initial.results[0].get_episodes_and_translations()
+# Вывод:
+"""
+[{'episodes_count': 220,
+  'title': 'AniDUB',
+  'translation_id': 609,
+  'type': 'voice'},
+ {'episodes_count': 220,
+  'title': '2x2',
+  'translation_id': 735,
+  'type': 'voice'},
+ {'episodes_count': 135,
+  'title': 'AniRise',
+  'translation_id': 958,
+  'type': 'voice'},
+ {'episodes_count': 8,
+  'title': 'ANI.OMNIA',
+  'translation_id': 2550,
+  'type': 'voice'},
+ {'episodes_count': 220,
+  'title': 'Субтитры',
+  'translation_id': 869,
+  'type': 'subtitles'}]
+"""
+```
+
 ### Описание класса Response
 
 Подклассы:
@@ -291,7 +323,9 @@ print(data2.results[-1].id) # Результат: serial-64685
             * licensed_by - Кем было лицензировано (если есть, иначе None)
             * anime_studios - Студии анимации аниме (если есть, иначе None)
             * released_at - Дата выхода (если есть, иначе None)
-            
+        * get_episodes_and_translations - Функция, возвращающая список словарей состоящих из озвучки и количества озвученных эпизодов этой озвучкой
+        * get_episodes_and_translations_async - Асинхронная функция, возвращающая список словарей состоящих из озвучки и количества озвученных эпизодов этой озвучкой
+        
 
 ## Подробнее про поиск
 Для поиска требуется знать один из ключевых элементов контента: название или id.
