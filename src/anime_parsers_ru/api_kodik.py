@@ -20,6 +20,18 @@ except ImportError:
 
 import requests
 
+
+class _OrderList:
+    asc = 'asc'  # По возрастанию
+    desc = 'desc'  # По убыванию
+
+    @staticmethod
+    def get_list() -> list[str]:
+        """
+        Возвращает список доступных параметров.
+        """
+        return [_OrderList.asc, _OrderList.desc]
+
 class _SortList:
     year = 'year'
     created_at = 'created_at'
@@ -1468,6 +1480,15 @@ class KodikSearch(Api):
         super().__init__(token, allow_warnings, _args, _endpoint='search')
 
 class KodikList(Api):
+    class Order(_OrderList):
+        """
+        Параметр направления сортировки для запроса list. Доступные параметры:\n
+        * asc - По возрастанию
+        * desc - По убыванию
+        \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)\n
+        """
+        pass
+
     class Sort(_SortList):
         """
         Параметры сортировки для запросов list. Доступные параметры:\n
@@ -1483,6 +1504,23 @@ class KodikList(Api):
 
     def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}):
         super().__init__(token, allow_warnings, _args, _endpoint='list')
+
+    def order(self, value):
+        """
+        Устанавливает параметр направления сортировки для запроса list.
+
+        Параметры:
+            value (str): Параметр направления сортировки из списка KodikList.Order
+
+        Raises:
+            errors.PostArgumentsError: Если указан недопустимый параметр направления сортировки.
+        """
+        if value not in self.Order.get_list():
+            raise errors.PostArgumentsError(
+                f'Недопустимый параметр направления сортировки: {value}. Допустимые параметры: {", ".join(self.Order.get_list())}')
+
+        self._args['order'] = value
+        return self._ret()
 
     def sort(self, value):
         """
