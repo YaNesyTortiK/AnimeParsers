@@ -644,6 +644,16 @@ data = initial.results[0].get_episodes_and_translations()
 | `designers` | string | Возвращает элементы у которых указаны дизайнеры (разделяется через запятую) | - | :heavy_check_mark: | :heavy_check_mark: |
 | `operators` | string | Возвращает элементы у которых указаны операторы (разделяется через запятую) | - | :heavy_check_mark: | :heavy_check_mark: |
 | `licensed_by` | string | Указать владельца лицензии (разделяется через запятую) | - | N/A | N/A |
+| `sort` | string | Отсортировать элементы по определенному признаку. <details><summary>Доступные</summary>
+* year
+* created_at
+* updated_at
+* kinopoisk_rating
+* imdb_rating
+* shikimori_rating 
+</details> | - | :x: | :heavy_check_mark: |
+| `order` | string | Указать порядок сортировки. asc - по возрастанию. desc - по убыванию. | - | :x: | :heavy_check_mark: |
+
 
 ### Дополнительные параметры
 | Параметр | Тип данных | Описание | Дополнительно | Поиск | Список |

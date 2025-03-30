@@ -144,3 +144,6 @@ Thx to @nichind for pointing these out
 ## To 1.11.2
 - Added function to get translations and episodes info to Response class in kodik_api.py
 - Fixed readme (ShikimoriParser.anime_info requires link, not id)
+
+## To 1.11.3
+- Added `sort` and `order` parameters to KodikList (thx @SHCDevelops)
