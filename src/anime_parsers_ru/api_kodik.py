@@ -20,6 +20,24 @@ except ImportError:
 
 import requests
 
+class _SortList:
+    year = 'year'
+    created_at = 'created_at'
+    updated_at = 'updated_at'
+    kinopoisk_rating = 'kinopoisk_rating'
+    imdb_rating = 'imdb_rating'
+    shikimori_rating = 'shikimori_rating'
+
+    @staticmethod
+    def get_list() -> list[str]:
+        """
+        Возвращает список доступных параметров.
+        """
+        return [
+            _SortList.year, _SortList.created_at, _SortList.updated_at,
+            _SortList.kinopoisk_rating, _SortList.imdb_rating, _SortList.shikimori_rating
+        ]
+
 class _AnimeKind:
     tv = 'tv'
     tv13 = 'tv13'
@@ -37,7 +55,7 @@ class _AnimeKind:
         Возвращает список доступных параметров.
         """
         return [
-            _AnimeKind.tv, _AnimeKind.tv13, _AnimeKind.tv24, _AnimeKind.tv48, 
+            _AnimeKind.tv, _AnimeKind.tv13, _AnimeKind.tv24, _AnimeKind.tv48,
             _AnimeKind.movie, _AnimeKind.special, _AnimeKind.ova, _AnimeKind.ona, _AnimeKind.music
         ]
 
@@ -85,7 +103,7 @@ class _Genres:
     drama = "драма"
     comedy = "комедия"
     cartoon = "мультфильм"
-    fantasy = "фэнтези" 
+    fantasy = "фэнтези"
     action = "боевик"
     adventures = "приключения"
     fantastika = "фантастика" # А в чем разница между фэнтези и фантастикой? даже гугл одинаково переводит 	(ノ ゜Д゜)ノ ︵
@@ -100,7 +118,7 @@ class _Genres:
             _Genres.action, _Genres.adventures, _Genres.fantastika
         ]
 
-class _AnimeGenres: 
+class _AnimeGenres:
     military = "Военное"
     drama = "Драма"
     history = "Исторический"
@@ -130,7 +148,7 @@ class _AnimeGenres:
             _AnimeGenres.military, _AnimeGenres.drama, _AnimeGenres.history, _AnimeGenres.action,
             _AnimeGenres.adventures, _AnimeGenres.senen, _AnimeGenres.fantasy, _AnimeGenres.comedy,
             _AnimeGenres.martial_arts, _AnimeGenres.romance, _AnimeGenres.psychological, _AnimeGenres.thriller,
-            _AnimeGenres.everyday_life, _AnimeGenres.supernatural, _AnimeGenres.sport, _AnimeGenres.school, 
+            _AnimeGenres.everyday_life, _AnimeGenres.supernatural, _AnimeGenres.sport, _AnimeGenres.school,
             _AnimeGenres.music, _AnimeGenres.fantastika, _AnimeGenres.samurai
         ]
 
@@ -146,7 +164,7 @@ class Response:
 
         def __str__(self):
             return str(self.raw_data)
-        
+
         def __repr__(self):
             return str(self.raw_data)
 
@@ -171,7 +189,7 @@ class Response:
         @property
         def episodes(self) -> dict[str, 'Response.Season.Episode']:
             return self._episodes
-        
+
         @episodes.setter
         def episodes(self, value: dict | None):
             if value is None:
@@ -214,7 +232,7 @@ class Response:
         * minimal_age - Минимальный возраст зрителя
         * episodes_total - Всего эпизодов (если есть, иначе None)
         * episodes_aired - Сколько эпизодов уже показано (если есть, иначе None)
-        * year - Год выхода 
+        * year - Год выхода
         * countries - Страны-производители (список) (если есть, иначе None)
         * genres - Список жанров
         * premiere_world - Дата премьеры в мире (если есть, иначе None)
@@ -337,11 +355,11 @@ class Response:
             self.translation = Response.Translation(self.raw_data['translation']) if 'translation' in self._keys else None
             self.material_data  = self.raw_data['material_data'] if 'material_data' in self._keys else None
             self.seasons = self.raw_data['seasons'] if 'seasons' in self._keys else None
-        
+
         @property
         def seasons(self) -> dict[str, 'Response.Season']:
             return self._seasons
-        
+
         @seasons.setter
         def seasons(self, value: dict | None):
             if value is None:
@@ -350,11 +368,11 @@ class Response:
                 self._seasons = {}
                 for k, v in value.items():
                     self._seasons[k] = Response.Season(v)
-        
+
         @property
         def material_data(self) -> 'Response.MaterialData':
             return self._material_data
-        
+
         @material_data.setter
         def material_data(self, value: dict | None):
             if value is None:
@@ -387,7 +405,7 @@ class Response:
             else:
                 raise ValueError('Function requires aty least one of IDs to be, but all IDs are None.')
             return self._prepare_episodes_and_translations_data(data)
-        
+
         async def get_episodes_and_translations_async(self, token: str | None) -> list[dict]:
             """
             :token: Api ключ для кодика. Не обязателен. По умолчанию None, и используется стандартный встроенный ключ.
@@ -413,7 +431,7 @@ class Response:
             else:
                 raise ValueError('Function requires aty least one of IDs to be, but all IDs are None.')
             return self._prepare_episodes_and_translations_data(data)
-            
+
         def _prepare_episodes_and_translations_data(self, data: 'Response') -> list[dict]:
             return [
                 {
@@ -433,7 +451,7 @@ class Response:
     @property
     def results(self) -> list['Response.Element']:
         return self._results
-    
+
     @results.setter
     def results(self, value: list):
         self._results = [Response.Element(r) for r in value]
@@ -481,7 +499,7 @@ class Api:
         * pg - Рекомендуется присутствие родителей.
         * pg-13 - Детям до 13 лет просмотр нежелателен.
         * r - Лицам до 17 лет обязательно присутствие взрослого.
-        * rx - Хeнтай / Пoрнография    
+        * rx - Хeнтай / Пoрнография
         \nЧисто технически, существует рейтинг r+, но почему-то у меня не получилось отфильтровать по нему поиск (выдавался рейтинг r).
         \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)
         """
@@ -489,7 +507,7 @@ class Api:
 
     class Genres(_Genres):
         """
-        Жанры (отдельно от аниме жанров). Доступные фильтры:\n    
+        Жанры (отдельно от аниме жанров). Доступные фильтры:\n
         * anime - аниме
         * drama - драма
         * comedy - комедия
@@ -534,7 +552,7 @@ class Api:
         :allow_warnings: Разрешить вывод в консоль предупреждений о неправильно/некорректно используемых параметрах. По умолчанию True.
         :_args: Используется для передачи данных между классами.
         :_parser: Используется для передачи объекта парсера между классами. (Чтобы каждый раз не инициализировать заново и не ждать автоматического поиска токена)
-        :_endpoint: Указывается конец ссылки для апи (search/list/translations). По умолчанию None, т.к. для каждого эндпоинта есть свои условия, которые предусмотрены в классах Search, List соответственно. 
+        :_endpoint: Указывается конец ссылки для апи (search/list/translations). По умолчанию None, т.к. для каждого эндпоинта есть свои условия, которые предусмотрены в классах Search, List соответственно.
         """
         if token is None:
             self.token = parser_kodik.KodikParser.get_token()
@@ -549,15 +567,15 @@ class Api:
         self._prev_link = None
         self._next_page = False
         self._prev_page = False
-        
+
 
     def _ret(self) -> 'Api':
         """
-        Функция для создания нового класса, с новыми данными, после каждого добавленного условия. 
+        Функция для создания нового класса, с новыми данными, после каждого добавленного условия.
         (Вынесено отдельно, чтобы не загружать каждую функцию одинаковым кодом)
         """
         return Api(allow_warnings=self.allow_warnings, _args=self._args, _endpoint=self._endpoint)
-    
+
     def title(self, title: str) -> 'Api':
         """
         Указывается название мультимедиа для поиска.
@@ -565,7 +583,7 @@ class Api:
         """
         self._args['title'] = title
         return self._ret()
-    
+
     def title_orig(self, title_orig: str) -> 'Api':
         """
         Указывается оригинальное название мультимедиа для поиска. Обычно таким считается название на английском (Даже если оригинально названо на русском).
@@ -573,7 +591,7 @@ class Api:
         """
         self._args['title_orig'] = title_orig
         return self._ret()
-    
+
     def strict(self, strict: bool = True) -> 'Api':
         """
         Параметр strict отвечает за более точное совпадение запрошенного названия/оригинального названия с найденными.
@@ -581,7 +599,7 @@ class Api:
         """
         self._args['strict'] = strict
         return self._ret()
-    
+
     def full_match(self, full_match: bool = True) -> 'Api':
         """
         Требует полного совпадения запрошенного названия с найденным (зависит от регистра).
@@ -589,52 +607,52 @@ class Api:
         """
         self._args['full_match'] = full_match
         return self._ret()
-    
+
     def shikimori_id(self, shikimori_id: str) -> 'Api':
         """
         Поиск по id шикимори.
         :shikimori_id: id шикимори.
-        
+
         Как узнать id:
         1. Перейдите на страницу аниме на шикимори
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             https://shikimori.one/animes/52991-sousou-no-frieren
         3. Строка (обычно цифры, но могут встречаться и буквы) после последнего "/" и перед первым "-" и будет являться shikimori_id
-            В данном случае: 52991 
+            В данном случае: 52991
         """
         self._args['shikimori_id'] = shikimori_id
         return self._ret()
-    
+
     def kinopoisk_id(self, kinopoisk_id: str) -> 'Api':
         """
         Поиск по id кинопоиска.
         :kinopoisk_id: id кинопоиска.
-        
+
         Как узнать id:
         1. Перейдите на страницу фильма/сериала на кинопоиске
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             https://www.kinopoisk.ru/film/258687/
         3. Строка (обычно цифры, но могут встречаться и буквы) после пред-последнего "/" и перед последним "/" и будет являться kinopoisk_id
             В данном случае: 258687
         """
         self._args['kinopoisk_id'] = kinopoisk_id
         return self._ret()
-    
+
     def imdb_id(self, imdb_id: str) -> 'Api':
         """
         Поиск по id imdb.
         :imdb_id: id imdb.
-        
+
         Как узнать id:
         1. Перейдите на страницу фильма/сериала на imdb
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             https://www.imdb.com/title/tt0816692/
         3. Строка (обычно содержит в начале "tt") после пред-последнего "/" и перед последним "/" и будет являться imdb_id
             В данном случае: tt0816692
         """
         self._args['imdb_id'] = imdb_id
         return self._ret()
-    
+
     def id(self, id: str) -> 'Api':
         """
         Поиск по внутреннему id кодика.
@@ -649,47 +667,47 @@ class Api:
         """
         Поиск по id MyDramaList.
         :mdl_id: id MyDramaList.
-        
+
         Как узнать id:
         1. Перейдите на страницу фильма/сериала на mydramalist.com
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             https://mydramalist.com/2570-space-battleship-yamato
         3. Строка (обычно цифры, но могут встречаться и буквы) после последнего "/" и перед первым "-" и будет являться mdl_id
             В данном случае: 2570
         """
         self._args['mdl_id'] = mdl_id
         return self._ret()
-    
+
     def worldart_animation_id(self, worldart_animation_id: str) -> 'Api':
         """
         Поиск по id Worldart Animation.
         :worldart_animation_id: id Worldart Animation.
-        
+
         Как узнать id:
         1. Перейдите на страницу фильма/сериала на www.world-art.ru/anime
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             http://www.world-art.ru/animation/animation.php?id=11466
         3. Строка (обычно цифры, но могут встречаться и буквы) после "id=" является искомым id
             В данном случае: 11466
         """
         self._args['worldart_animation_id'] = worldart_animation_id
         return self._ret()
-    
+
     def worldart_cinema_id(self, worldart_cinema_id: str) -> 'Api':
         """
         Поиск по id Worldart Cinema.
         :worldart_cinema_id: id Worldart Cinema.
-        
+
         Как узнать id:
         1. Перейдите на страницу фильма/сериала на www.world-art.ru/cinema
-        2. В адресной строке сайта будет примерно следующее: 
+        2. В адресной строке сайта будет примерно следующее:
             http://www.world-art.ru/cinema/cinema.php?id=36765
         3. Строка (обычно цифры, но могут встречаться и буквы) после "id=" является искомым id
             В данном случае: 36765
         """
         self._args['worldart_cinema_id'] = worldart_cinema_id
         return self._ret()
-    
+
     def worldart_link(self, worldart_link: str) -> 'Api':
         """
         Ссылка на страницу world-art.
@@ -699,7 +717,7 @@ class Api:
         """
         self._args['worldart_link'] = worldart_link
         return self._ret()
-    
+
     def limit(self, limit: int = 50) -> 'Api':
         """
         Установка предела на количество элементов в ответе.
@@ -712,7 +730,7 @@ class Api:
             print('Предупреждение! Параметр limit установлен больше 100, сервер не вернет больше 100 элементов.')
         self._args['limit'] = limit
         return self._ret()
-    
+
     def types(self, types: list | str) -> 'Api':
         """
         Типы мультимедиа. Можно передавать либо один вариант, либо несколько.
@@ -754,7 +772,7 @@ class Api:
         """
         self._args['year'] = year
         return self._ret()
-    
+
     def camrip(self, camrip: bool = True) -> 'Api':
         """
         Снято ли с камеры.
@@ -762,7 +780,7 @@ class Api:
         """
         self._args['camrip'] = camrip
         return self._ret()
-    
+
     def lgbt(self, lgbt: bool = True) -> 'Api':
         """
         Имеется ли lgbt контент.
@@ -770,7 +788,7 @@ class Api:
         """
         self._args['lgbt'] = lgbt
         return self._ret()
-    
+
     def translation_id(self, translation_id: int) -> 'Api':
         """
         Id перевода. Посмотреть все доступные переводы можно используя эндпоинт translations
@@ -778,7 +796,7 @@ class Api:
         """
         self._args['translation_id'] = translation_id
         return self._ret()
-    
+
     def translation_type(self, translation_type: str) -> 'Api':
         """
         Тип перевода. Озвучка или субтитры. subtitles/voice
@@ -788,7 +806,7 @@ class Api:
             raise ValueError(f'Параметр translation_type должен быть "subtitles" или "voice", получено: "{translation_type}"')
         self._args['translation_type'] = translation_type
         return self._ret()
-    
+
     def anime_kind(self, anime_kind: str) -> 'Api':
         """
         Тип аниме (указывая этот параметр, в результате будет только аниме).
@@ -811,7 +829,7 @@ class Api:
             print(f'Предупреждение! Параметр anime_kind "{anime_kind}" не содержится в списках доступных.')
         self._args['anime_kind'] = anime_kind
         return self._ret()
-    
+
     def anime_status(self, anime_status: str) -> 'Api':
         """
         Статус выхода аниме. Вышло/Онгоинг/Анонс - released/ongoing/anons
@@ -821,7 +839,7 @@ class Api:
             raise ValueError(f'Параметр anime_status должен быть одним из "released", "ongoing", "anons". Получено: {anime_status}')
         self._args['anime_status'] = anime_status
         return self._ret()
-    
+
     def mydramalist_tags(self, mydramalist_tags: list|str) -> 'Api':
         """
         Теги на MyDramaList.
@@ -832,7 +850,7 @@ class Api:
         else:
             self._args['mydramalist_tags'] = mydramalist_tags
         return self._ret()
-    
+
     def rating_mpaa(self, rating_mpaa: str) -> 'Api':
         """
         Возрастной рейтинг по mpaa.
@@ -844,7 +862,7 @@ class Api:
         * pg - Рекомендуется присутствие родителей.
         * pg-13 - Детям до 13 лет просмотр нежелателен.
         * r - Лицам до 17 лет обязательно присутствие взрослого.
-        * rx - Хeнтай / Пoрнография    
+        * rx - Хeнтай / Пoрнография
         \nЧисто технически, существует рейтинг r+, но почему-то у меня не получилось отфильтровать по нему поиск (выдавался рейтинг r).
         \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)
         """
@@ -852,7 +870,7 @@ class Api:
             print(f'Предупреждение! Параметр rating_mpaa "{rating_mpaa}" не содержится в доступных.')
         self._args['rating_mpaa'] = rating_mpaa
         return self._ret()
-    
+
     def minimal_age(self, minimal_age: int) -> 'Api':
         """
         Минимальный возраст зрителя. Через фильтр проходят все элементы, у которых указанный возраст совпадает с переданным параметром или больше его.
@@ -860,7 +878,7 @@ class Api:
         """
         self._args['minimal_age'] = minimal_age
         return self._ret()
-    
+
     def kinopoisk_rating(self, kinopoisk_rating: float) -> 'Api':
         """
         Рейтинг на кинопоиске. Ищет только элементы, у которых оценка точно совпадает с указанным.
@@ -868,7 +886,7 @@ class Api:
         """
         self._args['kinopoisk_rating'] = kinopoisk_rating
         return self._ret()
-    
+
     def imdb_rating(self, imdb_rating: float) -> 'Api':
         """
         Рейтинг на imdb. Ищет только элементы, у которых оценка точно совпадает с указанным.
@@ -876,7 +894,7 @@ class Api:
         """
         self._args['imdb_rating'] = imdb_rating
         return self._ret()
-    
+
     def shikimori_rating(self, shikimori_rating: float) -> 'Api':
         """
         Рейтинг на шикимори. Ищет только элементы, у которых оценка точно совпадает с указанным.
@@ -884,7 +902,7 @@ class Api:
         """
         self._args['shikimori_rating'] = shikimori_rating
         return self._ret()
-    
+
     def anime_studios(self, anime_studios: list|str) -> 'Api':
         """
         Студия/студии анимации занимающиеся производством. Зависит от регистра.
@@ -895,14 +913,14 @@ class Api:
         else:
             self._args['anime_studios'] = anime_studios
         return self._ret()
-    
+
     def genres(self, genres: str | list) -> 'Api':
         """
         Жанры мультимедиа. Принимает строку или список строк.
         :genres: Жанры мультимедиа.
 
         Вы можете воспользоваться вспомогательным классом Genres (KodikSearch.Genres или KodikList.Genres или Api.Genres).
-        Доступные фильтры:\n    
+        Доступные фильтры:\n
         * anime - аниме
         * drama - драма
         * comedy - комедия
@@ -922,7 +940,7 @@ class Api:
                 print(f'Предупреждение! Указанный жанр "{genres}" отсутствует в списках доступных.')
             self._args['genres'] = genres
         return self._ret()
-    
+
     def anime_genres(self, anime_genres: str | list) -> 'Api':
         """
         Аниме жанры. Принимает строку или список строк.
@@ -960,7 +978,7 @@ class Api:
                 print(f'Предупреждение! Указанный аниме жанр "{anime_genres}" отсутствует в списках доступных.')
             self._args['anime_genres'] = anime_genres
         return self._ret()
-    
+
     def duration(self, duration: int) -> 'Api':
         """
         Продолжительность одной серии или фильма в минутах. Возвращаются только элементы с полностью совпадающим значением.
@@ -968,7 +986,7 @@ class Api:
         """
         self._args['duration'] = duration
         return self._ret()
-    
+
     def player_link(self, player_link: str) -> 'Api':
         """
         Ссылка на embed страницу кодика. Пример: kodik.info/serial/48654/3520f3c13f024b8fe04bc6143ccdcb7d/720p
@@ -976,14 +994,14 @@ class Api:
         """
         self._args['player_link'] = player_link
         return self._ret()
-    
+
     def has_field(self, has_field: str) -> 'Api':
         """
         Элемент содержит указанный параметр.
         """
         self._args['has_field'] = has_field
         return self._ret()
-    
+
     def has_fields(self, has_fields: list) -> 'Api':
         """
         Элемент содержит указанные параметры.
@@ -991,7 +1009,7 @@ class Api:
         """
         self._args['has_fields'] = ','.join(has_fields)
         return self._ret()
-    
+
     def has_field_and(self, has_field_and: list) -> 'Api':
         """
         Элемент содержит указанные параметры.
@@ -999,13 +1017,13 @@ class Api:
         """
         self._args['has_field_and'] = ','.join(has_field_and)
         return self._ret()
-    
+
     def prioritize_translations(self, prioritize_translations: str | list) -> 'Api':
         """
         Повысить приоритет указанных id переводов в результатах выдачи. Принимает строку или список строк.
         :prioritize_translations: Строка или список строк с id переводов.
 
-        Посмотреть список переводов можно по эндпоинту translations. 
+        Посмотреть список переводов можно по эндпоинту translations.
         По умолчанию приоритет выдается профессиональным и многоголосым озвучкам.
         Для отключения стандартного приоритета укажите 0.
         """
@@ -1014,13 +1032,13 @@ class Api:
         else:
             self._args['prioritize_translations'] = prioritize_translations
         return self._ret()
-    
+
     def unprioritize_translations(self, unprioritize_translations: str | list) -> 'Api':
         """
         Понизить приоритет указанных id переводов в результатах выдачи. Принимает строку или список строк.
         :unprioritize_translations: Строка или список строк с id переводов.
 
-        Посмотреть список переводов можно по эндпоинту translations. 
+        Посмотреть список переводов можно по эндпоинту translations.
         По умолчанию установлен низкий приоритет озвучкам на Английском и Украинском языках, а также субтитров.
         Для отключения стандартного приоритета укажите 0.
         """
@@ -1029,18 +1047,18 @@ class Api:
         else:
             self._args['unprioritize_translations'] = unprioritize_translations
         return self._ret()
-    
+
     def block_translations(self, block_translations: str | list) -> 'Api':
         """
         Убрать переводы из результатов. Принимает строку или список строк.
-        :block_translations: Строка или список строк с id переводов. 
+        :block_translations: Строка или список строк с id переводов.
         """
         if type(block_translations) == list:
             self._args['block_translations'] = ','.join(block_translations)
         else:
             self._args['block_translations'] = block_translations
         return self._ret()
-    
+
     def prioritize_translation_type(self, prioritize_translation_type: str) -> 'Api':
         """
         Увеличить приоритет типа перевода subtitles/voice.
@@ -1050,7 +1068,7 @@ class Api:
             raise ValueError(f'Параметр prioritize_translation_type должен быть "subtitles" или "voice". Получено: "{prioritize_translation_type}"')
         self._args['prioritize_translation_type'] = prioritize_translation_type
         return self._ret()
-    
+
     def season(self, season: int) -> 'Api':
         """
         Сезон выхода аниме.
@@ -1058,7 +1076,7 @@ class Api:
         """
         self._args['season'] = season
         return self._ret()
-    
+
     def episode(self, episode: int) -> 'Api':
         """
         В результате будут только элементы у которых есть указанный эпизод.
@@ -1066,7 +1084,7 @@ class Api:
         """
         self._args['episode'] = episode
         return self._ret()
-    
+
     def not_blocked_in(self, not_blocked_in: str | list) -> 'Api':
         """
         В результате будут элементы не заблокированные в указанной стране/странах.
@@ -1077,7 +1095,7 @@ class Api:
         else:
             self._args['not_blocked_in'] = not_blocked_in
         return self._ret()
-    
+
     def not_blocked_for_me(self, not_blocked_for_me: bool = True) -> 'Api':
         """
         В результате будут элементы не заблокированные в стране, откуда отправлен запрос (предположительно проверка по ip)
@@ -1085,7 +1103,7 @@ class Api:
         """
         self._args['not_blocked_for_me'] = not_blocked_for_me
         return self._ret()
-    
+
     def countries(self, countries: str | list) -> 'Api':
         """
         Страны в которых снят фильм/сериал.
@@ -1096,7 +1114,7 @@ class Api:
         else:
             self._args['countries'] = countries
         return self._ret()
-    
+
     def actors(self, actors: str | list) -> 'Api':
         """
         Вернет элементы где в актерах указан(ы) переданные имена.
@@ -1107,7 +1125,7 @@ class Api:
         else:
             self._args['actors'] = actors
         return self._ret()
-    
+
     def directors(self, directors: str | list) -> 'Api':
         """
         Вернет элементы где в режиссерах указан(ы) переданные имена.
@@ -1118,7 +1136,7 @@ class Api:
         else:
             self._args['directors'] = directors
         return self._ret()
-    
+
     def producers(self, producers: str | list) -> 'Api':
         """
         Вернет элементы где в продюсерах указан(ы) переданные имена.
@@ -1129,7 +1147,7 @@ class Api:
         else:
             self._args['producers'] = producers
         return self._ret()
-    
+
     def writers(self, writers: str | list) -> 'Api':
         """
         Вернет элементы где в писателях/сценаристах указан(ы) переданные имена.
@@ -1140,7 +1158,7 @@ class Api:
         else:
             self._args['writers'] = writers
         return self._ret()
-    
+
     def composers(self, composers: str | list) -> 'Api':
         """
         Вернет элементы где в композиторах указан(ы) переданные имена.
@@ -1162,7 +1180,7 @@ class Api:
         else:
             self._args['editors'] = editors
         return self._ret()
-    
+
     def designers(self, designers: str | list) -> 'Api':
         """
         Вернет элементы где в дизайнерах/художниках указан(ы) переданные имена.
@@ -1173,7 +1191,7 @@ class Api:
         else:
             self._args['designers'] = designers
         return self._ret()
-    
+
     def operators(self, operators: str | list) -> 'Api':
         """
         Вернет элементы где в операторах указан(ы) переданные имена.
@@ -1184,18 +1202,18 @@ class Api:
         else:
             self._args['operators'] = operators
         return self._ret()
-    
+
     def licensed_by(self, licensed_by: str | list) -> 'Api':
         """
         Вернет элементы где владельцем лицензии (на перевод/озвучку ?) является указанная компания.
-        :licensed_by: Строка или список строк с названиями компаний - владельцев лицензии. (Зависит от регистра). 
+        :licensed_by: Строка или список строк с названиями компаний - владельцев лицензии. (Зависит от регистра).
         """
         if type(licensed_by) == list:
             self._args['licensed_by'] = ','.join(licensed_by)
         else:
             self._args['licensed_by'] = licensed_by
         return self._ret()
-    
+
     def with_material_data(self, with_material_data: bool = True) -> 'Api':
         """
         Добавляет в результат дополнительные данные о мультимедиа.
@@ -1203,7 +1221,7 @@ class Api:
         """
         self._args['with_material_data'] = with_material_data
         return self._ret()
-    
+
     def with_seasons(self, with_seasons: bool = True) -> 'Api':
         """
         Добавляет в результат ссылки на сезоны. (ссылки на embed на kodik.info)
@@ -1211,7 +1229,7 @@ class Api:
         """
         self._args['with_seasons'] = with_seasons
         return self._ret()
-    
+
     def with_episodes(self, with_episodes: bool = True) -> 'Api':
         """
         Добавляет в результат ссылки на конкретные эпизоды, автоматически включается параметр with_seasons. (ссылки на embed на kodik.info)
@@ -1219,7 +1237,7 @@ class Api:
         """
         self._args['with_episodes'] = with_episodes
         return self._ret()
-    
+
     def with_episodes_data(self, with_episodes_data: bool = True) -> 'Api':
         """
         Добавляет в результат данные для конкретных эпизодов (если есть) в виде названия, описания, автоматически включается параметр with_episodes.
@@ -1227,7 +1245,7 @@ class Api:
         """
         self._args['with_episodes_data'] = with_episodes_data
         return self._ret()
-    
+
     def with_page_links(self, with_page_links: bool = True) -> 'Api':
         """
         Заменяет в результате ссылку на embed (kodik.info) на сайт с плеером (kodik.online)
@@ -1235,7 +1253,7 @@ class Api:
         """
         self._args['with_page_links'] = with_page_links
         return self._ret()
-    
+
     # ================================================================
     def api_request(self, parameters: dict | None = None, link: str | None = None) -> dict:
         """
@@ -1250,7 +1268,7 @@ class Api:
             raise errors.TokenError('Токен kodik не указан')
         if parameters is None and link is None:
             raise ValueError('Хотя-бы один из параметров "parameters" или "link" должен быть указан для использования api_request')
-        
+
         if parameters:
             payload = {"token": self.token}
             for item, val in parameters.items():
@@ -1261,11 +1279,11 @@ class Api:
         else:
             url = link
             data = requests.post(url)
-        
+
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
         data = data.json()
-        
+
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
@@ -1281,7 +1299,7 @@ class Api:
         else:
             self._prev_link = None
         return data
-    
+
     async def api_request_async(self, parameters: dict | None = None, link: str | None = None) -> dict:
         """
         Асинхронный запрос к api. Требуется передать только один из параметров parameters или link
@@ -1298,7 +1316,7 @@ class Api:
             raise errors.TokenError('Токен kodik не указан')
         if parameters is None and link is None:
             raise ValueError('Хотя-бы один из параметров "parameters" или "link" должен быть указан для использования api_request')
-        
+
         if parameters:
             payload = {"token": self.token}
             for item, val in parameters.items():
@@ -1308,11 +1326,11 @@ class Api:
         else:
             url = link
             data = await AsyncSession().post(url)
-        
+
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
         data = data.json()
-        
+
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
@@ -1354,7 +1372,7 @@ class Api:
             return data
         else:
             return Response(data)
-    
+
     def next_page(self, link: str | None = None) -> Response:
         """
         Выполнить запрос для получения следующей страницы списка. (Не работает для поиска)
@@ -1371,7 +1389,7 @@ class Api:
             data = self.api_request(link=self._next_link)
             return Response(data)
         raise ValueError('Для использования этой функции параметр next_page должен быть в результатах предыдущего запроса.')
-    
+
     def prev_page(self, link: str | None = None) -> Response:
         """
         Выполнить запрос для получения предыдущей страницы списка. (Не работает для поиска)
@@ -1388,7 +1406,7 @@ class Api:
             data = self.api_request(link=self._prev_link)
             return Response(data)
         raise ValueError('Для использования этой функции параметр prev_page должен быть в результатах предыдущего запроса.')
-    
+
     async def next_page_async(self, link: str | None = None) -> Response:
         """
         Выполнить асинхронный запрос для получения следующей страницы списка. (Не работает для поиска)
@@ -1405,7 +1423,7 @@ class Api:
             data = await self.api_request_async(link=self._next_link)
             return Response(data)
         raise ValueError('Для использования этой функции параметр next_page должен быть в результатах предыдущего запроса.')
-    
+
     async def prev_page_async(self, link: str | None = None) -> Response:
         """
         Выполнить асинхронный запрос для получения предыдущей страницы списка. (Не работает для поиска)
@@ -1422,7 +1440,7 @@ class Api:
             data = await self.api_request_async(link=self._prev_link)
             return Response(data)
         raise ValueError('Для использования этой функции параметр prev_page должен быть в результатах предыдущего запроса.')
-    
+
     def get_translations(self) -> dict:
         """
         Выполняет запрос к апи по эндпоинту translations.
@@ -1439,7 +1457,7 @@ class KodikSearch(Api):
     Абстракция для запроса к апи плеера кодик.
 
     Документацию по доступным параметрам вы можете найти в репозитории: https://github.com/YaNesyTortiK/AnimeParsers/blob/main/KODIK_API.md
-    
+
     Пример использования:
 
     query = Search().title("Кулинарные скитания").limit(5).anime_status('released')
@@ -1450,21 +1468,51 @@ class KodikSearch(Api):
         super().__init__(token, allow_warnings, _args, _endpoint='search')
 
 class KodikList(Api):
+    class Sort(_SortList):
+        """
+        Параметры сортировки для запросов list. Доступные параметры:\n
+        * year - По году
+        * created_at - По дате добавления
+        * updated_at - По дате обновления
+        * kinopoisk_rating - По рейтингу Кинопоиска
+        * imdb_rating - По рейтингу IMDb
+        * shikimori_rating - По рейтингу Shikimori
+        \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)\n
+        """
+        pass
+
     def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}):
         super().__init__(token, allow_warnings, _args, _endpoint='list')
-    
+
+    def sort(self, value):
+        """
+        Устанавливает параметр сортировки для запроса list.
+
+        Параметры:
+            value (str): Параметр сортировки из списка KodikList.Sort
+
+        Raises:
+            errors.PostArgumentsError: Если указан недопустимый параметр сортировки.
+        """
+        if value not in self.Sort.get_list():
+            raise errors.PostArgumentsError(
+                f'Недопустимый параметр сортировки: {value}. Допустимые параметры: {", ".join(self.Sort.get_list())}')
+
+        self._args['sort'] = value
+        return self._ret()
+
     def title(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
         raise errors.PostArgumentsError('Для запроса list параметр title не доступен.')
-    
+
     def title_orig(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
         raise errors.PostArgumentsError('Для запроса list параметр title_orig не доступен.')
-    
+
     def strict(self, *args):
         """
         Данный параметр недоступен для запроса list.
@@ -1475,77 +1523,77 @@ class KodikList(Api):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр full_match не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр full_match не доступен.')
 
     def shikimori_id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр shikimori_id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр shikimori_id не доступен.')
 
     def kinopoisk_id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр kinopoisk_id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр kinopoisk_id не доступен.')
 
     def imdb_id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр imdb_id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр imdb_id не доступен.')
 
     def id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр id не доступен.')
 
     def mdl_id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр mdl_id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр mdl_id не доступен.')
 
     def worldart_cinema_id(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр worldart_cinema_id не доступен.') 
+        raise errors.PostArgumentsError('Для запроса list параметр worldart_cinema_id не доступен.')
 
     def worldart_link(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр worldart_link не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр worldart_link не доступен.')
+
     def player_link(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр player_link не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр player_link не доступен.')
+
     def prioritize_translations(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр prioritize_translations не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр prioritize_translations не доступен.')
+
     def unprioritize_translations(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр unprioritize_translations не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр unprioritize_translations не доступен.')
+
     def season(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр season не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр season не доступен.')
+
     def episode(self, *args):
         """
         Данный параметр недоступен для запроса list.
         """
-        raise errors.PostArgumentsError('Для запроса list параметр episode не доступен.') 
-    
+        raise errors.PostArgumentsError('Для запроса list параметр episode не доступен.')
+
