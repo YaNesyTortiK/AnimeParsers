@@ -20,6 +20,35 @@ except ImportError:
 
 import requests
 
+class _OrderList:
+    asc = 'asc'
+    desc = 'desc'
+
+    @staticmethod
+    def get_list() -> list[str]:
+        """
+        Возвращает список доступных параметров.
+        """
+        return [_OrderList.asc, _OrderList.desc]
+
+class _SortList:
+    year = 'year'
+    created_at = 'created_at'
+    updated_at = 'updated_at'
+    kinopoisk_rating = 'kinopoisk_rating'
+    imdb_rating = 'imdb_rating'
+    shikimori_rating = 'shikimori_rating'
+
+    @staticmethod
+    def get_list() -> list[str]:
+        """
+        Возвращает список доступных параметров.
+        """
+        return [
+            _SortList.year, _SortList.created_at, _SortList.updated_at,
+            _SortList.kinopoisk_rating, _SortList.imdb_rating, _SortList.shikimori_rating
+        ]
+
 class _AnimeKind:
     tv = 'tv'
     tv13 = 'tv13'
@@ -1450,9 +1479,65 @@ class KodikSearch(Api):
         super().__init__(token, allow_warnings, _args, _endpoint='search')
 
 class KodikList(Api):
+    class Order(_OrderList):
+        """
+        Параметр направления сортировки для запроса list. Доступные параметры:\n
+        * asc - По возрастанию
+        * desc - По убыванию
+        \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)\n
+        """
+        pass
+
+    class Sort(_SortList):
+        """
+        Параметры сортировки для запросов list. Доступные параметры:\n
+        * year - По году
+        * created_at - По дате добавления
+        * updated_at - По дате обновления
+        * kinopoisk_rating - По рейтингу Кинопоиска
+        * imdb_rating - По рейтингу IMDb
+        * shikimori_rating - По рейтингу Shikimori
+        \n(Для передачи параметра напрямую, строкой, укажите его на английском, как указано выше)\n
+        """
+        pass
+
     def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}):
         super().__init__(token, allow_warnings, _args, _endpoint='list')
-    
+
+    def order(self, value):
+        """
+        Устанавливает параметр направления сортировки для запроса list.
+
+        Параметры:
+            value (str): Параметр направления сортировки из списка KodikList.Order
+
+        Raises:
+            errors.PostArgumentsError: Если указан недопустимый параметр направления сортировки.
+        """
+        if value not in self.Order.get_list():
+            raise errors.PostArgumentsError(
+                f'Недопустимый параметр направления сортировки: {value}. Допустимые параметры: {", ".join(self.Order.get_list())}')
+
+        self._args['order'] = value
+        return self._ret()
+
+    def sort(self, value):
+        """
+        Устанавливает параметр сортировки для запроса list.
+
+        Параметры:
+            value (str): Параметр сортировки из списка KodikList.Sort
+
+        Raises:
+            errors.PostArgumentsError: Если указан недопустимый параметр сортировки.
+        """
+        if value not in self.Sort.get_list():
+            raise errors.PostArgumentsError(
+                f'Недопустимый параметр сортировки: {value}. Допустимые параметры: {", ".join(self.Sort.get_list())}')
+
+        self._args['sort'] = value
+        return self._ret()
+
     def title(self, *args):
         """
         Данный параметр недоступен для запроса list.
