@@ -147,3 +147,10 @@ Thx to @nichind for pointing these out
 
 ## To 1.11.3
 - Added `sort` and `order` parameters to KodikList (thx @SHCDevelops)
+
+## To 1.11.4
+- Fixed `_convert_char` function in kodik_parser and kodik_parser_async (Kodik reimplemented crypting link now with different step) (thx @reihitotsu)
+- Removed toggle to enable decryption functions back (v 1.11.1)
+- Added new exception `DecryptionFailure` when decrypting kodik link failed (thx @reihitotsu)
+
+

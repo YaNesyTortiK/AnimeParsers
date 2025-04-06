@@ -32,6 +32,7 @@ class KodikParser:
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        self._crypt_step = None
 
     def api_request(self, endpoint: str, filters: dict = {}, parameters: dict = {}) -> dict:
         """
@@ -657,6 +658,17 @@ class KodikParser:
 
     def _convert(self, string: str):
         # Декодирование строки со ссылкой
+
+        if self._crypt_step:
+            crypted_url = "".join([self._convert_char(i, self._crypt_step) for i in string])
+            padding = (4 - (len(crypted_url) % 4)) % 4
+            crypted_url += "=" * padding
+            try:
+                result = b64decode(crypted_url).decode("utf-8")
+                if "mp4:hls:manifest.m3u8" in result:
+                    return result
+            except UnicodeDecodeError:
+                pass
         
         for rot in range(25):
             crypted_url = "".join([self._convert_char(i, rot) for i in string])
@@ -664,7 +676,8 @@ class KodikParser:
             crypted_url += "=" * padding
             try:
                 result = b64decode(crypted_url).decode("utf-8")
-                if "mp4:hls:manifest.m3u8"in result:
+                if "mp4:hls:manifest.m3u8" in result:
+                    self._crypt_step = rot
                     return result
             except UnicodeDecodeError:
                 continue
