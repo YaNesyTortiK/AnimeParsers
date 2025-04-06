@@ -538,8 +538,7 @@ class KodikParserAsync:
             translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
         return translations
 
-    async def get_link(self, id: str, id_type: str, seria_num: int, 
-                       translation_id: str, crypted: bool = False) -> tuple[str, int]:
+    async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -613,14 +612,12 @@ class KodikParserAsync:
         video_id = hash_container[hash_container.find('.id = \'')+7:]
         video_id = video_id[:video_id.find('\'')]
 
-        link_data, max_quality = await self._get_link_with_data(
-            video_type, video_hash, video_id, urlParams, script_url, crypted
-        )
+        link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
 
         download_url = str(link_data).replace("https:", "")[:-25]
         return download_url, max_quality
     
-    async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str, crypted: bool = False):
+    async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
         params={
             "hash": video_hash,
             "id": video_id,
@@ -643,16 +640,16 @@ class KodikParserAsync:
         data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
         data = data.json()
         data_url = data["links"]["360"][0]["src"]
-        url = data_url if not crypted else self._convert(data_url)
+        url = data_url if "mp4:hls:manifest.m3u8" in data_url else self._convert(data_url)
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
 
-    def _convert_char(self, char: str):
+    def _convert_char(self, char: str, num):
         low = char.islower()
         alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         if char.upper() in alph:
-            ch = alph[(alph.index(char.upper()) + 13) % len(alph)]
+            ch = alph[(alph.index(char.upper()) + num) % len(alph)]
             if low:
                 return ch.lower()
             else:
@@ -662,11 +659,18 @@ class KodikParserAsync:
 
     def _convert(self, string: str):
         # Декодирование строки со ссылкой
-        crypted_url = "".join(map(self._convert_char, list(string)))
-        try:
-            return b64decode(crypted_url.encode())
-        except:
-            return str(b64decode(crypted_url.encode() + b"=="))
+        for rot in range(25):
+            crypted_url = "".join([self._convert_char(i, rot) for i in string])
+            padding = (4 - (len(crypted_url) % 4)) % 4
+            crypted_url += "=" * padding
+            try:
+                result = b64decode(crypted_url).decode("utf-8")
+                if "mp4:hls:manifest.m3u8" in result:
+                    return result
+            except UnicodeDecodeError:
+                continue
+        else:
+            raise errors.DecryptionFailure
 
     async def _get_post_link(self, script_url: str):
         data = await self.requests.get('https://kodik.info'+script_url)
