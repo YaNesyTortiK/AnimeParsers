@@ -672,7 +672,7 @@ class KodikParserAsync:
             except UnicodeDecodeError:
                 pass
         
-        for rot in range(25):
+        for rot in range(0, 26):
             crypted_url = "".join([self._convert_char(i, rot) for i in string])
             padding = (4 - (len(crypted_url) % 4)) % 4
             crypted_url += "=" * padding
