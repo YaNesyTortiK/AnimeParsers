@@ -615,7 +615,8 @@ class KodikParserAsync:
 
         link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
 
-        download_url = str(link_data).replace("https:", "")[:-25]
+        download_url = str(link_data).replace("https:", "")
+        download_url = download_url[: download_url.rfind("/") + 1]
         return download_url, max_quality
     
     async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
@@ -641,7 +642,7 @@ class KodikParserAsync:
         data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
         data = data.json()
         data_url = data["links"]["360"][0]["src"]
-        url = data_url if "mp4:hls:manifest.m3u8" in data_url else self._convert(data_url)
+        url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
@@ -667,7 +668,7 @@ class KodikParserAsync:
             crypted_url += "=" * padding
             try:
                 result = b64decode(crypted_url).decode("utf-8")
-                if "mp4:hls:manifest.m3u8" in result:
+                if "mp4:hls:manifest" in result:
                     return result
             except UnicodeDecodeError:
                 pass
@@ -678,7 +679,7 @@ class KodikParserAsync:
             crypted_url += "=" * padding
             try:
                 result = b64decode(crypted_url).decode("utf-8")
-                if "mp4:hls:manifest.m3u8" in result:
+                if "mp4:hls:manifest" in result:
                     self._crypt_step = rot
                     return result
             except UnicodeDecodeError:
