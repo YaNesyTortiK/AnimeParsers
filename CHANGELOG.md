@@ -153,4 +153,7 @@ Thx to @nichind for pointing these out
 - Removed toggle to enable decryption functions back (v 1.11.1)
 - Added new exception `DecryptionFailure` when decrypting kodik link failed (thx @reihitotsu)
 
+## To 1.11.5
+- Fixed KodikParser link parsing and decoding (thx @reihitotsu)
+
 

@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.11.4
+Version: 1.11.5
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -908,3 +908,6 @@ pip install lxml
 
 - ServiceIsOverloaded
     Обозначает http статус 520. То есть сервер перегружен и не может ответить на запрос
+
+- DecryptionFailure
+    При попытке дешифровать ссылку от Kodik возникла ошибка
