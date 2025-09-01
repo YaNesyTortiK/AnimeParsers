@@ -175,10 +175,10 @@ class ShikimoriParserAsync:
             elif key == 'Длительность эпизода:': res['episode_duration'] = value.text
             elif key == 'Статус:': 
                 res['status'] = value.find('span').get_attribute_list('data-text')[0]
-                if res['status'] == 'онгоинг' or res['type'] == 'Фильм':
-                    res['dates'] = value.text.strip()
-                elif len(value.find_all('span')) > 1:
+                if len(value.find_all('span')) > 1:
                     res['dates'] = value.find_all('span')[-1].text
+                else:
+                    res['dates'] = value.text.strip()
             elif key == 'Жанры:': res['genres'] = [genre.text for genre in value.find_all('span', 'genre-ru')]
             elif key == 'Темы:' or key == 'Тема:': res['themes'] = [genre.text for genre in value.find_all('span', 'genre-ru')]
             elif key == 'Рейтинг:': res['rating'] = value.text

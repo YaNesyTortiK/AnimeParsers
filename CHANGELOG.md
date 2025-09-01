@@ -156,4 +156,5 @@ Thx to @nichind for pointing these out
 ## To 1.11.5
 - Fixed KodikParser link parsing and decoding (thx @reihitotsu)
 
-
+## To 1.11.6
+- Fixed bug in shikimori parser: When status is 'вышло' but only one date is specified, then no date was grabbed
