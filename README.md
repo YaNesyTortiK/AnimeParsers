@@ -1,4 +1,7 @@
 # AnimeParsers
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/anime-parsers-ru?label=PyPI%20downloads)
+]() [![PyPI - Version](https://img.shields.io/pypi/v/anime-parsers-ru)
+]()
 ## Описание
 Данный проект нацелен на создание наиболее широкого спектра парсеров на python для различных аниме-плееров в русскоязычном/снг сегменте
 
