@@ -163,3 +163,7 @@ Thx to @nichind for pointing these out
 - Replace standard link in aniboom parser to refer to mirror animego.me instead of animego.org.
 - Fixed async aniboom parser to use mirror
 - Fixed mpd playlist completion to include full uri
+
+## To 1.12.1
+- Fixed mpd playlist for aniboom to check if playlist is mpd or m3u8
+- Added TooManyRequests error case for aniboom parser

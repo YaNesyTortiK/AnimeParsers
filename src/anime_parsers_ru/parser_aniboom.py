@@ -229,6 +229,8 @@ class AniboomParser:
         """
         c_data = {}
         response = requests.get(link, headers={'Referer': f'https://{self._dmn}/search/all?q=anime'})
+        if response.status_code == 429:
+            raise errors.TooManyRequests('Сервер вернул код ошибки 429. Слишком частые запросы')
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
@@ -306,6 +308,8 @@ class AniboomParser:
             '_allow': 'true',
         }
         response = requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
+        if response.status_code == 429:
+            raise errors.TooManyRequests('Сервер вернул код ошибки 429. Слишком частые запросы')
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -354,6 +358,8 @@ class AniboomParser:
             '_allow': 'true',
         }
         response = requests.get(f'https://{self._dmn}/anime/{animego_id}/player', params=params, headers=headers)
+        if response.status_code == 429:
+            raise errors.TooManyRequests('Сервер вернул код ошибки 429. Слишком частые запросы')
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.json()
@@ -392,6 +398,8 @@ class AniboomParser:
                 'translation': translation,
             }
         response = requests.get(embed_link, headers=headers, params=params)
+        if response.status_code == 429:
+            raise errors.TooManyRequests('Сервер вернул код ошибки 429. Слишком частые запросы')
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         return response.text
@@ -458,8 +466,13 @@ class AniboomParser:
         }
         playlist = requests.get(media_src, headers=headers).text
         # Вставляем полный путь до сервера
-        server_path = media_src[:media_src.rfind('master_device.m3u8')]
-        playlist = playlist.replace('media_', server_path+'media_')
+        if '<MPD' in playlist:
+            filename = media_src[media_src.rfind('/')+1:media_src.rfind('.')]
+            server_path = media_src[:media_src.rfind('.')]
+            playlist = playlist.replace(filename, server_path)
+        else:
+            server_path = media_src[:media_src.rfind('master_device.m3u8')]
+            playlist = playlist.replace('media_', server_path+'media_')
         return playlist
     
     def get_mpd_playlist(self, animego_id: str, episode: int, translation_id: str) -> str:
