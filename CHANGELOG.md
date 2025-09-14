@@ -158,3 +158,8 @@ Thx to @nichind for pointing these out
 
 ## To 1.11.6
 - Fixed bug in shikimori parser: When status is 'вышло' but only one date is specified, then no date was grabbed
+
+## To 1.12.0
+- Replace standard link in aniboom parser to refer to mirror animego.me instead of animego.org.
+- Fixed async aniboom parser to use mirror
+- Fixed mpd playlist completion to include full uri

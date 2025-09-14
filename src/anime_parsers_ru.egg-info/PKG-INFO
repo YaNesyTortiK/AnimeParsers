@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.11.6
+Version: 1.12.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -22,6 +22,9 @@ Requires-Dist: lxml>=5.2; extra == "lxml"
 Dynamic: license-file
 
 # AnimeParsers
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/anime-parsers-ru?label=PyPI%20downloads)
+]() [![PyPI - Version](https://img.shields.io/pypi/v/anime-parsers-ru)
+]()
 ## Описание
 Данный проект нацелен на создание наиболее широкого спектра парсеров на python для различных аниме-плееров в русскоязычном/снг сегменте
 
@@ -30,8 +33,8 @@ Dynamic: license-file
 ## Что есть на данный момент
 - [x] Парсер Kodik (автоматическое получение api ключа)
 - [x] Асинхронный парсер Kodik
-- [ ] Парсер AniBoom (на основе animego, не требует api ключей) (Сервис заблокирован ркн)
-- [ ] Асинхронный парсер Aniboom (Сервис заблокирован ркн)
+- [x] Парсер AniBoom (на основе animego, не требует api ключей)
+- [x] Асинхронный парсер Aniboom
 - [ ] Парсер JutSu (без функции поиска, не требует api ключей) (Сервис заблокирован ркн)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей)
 - [x] Асинхронный парсер Shikimori
