@@ -1311,15 +1311,19 @@ class Api:
         else:
             url = link
             data = requests.post(url)
-        
-        if data.status_code != 200:
-            raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
-        data = data.json()
+
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ошибка: {data['error']}")
+        
         if data['total'] == 0:
             raise errors.NoResults('Сервер вернул ответ с пустым списком результатов.')
         if 'next_page' in data.keys():
@@ -1359,14 +1363,18 @@ class Api:
             url = link
             data = await AsyncSession().post(url)
         
-        if data.status_code != 200:
-            raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
-        data = data.json()
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ошибка: {data['error']}")
+        
         if data['total'] == 0:
             raise errors.NoResults('Сервер вернул ответ с пустым списком результатов.')
         if 'next_page' in data.keys():

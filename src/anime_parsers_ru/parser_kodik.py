@@ -18,10 +18,11 @@ class KodikParser:
     """
     Парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = False) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = True) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
+        :validate_token: валидация токена (по умолчанию True). Проверяет все функции парсера на наличие ошибки по токену.
         """
         if token is None:
             try:
@@ -33,11 +34,14 @@ class KodikParser:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
         self._crypt_step = None
+        if validate_token and not self.validate_token():
+            raise errors.TokenError("Ошибка валидации токена. Одна или несколько функций недоступны с данным токеном. "\
+                                    "Чтобы пропустить валидацию, укажите параметр validate_token=False")
 
     def api_request(self, endpoint: str, filters: dict = {}, parameters: dict = {}) -> dict:
         """
         Запрос к апи кодика по указанным фильтрам и параметрам. Требует токен.
-        Более полная документация в файле KODIK_API.md (см. репозиторий https://github.com/YaNesyTortiK/Kodik-Download-Watch)
+        Более полная документация в файле KODIK_API.md (см. репозиторий https://github.com/YaNesyTortiK/AnimeParsers)
         
         :endpoint: Эндпоинт для запроса (search, list, translations)
         :filters: Фильтры (по умолчанию {})
@@ -58,14 +62,19 @@ class KodikParser:
 
         url = f"https://kodikapi.com/{endpoint}"
         data = requests.post(url, data=payload)
-        if data.status_code != 200:
-            raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
-        data = data.json()
+        
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ошибка: {data['error']}")
+        
         if data['total'] == 0:
             raise errors.NoResults('Сервер вернул ответ с пустым списком результатов.')
         return data
@@ -208,6 +217,7 @@ class KodikParser:
     def get_list(self, limit_per_page: int = 50, pages_to_parse: int = 1, include_material_data: bool = True, anime_status: str|None = None, only_anime: bool = False, start_from: str|None = None) -> tuple[list[dict],str]:
         """
         Получение случайного списка аниме от кодика (скорее всего это будут онгоинги)
+        ### Для использования требуется токен kodik
 
         :limit_per_page: Ограничение на количество результатов на запрос(страницу), не все элементы в списке будут аниме (по умолчанию 50)
         :pages_to_parse: Ограничение на количество страниц для обработки (каждая страница - отдельный запрос) (по умолчанию 1)
@@ -448,11 +458,18 @@ class KodikParser:
             serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&imdbID={id}"
         else:
             raise ValueError("Неизвестный тип id")
-        data = requests.get(serv).json()
+        data = requests.get(serv)
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе к kodik api. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
         elif 'error' in data.keys():
-            raise errors.ServiceError(data['error'])
+            raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ошибка: {data['error']}")
         if not data['found']:
             raise errors.NoResults(f'Нет данных по {id_type} id "{id}"')
         return 'https:'+data['link'] if https else 'http:'+data['link']
@@ -483,7 +500,14 @@ class KodikParser:
             raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
     
         link = self._link_to_info(id, id_type)
-        data = requests.get(link).text
+        data = requests.get(link)
+        try:
+            data = data.text
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+        
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         if self._is_serial(link):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
@@ -568,7 +592,14 @@ class KodikParser:
             )
 
         link = self._link_to_info(id, id_type)
-        data = requests.get(link).text
+        data = requests.get(link)
+        if data.status_code != 200:
+            raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+        try:
+            data = data.text
+        except Exception as ex:
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+        
         soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
         urlParams = data[data.find("urlParams") + 13 :]
         urlParams = json.loads(urlParams[: urlParams.find(";") - 1])
@@ -586,7 +617,14 @@ class KodikParser:
                     media_id = translation.get_attribute_list("data-media-id")[0]
                     break
             url = f"https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
-            data = requests.get(url).text
+            data = requests.get(url)
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            try:
+                data = data.text
+            except Exception as ex:
+                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+            
             soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
         elif (
             translation_id != "0" and seria_num == 0
@@ -602,7 +640,13 @@ class KodikParser:
                     media_id = translation.get_attribute_list("data-media-id")[0]
                     break
             url = f"https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
-            data = requests.get(url).text
+            data = requests.get(url)
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            try:
+                data = data.text
+            except Exception as ex:
+                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
             soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
         script_url = soup.find_all("script")[1].get_attribute_list("src")[0]
 
@@ -638,7 +682,19 @@ class KodikParser:
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         post_link = self._get_post_link(script_url)
-        data = requests.post(f"https://kodik.info{post_link}", data=params, headers=headers).json()
+        data = requests.post(f"https://kodik.info{post_link}", data=params, headers=headers)
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        
+        if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
+            raise errors.TokenError('Отсутствует или неверный токен')
+        elif 'error' in data.keys():
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ошибка: {data['error']}")
+        
         data_url = data["links"]["360"][0]["src"]
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
         max_quality = max([int(x) for x in data["links"].keys()])
@@ -686,13 +742,22 @@ class KodikParser:
             raise errors.DecryptionFailure
 
     def _get_post_link(self, script_url: str):
-        data = requests.get("https://kodik.info" + script_url).text
+        data = requests.get("https://kodik.info" + script_url)
+        if data.status_code != 200:
+            raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+        try:
+            data = data.text
+        except Exception as ex:
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+        
         url = data[data.find("$.ajax") + 30 : data.find("cache:!1") - 3]
         return b64decode(url.encode()).decode()
 
     @staticmethod
     def get_token() -> str:
         """
+        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции не работает для некоторых 
+            запросов к апи из-за, предположительно, удаления данного токена из валидных.
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
@@ -701,3 +766,45 @@ class KodikParser:
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token
+    
+    def validate_token(self) -> bool:
+        if self.TOKEN:
+            res = True
+            try:
+                self.base_search("Кулинарные скитания", limit=1, include_material_data=False)
+            except errors.TokenError:
+                print("[Token validation] Токен неверен для функции base_search")
+                res = False
+            except Exception as ex:
+                raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
+            try:
+                self.base_search_by_id("53446", "shikimori", limit=1, include_material_data=False)
+            except errors.TokenError:
+                print("[Token validation] Токен неверен для функции base_search_by_id")
+                res = False
+            except Exception as ex:
+                raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
+            try:
+                self.get_info("53446", "shikimori")
+            except errors.TokenError:
+                print("[Token validation] Токен неверен для функции get_info")
+                res = False
+            except Exception as ex:
+                raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
+            try:
+                self.get_list(limit_per_page=1, pages_to_parse=1, include_material_data=False)
+            except errors.TokenError:
+                print("[Token validation] Токен неверен для функции get_list")
+                res = False
+            except Exception as ex:
+                raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
+            try:
+                self.get_link("53446", "shikimori", 1, "610")
+            except errors.TokenError:
+                print("[Token validation] Токен неверен для функции get_link")
+                res = False
+            except Exception as ex:
+                raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
+            return res
+        else:
+            raise errors.TokenError(f"Для валидации токена он должен быть указан при инициализации или получен автоматически. Текущий токен: {self.TOKEN}")

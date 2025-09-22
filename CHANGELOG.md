@@ -167,3 +167,7 @@ Thx to @nichind for pointing these out
 ## To 1.12.1
 - Fixed mpd playlist for aniboom to check if playlist is mpd or m3u8
 - Added TooManyRequests error case for aniboom parser
+
+## To 1.12.2
+- Improved error handling in kodik parser and api_kodik
+- Added function to validate token (token from function get_token is now invalid for some api requests)
