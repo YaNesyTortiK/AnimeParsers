@@ -171,3 +171,6 @@ Thx to @nichind for pointing these out
 ## To 1.12.2
 - Improved error handling in kodik parser and api_kodik
 - Added function to validate token (token from function get_token is now invalid for some api requests)
+
+## To 1.12.3
+- Updated function `get_token`: getting full token from github repository (thx @deathnoragami)

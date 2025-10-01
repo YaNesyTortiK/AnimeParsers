@@ -38,7 +38,7 @@ class KodikParserAsync:
         self.requests = AsyncSession()
         self._crypt_step = None
         if validate_token:
-            print("Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
+            print("\n[KodikParserAsync] Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
                   "Или вызовите функцию `await validate_token()` отдельно.")
 
     async def api_request(self, endpoint: str, filters: dict = {}, parameters: dict = {}) -> dict:
@@ -748,17 +748,52 @@ class KodikParserAsync:
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
         return b64decode(url.encode()).decode()
 
-
     @staticmethod
     async def get_token() -> str:
         """
-        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции не работает для некоторых 
+        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции может не работать для некоторых 
             запросов к апи из-за, предположительно, удаления данного токена из валидных.
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
-        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+        # Попытка получения полного токена
+        """
+        Используется токен из репозитория https://github.com/nb557/plugins
+        За помощь и написание функций спасибо https://github.com/deathnoragami
+        """
         req = AsyncSession()
+        def js_hash_str(s: str) -> str:
+            """Эквивалент JS-хэша из плагина: ((h<<5) - h + code) >>> 0, затем приводим к signed 32-bit и в строку."""
+            h = 0
+            for ch in s:
+                h = ((h << 5) - h + ord(ch)) & 0xFFFFFFFF
+            if h & 0x80000000:  # signed 32-bit
+                h = -((~h & 0xFFFFFFFF) + 1)
+            return str(h)
+
+        def decode_secret(nums, password: str) -> str:
+            h = js_hash_str(password)
+            return ''.join(chr(n ^ ord(h[i % len(h)])) for i, n in enumerate(nums))
+
+        async def get_secret():
+            link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
+            data = await req.get(link)
+            data = data.text
+            start_pos = data.rfind("var embed = 'https://kodikapi.com/search';")
+            
+            line = data[data.find("Utils.decodeSecret([", start_pos)+20:data.find("],", start_pos)]
+            secret = [int(x) for x in line.split(', ')]
+            return secret
+        
+        try:
+            token = decode_secret(get_secret(), 'kodik')
+        except:
+            pass
+        else:
+            return token
+
+        # Получение токена который не работает для поиска и списков
+        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
         data = await req.get(script_url)
         data = data.text
         token = data[data.find('token=')+7:]
@@ -768,14 +803,48 @@ class KodikParserAsync:
     @staticmethod
     def get_token_sync() -> str:
         """
-        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции не работает для некоторых 
+        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции может не работать для некоторых 
             запросов к апи из-за, предположительно, удаления данного токена из валидных.
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
+        # Попытка получения полного токена
+        """
+        Используется токен из репозитория https://github.com/nb557/plugins
+        За помощь и написание функций спасибо https://github.com/deathnoragami
+        """
+        def js_hash_str(s: str) -> str:
+            """Эквивалент JS-хэша из плагина: ((h<<5) - h + code) >>> 0, затем приводим к signed 32-bit и в строку."""
+            h = 0
+            for ch in s:
+                h = ((h << 5) - h + ord(ch)) & 0xFFFFFFFF
+            if h & 0x80000000:  # signed 32-bit
+                h = -((~h & 0xFFFFFFFF) + 1)
+            return str(h)
+
+        def decode_secret(nums, password: str) -> str:
+            h = js_hash_str(password)
+            return ''.join(chr(n ^ ord(h[i % len(h)])) for i, n in enumerate(nums))
+
+        def get_secret():
+            link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
+            data = requests.get(link).text
+            start_pos = data.rfind("var embed = 'https://kodikapi.com/search';")
+            
+            line = data[data.find("Utils.decodeSecret([", start_pos)+20:data.find("],", start_pos)]
+            secret = [int(x) for x in line.split(', ')]
+            return secret
+        
+        try:
+            token = decode_secret(get_secret(), 'kodik')
+        except:
+            pass
+        else:
+            return token
+
+        # Получение токена который не работает для поиска и списков
         script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-        data = requests.get(script_url)
-        data = data.text
+        data = requests.get(script_url).text
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token
