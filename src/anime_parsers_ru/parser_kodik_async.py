@@ -568,16 +568,12 @@ class KodikParserAsync:
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         :seria_num: номер серии (если фильм или одно видео, укажите 0)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
-        :crypted: Используется ли шифрование ссылки кодиком. По умолчанию False.
 
         Возвращает ссылку в стиле:
-        //cloud.kodik-storage.com/useruploads/351182fc-e1ac-4521-a9e3-261303e69687/ba18e7c1a8ac055a61b0d2e528f9eb8c:2024062702/
-        В конце ссылки нужно добавить качество видео: 720.mp4 / 480.mp4 / 360.mp4
-        В начале ссылки нужно добавить: http: / https:
-
-        И максимально возможное качество.
+        //cloud.kodik-storage.com/useruploads/<uuid>/<hash>:<ts>/
+        В конце ссылки нужно добавить качество: 720.mp4 / 480.mp4 / 360.mp4
+        В начале добавить: http: / https:
         """
-        # Проверка переданных параметров на правильность типа
         if type(id) == int:
             id = str(id)
         elif type(id) != str:
@@ -603,44 +599,45 @@ class KodikParserAsync:
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
         urlParams = json.loads(urlParams[:urlParams.find(';')-1])
-        if translation_id != "0" and seria_num != 0: # Обычный сериал с известной озвучкой на более чем 1 серию
-            container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
+
+        # ВАЖНО: определяем тип страницы не по номеру серии, а по ссылке
+        is_serial_page = self._is_serial(link)
+
+        if translation_id != "0":
             media_hash = None
             media_id = None
-            for translation in container.find_all('option'):
-                if translation.get_attribute_list('data-id')[0] == translation_id:
-                    media_hash = translation.get_attribute_list('data-media-hash')[0]
-                    media_id = translation.get_attribute_list('data-media-id')[0]
-                    break
-            url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-            data = await self.requests.get(url)
-            if data.status_code != 200:
-                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-            try:
-                data = data.text
-            except Exception as ex:
-                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
-            
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
-        elif translation_id != "0" and seria_num == 0: # Фильм/одна серия с несколькими переводами
-            container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
-            media_hash = None
-            media_id = None
-            for translation in container.find_all('option'):
-                if translation.get_attribute_list('data-id')[0] == translation_id:
-                    media_hash = translation.get_attribute_list('data-media-hash')[0]
-                    media_id = translation.get_attribute_list('data-media-id')[0]
-                    break
-            url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
-            data = await self.requests.get(url)
-            if data.status_code != 200:
-                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-            try:
-                data = data.text
-            except Exception as ex:
-                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
-            
-            soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
+
+            if is_serial_page:
+                container_wrap = soup.find('div', {'class': 'serial-translations-box'})
+            else:
+                container_wrap = soup.find('div', {'class': 'movie-translations-box'})
+
+            if container_wrap:
+                container = container_wrap.find('select')
+                if container:
+                    for tr in container.find_all('option'):
+                        did = tr.get('data-id') or tr.get('value')
+                        if str(did) == translation_id:
+                            media_hash = tr.get('data-media-hash')
+                            media_id = tr.get('data-media-id')
+                            break
+
+            if media_id and media_hash:
+                if is_serial_page:
+                    url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+                else:
+                    url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+
+                data = await self.requests.get(url)
+                if data.status_code != 200:
+                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+                try:
+                    data = data.text
+                except Exception as ex:
+                    raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+                
+                soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
+
         script_url = soup.find_all('script')[1].get_attribute_list('src')[0]
 
         hash_container = soup.find_all('script')[4].text
