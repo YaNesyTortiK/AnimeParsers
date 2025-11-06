@@ -178,3 +178,6 @@ Thx to @nichind for pointing these out
 ## To 1.13.0
 - Added functions to get m3u8 playlists (both link and file content) for KodikParser
 - Fixed KODIK_API.md (render error due to misalignment)
+
+## To 1.13.1
+- Fixed edge case with video names in ShikimoriParser
