@@ -173,4 +173,8 @@ Thx to @nichind for pointing these out
 - Added function to validate token (token from function get_token is now invalid for some api requests)
 
 ## To 1.12.3
-- Updated function `get_token`: getting full token from github repository (thx @deathnoragami)
+- Updated function `get_token` in KodikParser: getting full token from github repository (thx @deathnoragami)
+
+## To 1.13.0
+- Added functions to get m3u8 playlists (both link and file content) for KodikParser
+- Fixed KODIK_API.md (render error due to misalignment)

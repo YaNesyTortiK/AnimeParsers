@@ -695,6 +695,61 @@ class KodikParserAsync:
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
+    
+        
+    async def get_m3u8_playlist_link(self, id: str, id_type: str, seria_num: int, translation_id: str, quality: int = 720) -> str:
+        """
+        Возвращает ссылку на m3u8 плейлист.
+        Пример: https://cloud.kodik-storage.com/.../.../720.mp4:hls:manifest.m3u8
+
+        :id: id медиа
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :seria_num: номер серии (если фильм или одно видео, укажите 0)
+        :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
+        :quality: Желаемое качество (360, 480, 720). Если указанное качество будет больше, чем максимально доступное, вернется ссылка с максимально доступным качеством. По умолчанию: 720
+        """
+        link_data = await self.get_link(id, id_type, seria_num, translation_id)
+        selected_quality = str(min(quality, link_data[1]) if quality in [360, 480, 720] else link_data[1])
+        return "https:"+link_data[0]+selected_quality+".mp4:hls:manifest.m3u8"
+    
+    async def get_m3u8_playlist(self, id: str, id_type: str, seria_num: int, translation_id: str, quality: int = 720) -> str:
+        """
+        Возвращает m3u8 плейлист в виде содержания файла.
+        Прим: 
+        #EXTM3U
+        #EXT-X-TARGETDURATION:6
+        #EXT-X-ALLOW-CACHE:YES
+        #EXT-X-PLAYLIST-TYPE:VOD
+        #EXT-X-VERSION:3
+        #EXT-X-MEDIA-SEQUENCE:1
+        #EXTINF:6.000,
+        https://.../720.mp4:hls:seg-1-v1-a1.ts
+        #EXTINF:6.000,
+        https://.../720.mp4:hls:seg-2-v1-a1.ts
+        #EXTINF:6.000,
+        https://.../720.mp4:hls:seg-3-v1-a1.ts
+
+        :id: id медиа
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :seria_num: номер серии (если фильм или одно видео, укажите 0)
+        :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
+        :quality: Желаемое качество (360, 480, 720). Если указанное качество будет больше, чем максимально доступное, вернется содержимое файла с максимально доступным качеством. По умолчанию: 720
+        """
+        link_data = await self.get_link(id, id_type, seria_num, translation_id)
+        selected_quality = str(min(quality, link_data[1]) if quality in [360, 480, 720] else link_data[1])
+        
+        link = "https:"+link_data[0]+selected_quality+".mp4:hls:manifest.m3u8"
+        data = await self.requests.get(link)
+        if data.status_code == 404:
+            raise errors.NoResults("Плейлист не найден. Попробуйте сменить качество.")
+        elif data.status_code != 200:
+            raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+        try:
+            data = data.text
+        except Exception as ex:
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+
+        return data.replace('./'+selected_quality+'.mp4', "https:"+link_data[0]+selected_quality+'.mp4')
 
     def _convert_char(self, char: str, num):
         low = char.islower()
