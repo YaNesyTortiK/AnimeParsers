@@ -308,7 +308,7 @@ class ShikimoriParserAsync:
                     # Если в связанных клип (по другому отрисовано имя)
                     if c_data['type'] == 'Клип' and c_data['name'] == None:
                         try:
-                            c_data['name'] = entry.find('div', {'class': 'name'}).find('a').text
+                            c_data['name'] = _tmp.text if (_tmp := entry.find('div', {'class': 'name'}).find('a')) else ''
                         except:
                             pass                
                     # Заполняем пустое
@@ -326,38 +326,44 @@ class ShikimoriParserAsync:
                     for role in entry.find('div', {'class': 'line'}).find_all('div', {'class': 'b-tag'}):
                         c_data['roles'].append(role.text)
                     res['staff'].append(c_data)
-
-        r1 = soup.find('div', {'class': 'c-characters'})
-        for char in r1.find_all('article'):
-            c_data = {}
-            c_data['picture'] = None
-            if not char.find('meta', {'itemprop': 'image'}) is None:
-                c_data['picture'] = char.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
-            c_data['name'] = char.find('span', {'class': 'name-ru'}).text
-            res['main_characters'].append(c_data)
-        
-        r1 = soup.find('div', {'class': 'two-videos'})
-        if not r1 is None:
-            if not r1.find('div', {'class': 'c-screenshots'}) is None:
-                for img in r1.find_all('a', {'class': 'c-screenshot'}):
-                    res['screenshots'].append(img.get_attribute_list('href')[0])
-            if not r1.find('div', {'class': 'c-videos'}) is None:
-                for vid in r1.find_all('div', {'class': 'c-video'}):
-                    c_data = {}
-                    c_data['link'] = vid.find('a').get_attribute_list('href')[0]
-                    c_data['name'] = vid.find('span', {'class': 'name'}).text
-                    res['videos'].append(c_data)
-
-        r1 = soup.find('div', {'class': 'block'})
-        if not r1 is None:
-            for sim in r1.find_all('article'):
+        try:
+            r1 = soup.find('div', {'class': 'c-characters'})
+            for char in r1.find_all('article'):
                 c_data = {}
                 c_data['picture'] = None
-                if not sim.find('meta', {'itemprop': 'image'}) is None:
-                    c_data['picture'] = sim.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
-                c_data['name'] = sim.find('span', {'class': 'name-ru'}).text
-                c_data['link'] = sim.find('div').get_attribute_list('data-href')[0]
-                res['similar'].append(c_data)
+                if not char.find('meta', {'itemprop': 'image'}) is None:
+                    c_data['picture'] = char.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
+                c_data['name'] = _tmp.text if (_tmp := char.find('span', {'class': 'name-ru'})) else ''
+                res['main_characters'].append(c_data)
+        except:
+            pass
+        try:
+            r1 = soup.find('div', {'class': 'two-videos'})
+            if not r1 is None:
+                if not r1.find('div', {'class': 'c-screenshots'}) is None:
+                    for img in r1.find_all('a', {'class': 'c-screenshot'}):
+                        res['screenshots'].append(img.get_attribute_list('href')[0])
+                if not r1.find('div', {'class': 'c-videos'}) is None:
+                    for vid in r1.find_all('div', {'class': 'c-video'}):
+                        c_data = {}
+                        c_data['link'] = vid.find('a').get_attribute_list('href')[0]
+                        c_data['name'] = _tmp.text if (_tmp := vid.find('span', {'class': 'name'})) else ''
+                        res['videos'].append(c_data)
+        except:
+            pass
+        try:
+            r1 = soup.find('div', {'class': 'block'})
+            if not r1 is None:
+                for sim in r1.find_all('article'):
+                    c_data = {}
+                    c_data['picture'] = None
+                    if not sim.find('meta', {'itemprop': 'image'}) is None:
+                        c_data['picture'] = sim.find('meta', {'itemprop': 'image'}).get_attribute_list('content')[0]
+                    c_data['name'] = sim.find('span', {'class': 'name-ru'}).text
+                    c_data['link'] = sim.find('div').get_attribute_list('data-href')[0]
+                    res['similar'].append(c_data)
+        except:
+            pass
         return res
     
     async def get_anime_list(self, status: list[str] = [], anime_type: list[str] = [], rating: str | None = None, genres: list[str] = [], start_page: int = 1, page_limit: int = 3, sort_by: str = 'rating') -> list:
