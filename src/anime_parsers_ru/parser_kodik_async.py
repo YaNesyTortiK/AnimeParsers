@@ -513,6 +513,13 @@ class KodikParserAsync:
             raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
+        if soup.find("div", {"class": "promo-error"}):
+            msg = m.text if (m := soup.find("div", {"class": "message"})) else None
+            err_code = m.text if (m := soup.find("div", {"class": "error-code"})) else None
+            if msg == "Видео запрещено к просмотру в данной стране":
+                raise errors.ContentBlocked(f"Произошла ошибка. Ожидался плеер, получено сообщение об ошибке: \"{msg}\". Код ошибки: \"{err_code}\". Проверьте что запрос выполняется из страны в которой плеер работает.")
+            else:
+                raise errors.UnexpectedBehavior(f"Произошла ошибка. Ожидался плеер, получено сообщение об ошибке: \"{msg}\". Код ошибки: \"{err_code}\".")
         if self._is_serial(link):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
             try:
@@ -814,21 +821,46 @@ class KodikParserAsync:
         # Попытка получения полного токена
         """
         Используется токен из репозитория https://github.com/nb557/plugins
-        За помощь и написание функций спасибо https://github.com/deathnoragami
+        За помощь спасибо https://github.com/deathnoragami
         """
         req = AsyncSession()
-        def js_hash_str(s: str) -> str:
-            """Эквивалент JS-хэша из плагина: ((h<<5) - h + code) >>> 0, затем приводим к signed 32-bit и в строку."""
-            h = 0
-            for ch in s:
-                h = ((h << 5) - h + ord(ch)) & 0xFFFFFFFF
-            if h & 0x80000000:  # signed 32-bit
-                h = -((~h & 0xFFFFFFFF) + 1)
-            return str(h)
+        def salt(input):
+            s = (input or '') + ''
+            hash = 0
 
-        def decode_secret(nums, password: str) -> str:
-            h = js_hash_str(password)
-            return ''.join(chr(n ^ ord(h[i % len(h)])) for i, n in enumerate(nums))
+            for i in range(len(s)):
+                c = ord(s[i])
+                hash = (hash << 5) - hash + c
+                hash = hash & hash
+
+            result = ''
+
+            _i = 0
+            j = 29
+            while (j >= 0):
+                x = ((hash >> _i & 7) << 3) + (hash >> j & 7)
+                cc = (97 + x) if x < 26 else ((39 + x) if x < 52 else (x-4))
+                result += chr(cc)
+                _i += 3
+                j -= 3
+
+            return result
+
+        def decode_secret(input, password: str) -> str:
+            result = ''
+            password = (password or '') + ''
+
+            if (input and password):
+                hash = salt('123456789' + password)
+
+                while (len(hash) < len(input)):
+                    hash += hash
+
+                i = 0
+                while (i < len(input)):
+                    result += chr(input[i] ^ ord(hash[i]))
+                    i+=1
+            return result
 
         async def get_secret():
             link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
@@ -866,20 +898,46 @@ class KodikParserAsync:
         # Попытка получения полного токена
         """
         Используется токен из репозитория https://github.com/nb557/plugins
-        За помощь и написание функций спасибо https://github.com/deathnoragami
+        За помощь спасибо https://github.com/deathnoragami
         """
-        def js_hash_str(s: str) -> str:
-            """Эквивалент JS-хэша из плагина: ((h<<5) - h + code) >>> 0, затем приводим к signed 32-bit и в строку."""
-            h = 0
-            for ch in s:
-                h = ((h << 5) - h + ord(ch)) & 0xFFFFFFFF
-            if h & 0x80000000:  # signed 32-bit
-                h = -((~h & 0xFFFFFFFF) + 1)
-            return str(h)
+        def salt(input):
+            s = (input or '') + ''
+            hash = 0
 
-        def decode_secret(nums, password: str) -> str:
-            h = js_hash_str(password)
-            return ''.join(chr(n ^ ord(h[i % len(h)])) for i, n in enumerate(nums))
+            for i in range(len(s)):
+                c = ord(s[i])
+                hash = (hash << 5) - hash + c
+                hash = hash & hash
+
+            result = ''
+
+            _i = 0
+            j = 29
+            while (j >= 0):
+                x = ((hash >> _i & 7) << 3) + (hash >> j & 7)
+                cc = (97 + x) if x < 26 else ((39 + x) if x < 52 else (x-4))
+                result += chr(cc)
+                _i += 3
+                j -= 3
+
+            return result
+
+        def decode_secret(input, password: str) -> str:
+            result = ''
+            password = (password or '') + ''
+
+            if (input and password):
+                hash = salt('123456789' + password)
+
+                while (len(hash) < len(input)):
+                    hash += hash
+
+                i = 0
+                while (i < len(input)):
+                    result += chr(input[i] ^ ord(hash[i]))
+                    i+=1
+
+            return result
 
         def get_secret():
             link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
