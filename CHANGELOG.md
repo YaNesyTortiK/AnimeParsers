@@ -181,3 +181,6 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.1
 - Fixed edge case with video names in ShikimoriParser
+
+## To 1.13.2
+- Updated get_token for new obfuscation
