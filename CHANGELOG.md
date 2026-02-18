@@ -184,3 +184,8 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.2
 - Updated get_token for new obfuscation
+
+## To 1.13.3
+- Removed functions to get token from other repository
+- Now function get_token will not be used when class is initialized
+- Fixed token inheritance in api_kodik

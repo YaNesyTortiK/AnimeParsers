@@ -26,11 +26,10 @@ class KodikParserAsync:
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
         """
-        if token is None:
-            try:
-                token = self.get_token_sync()
-            except Exception as ex:
-                raise errors.ServiceError(f'Произошла ошибка при попытке автоматического получения токена kodik. Ошибка: {ex}')
+        if token is None and validate_token:
+            raise errors.TokenError("Для использования данного класса требуется указать токен для kodik. " \
+            "Вы можете воспользоваться токеном с ограниченным функционалом, для этого при инициализации класса укажите параметр " \
+            "validate_token=False и в параметр токен укажите KodikParserAsync.get_token_sync().")
         self.TOKEN = token
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
@@ -818,66 +817,7 @@ class KodikParserAsync:
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
-        # Попытка получения полного токена
-        """
-        Используется токен из репозитория https://github.com/nb557/plugins
-        За помощь спасибо https://github.com/deathnoragami
-        """
         req = AsyncSession()
-        def salt(input):
-            s = (input or '') + ''
-            hash = 0
-
-            for i in range(len(s)):
-                c = ord(s[i])
-                hash = (hash << 5) - hash + c
-                hash = hash & hash
-
-            result = ''
-
-            _i = 0
-            j = 29
-            while (j >= 0):
-                x = ((hash >> _i & 7) << 3) + (hash >> j & 7)
-                cc = (97 + x) if x < 26 else ((39 + x) if x < 52 else (x-4))
-                result += chr(cc)
-                _i += 3
-                j -= 3
-
-            return result
-
-        def decode_secret(input, password: str) -> str:
-            result = ''
-            password = (password or '') + ''
-
-            if (input and password):
-                hash = salt('123456789' + password)
-
-                while (len(hash) < len(input)):
-                    hash += hash
-
-                i = 0
-                while (i < len(input)):
-                    result += chr(input[i] ^ ord(hash[i]))
-                    i+=1
-            return result
-
-        async def get_secret():
-            link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
-            data = await req.get(link)
-            data = data.text
-            start_pos = data.rfind("var embed = 'https://kodikapi.com/search';")
-            
-            line = data[data.find("Utils.decodeSecret([", start_pos)+20:data.find("],", start_pos)]
-            secret = [int(x) for x in line.split(', ')]
-            return secret
-        
-        try:
-            token = decode_secret(get_secret(), 'kodik')
-        except:
-            pass
-        else:
-            return token
 
         # Получение токена который не работает для поиска и списков
         script_url = 'https://kodik-add.com/add-players.min.js?v=2'
@@ -895,65 +835,6 @@ class KodikParserAsync:
         Попытка получения токена.
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
-        # Попытка получения полного токена
-        """
-        Используется токен из репозитория https://github.com/nb557/plugins
-        За помощь спасибо https://github.com/deathnoragami
-        """
-        def salt(input):
-            s = (input or '') + ''
-            hash = 0
-
-            for i in range(len(s)):
-                c = ord(s[i])
-                hash = (hash << 5) - hash + c
-                hash = hash & hash
-
-            result = ''
-
-            _i = 0
-            j = 29
-            while (j >= 0):
-                x = ((hash >> _i & 7) << 3) + (hash >> j & 7)
-                cc = (97 + x) if x < 26 else ((39 + x) if x < 52 else (x-4))
-                result += chr(cc)
-                _i += 3
-                j -= 3
-
-            return result
-
-        def decode_secret(input, password: str) -> str:
-            result = ''
-            password = (password or '') + ''
-
-            if (input and password):
-                hash = salt('123456789' + password)
-
-                while (len(hash) < len(input)):
-                    hash += hash
-
-                i = 0
-                while (i < len(input)):
-                    result += chr(input[i] ^ ord(hash[i]))
-                    i+=1
-
-            return result
-
-        def get_secret():
-            link = 'https://raw.githubusercontent.com/nb557/plugins/refs/heads/main/online_mod.js'
-            data = requests.get(link).text
-            start_pos = data.rfind("var embed = 'https://kodikapi.com/search';")
-            
-            line = data[data.find("Utils.decodeSecret([", start_pos)+20:data.find("],", start_pos)]
-            secret = [int(x) for x in line.split(', ')]
-            return secret
-        
-        try:
-            token = decode_secret(get_secret(), 'kodik')
-        except:
-            pass
-        else:
-            return token
 
         # Получение токена который не работает для поиска и списков
         script_url = 'https://kodik-add.com/add-players.min.js?v=2'

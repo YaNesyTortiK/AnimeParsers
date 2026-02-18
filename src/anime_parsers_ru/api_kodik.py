@@ -606,7 +606,7 @@ class Api:
         Функция для создания нового класса, с новыми данными, после каждого добавленного условия. 
         (Вынесено отдельно, чтобы не загружать каждую функцию одинаковым кодом)
         """
-        return Api(allow_warnings=self.allow_warnings, _args=self._args, _endpoint=self._endpoint)
+        return Api(token=self.token, allow_warnings=self.allow_warnings, _args=self._args, _endpoint=self._endpoint)
     
     def title(self, title: str) -> 'Api':
         """
