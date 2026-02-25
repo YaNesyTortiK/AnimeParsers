@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.13.3
+Version: 1.13.4
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -897,7 +897,27 @@ pip install lxml
     }
     ```
 
-5. Вспомогательные функции
+5. Получение онгоингов со страницы /ongoings
+    ```python
+    parser.get_ongoing_calendar()
+    ```
+    Возвращает:
+    ```json
+    'Четверг, 26 февраля': [
+        {
+            "episode": "номер эпизода (число) если не анонс и не релиз, иначе None",
+            "id": "Shikimori id",
+            "link": "Ссылка на страницу тайтла",
+            "name_en": "Английское название",
+            "name_ru": "Русское название",
+            "picture": "Ссылка на картинку",
+            "release_type": "тип релиза: анонс или релиз (или другое) если episode == None, иначе None",
+            "time": "Расчетное время релиза (оригинала)"
+        },
+    ]
+    ```
+
+6. Вспомогательные функции
     - Ссылка на страницу шикимори по id
         ```python
         parser.link_by_id('shikimori_id')
@@ -911,7 +931,7 @@ pip install lxml
         Возвращает shikimori_id
         (ссылка: https://shikimori.one/animes/53446-tondemo-skill-de-isekai-hourou-meshi id: 53446)
 
-6. Поиск аниме и информации по аниме через псевдо api shikimori
+7. Поиск аниме и информации по аниме через псевдо api shikimori
     Данные функции используют предоставленную shikimori тестовую функцию для api. (https://shikimori.one/api/doc/graphql)
     Подробные примеры запросов и ответов вы можете посмотреть в файле [SHIKI_API.md](https://github.com/YaNesyTortiK/AnimeParsers/blob/main/SHIKI_API.md)
     

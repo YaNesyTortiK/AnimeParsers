@@ -8,6 +8,7 @@ else:
 import re
 from bs4 import BeautifulSoup as Soup
 import json
+import datetime
 
 try:
     from . import errors # Импорт если библиотека установлена
@@ -552,6 +553,68 @@ class ShikimoriParser:
         except:
             pass
         return c_data
+    
+    def get_ongoing_calendar(self) -> dict[str: list[dict]]:
+        """
+        Получает календарь онгоингов (shikimori.one/ongoings)
+
+Пример возвращаемых данных:
+'Среда, 4 марта': [
+    {'episode': 2, # Номер эпизода если есть
+    'id': '61765', # Shikimori Id
+    'link': 'https://shikimori.io/animes/61765-chibi-godzilla-no-gyakushuu-3rd-season', # Полная ссылка
+    'name_en': 'Chibi Godzilla no Gyakushuu 3rd Season', # Название на английском если есть
+    'name_ru': 'Тиби-Годзилла наносит ответный удар 3', # Название на heccrjv если есть
+    'picture': 'https://shikimori.io/uploads/poster/animes/61765/preview_alt_2x-4af081a87af71501f2adf7f8d04f7c1d.jpeg', # Ссылка на картинку
+    'release_type': None, # Тип релиза (анонс, релиз...), если есть этот параметр, то episode будет None
+    'time': 'с 01:05 по 01:12' # Расчетное время выхода оригинала (GMT+3)
+    }, 
+...
+]
+        """
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+        }
+        response = requests.get(f'https://{self._dmn}/ongoings', headers=headers).text
+        soup = Soup(response, 'lxml') if self.USE_LXML else Soup(response, 'html.parser')
+        res = {}
+        
+        for block in soup.find_all("div", {"class": "block"}): # Дни
+            day = block.find("div", {"class": "headline"}).text
+            res[day] = []
+            for entry in block.find_all("article"): # Элементы
+                cover = entry.find("a", {"class": "cover"})
+                if not cover:
+                    continue
+                res[day].append({})
+                res[day][-1]["id"] = entry.get_attribute_list("id")[0]
+                res[day][-1]["link"] = cover.get_attribute_list("href")[0]
+                title = cover.find("span", {"class": "title"})
+                if not title:
+                    continue
+                res[day][-1]["name_en"] = x.text if (x := title.find("span", {"class": "name-en"})) else None
+                res[day][-1]["name_ru"] = x.text if (x := title.find("span", {"class": "name-ru"})) else None
+                pic = cover.find("picture")
+                if pic:
+                    img = pic.find("img")
+                    if img:
+                        res[day][-1]["picture"] = img.get_attribute_list("srcset")[0][:-3]
+                    else:
+                        src = pic.find("source")
+                        if src:
+                            res[day][-1]["picture"] = src.get_attribute_list("srcset")[0][:-3]
+                        else:
+                            res[day][-1]["picture"] = None
+                else:
+                    res[day][-1]["picture"] = None
+                misc = cover.find("span", {"class": "misc"})
+                if misc:
+                    misc_data = misc.find_all("span")
+                    res[day][-1]["episode"] = int(misc_data[0].text[:misc_data[0].text.find(' ')]) if " эпизод" in misc_data[0].text else None
+                    res[day][-1]["time"] = misc_data[1].text
+                    res[day][-1]["release_type"] = misc_data[0].text if " эпизод" not in misc_data[0].text else None
+                    # release_type = анонс, релиз и т.п.
+        return res
 
     def link_by_id(self, shikimori_id: str) -> str:
         """

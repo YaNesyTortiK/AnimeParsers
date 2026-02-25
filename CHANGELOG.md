@@ -189,3 +189,6 @@ Thx to @nichind for pointing these out
 - Removed functions to get token from other repository
 - Now function get_token will not be used when class is initialized
 - Fixed token inheritance in api_kodik
+
+## To 1.13.4
+- Added parser for /ongoings page in shikimori
