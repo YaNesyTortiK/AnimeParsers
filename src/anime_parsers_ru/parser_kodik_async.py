@@ -36,6 +36,7 @@ class KodikParserAsync:
         self.USE_LXML = use_lxml
         self.requests = AsyncSession()
         self._crypt_step = None
+        self._cached_post_link = {}
         if validate_token:
             print("\n[KodikParserAsync] Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
                   "Или вызовите функцию `await validate_token()` отдельно.")
@@ -681,6 +682,12 @@ class KodikParserAsync:
 
         post_link = await self._get_post_link(script_url)
         data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
+
+        # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+        if data.status_code != 200 and script_url in self._cached_post_link:
+            del self._cached_post_link[script_url]
+            post_link = await self._get_post_link(script_url)
+            data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
         try:
             data = data.json()
         except Exception as ex:
@@ -695,6 +702,24 @@ class KodikParserAsync:
         
         data_url = data["links"]["360"][0]["src"]
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
+        
+        # байпасс выдачи странных ссылок похоже на айпибан или что то такое прокси решает проблему
+        if "/s/m/" in url:
+            try:
+                parts = url.split("/s/m/")[1].split("/", 1)
+                if len(parts) == 2:
+                    b64_part = parts[0]
+                    rest = parts[1] 
+                    
+                    padding = 4 - (len(b64_part) % 4)
+                    if padding != 4:
+                        b64_part += "=" * padding
+                        
+                    decoded_base = b64decode(b64_part).decode("utf-8")
+                    url = f"{decoded_base}/{rest}"
+            except Exception:
+                pass
+
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
@@ -795,6 +820,9 @@ class KodikParserAsync:
             raise errors.DecryptionFailure
 
     async def _get_post_link(self, script_url: str):
+        if script_url in self._cached_post_link:
+            return self._cached_post_link[script_url]
+
         data = await self.requests.get('https://kodik.info'+script_url)
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
@@ -804,7 +832,9 @@ class KodikParserAsync:
             raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
-        return b64decode(url.encode()).decode()
+        result = b64decode(url.encode()).decode()
+        self._cached_post_link[script_url] = result
+        return result
 
     @staticmethod
     async def get_token() -> str:
