@@ -192,3 +192,6 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.4
 - Added parser for /ongoings page in shikimori
+
+## To 1.13.5
+- Fix links for kodik

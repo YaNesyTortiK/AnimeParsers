@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.13.4
+Version: 1.13.5
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -903,7 +903,7 @@ pip install lxml
     ```
     Возвращает:
     ```json
-    'Четверг, 26 февраля': [
+    "<день недели>, <число> <месяц>": [
         {
             "episode": "номер эпизода (число) если не анонс и не релиз, иначе None",
             "id": "Shikimori id",
