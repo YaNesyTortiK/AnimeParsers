@@ -42,29 +42,29 @@
 Для того чтобы использовать апи кодика, вам понадобится ключ. Вы можете воспользоваться своим ключом (если он у вас есть), либо, если у вас нет ключа, воспользоваться общедоступным. [как получить ключ](#как-получить-api-ключ)
 
 ### Эндпоинты
-* Основная ссылка api endpoint: `https://kodikapi.com`
-* Ссылка для поисковых запросов: `https://kodikapi.com/search`
-* Ссылка для получения списка: `https://kodikapi.com/list`
-* Ссылка для получения json файла с переводами: `https://kodikapi.com/translations`
+* Основная ссылка api endpoint: `https://kodik-api.com`
+* Ссылка для поисковых запросов: `https://kodik-api.com/search`
+* Ссылка для получения списка: `https://kodik-api.com/list`
+* Ссылка для получения json файла с переводами: `https://kodik-api.com/translations`
 
 ### Методы
 Для каждого запроса нужно указывать параметр token
 * Для поискового запроса используется POST запрос. [подробно](#подробнее-про-поиск)
     <details>
     <summary>Пример curl</summary>
-    `curl --location --request POST 'https://kodikapi.com/search?token=your_token?title=%D0%9A%D1%83%D0%BB%D0%B8%D0%BD%D0%B0%D1%80%D0%BD%D1%8B%D0%B5%20%D1%81%D0%BA%D0%B8%D1%82%D0%B0%D0%BD%D0%B8%D1%8F'`
+    `curl --location --request POST 'https://kodik-api.com/search?token=your_token?title=%D0%9A%D1%83%D0%BB%D0%B8%D0%BD%D0%B0%D1%80%D0%BD%D1%8B%D0%B5%20%D1%81%D0%BA%D0%B8%D1%82%D0%B0%D0%BD%D0%B8%D1%8F'`
     Данный запрос выполняет поиск аниме с названием "Кулинарные скитания" и вернет список вариантов.
     </details>
 * Для получения списка используется POST запрос. [подробно](#подробнее-про-список)
     <details>
     <summary>Пример curl</summary>
-    `curl --location --request POST 'https://kodikapi.com/list?token=your_token'`
+    `curl --location --request POST 'https://kodik-api.com/list?token=your_token'`
     В результате данного запроса вернется список вариантов (предположительно самые последние обновления)
     </details>
 * Для получения json файла с переводами используется POST запрос.
     <details>
     <summary>Пример curl</summary>
-    `curl --location --request POST 'https://kodikapi.com/translations?token=your_token'`
+    `curl --location --request POST 'https://kodik-api.com/translations?token=your_token'`
     В результате данного запроса вернется json со списком элементов вида `{"id": id перевода (int), "title": название студии / перевода (string), "type": тип перевода ("voice" / "subtitles")}`
     </details>
 
@@ -332,11 +332,11 @@ data = initial.results[0].get_episodes_and_translations()
 Также в ответе сервера будут возможны повторения одного и того-же контента из-за того, что кодик разделяет разные озвучки как разные объекты не группируя их в один. Также вы можете фильтровать и устанавливать дополнительные флаги при запросе. [подробнее](#доступные-фильтры-и-параметры-запроса)
 
 ### Поиск по названию
-Для поиска по названию ссылка будет выглядеть так: `https://kodikapi.com/search?token=your_token&title=Naruto`
+Для поиска по названию ссылка будет выглядеть так: `https://kodik-api.com/search?token=your_token&title=Naruto`
 > [!NOTE]
 > Поиск по названию может возвращать несвязанные с запрошенным названием элементы (особенно если название введено с ошибкой или мультимедиа с таким названием не найдено).
 
-Запрос: `https://kodikapi.com/search?token=your_token&title=Naruto` <br>
+Запрос: `https://kodik-api.com/search?token=your_token&title=Naruto` <br>
 Ответ:
 ```json
 {
@@ -412,11 +412,11 @@ data = initial.results[0].get_episodes_and_translations()
 ### Поиск по id
 Для поиска по id также потребуется уточнить, какой тип id. <br>
 Проверенные: shikimori_id, kinopoisk_id, imdb_id, id (внутренний id kodik). <br>
-Пример запроса: `https://kodikapi.com/search?token=your_token&shikimori_id=20`
+Пример запроса: `https://kodik-api.com/search?token=your_token&shikimori_id=20`
 > [!TIP]
 > При поиске по id в ответе сервера возможны повторяющиеся элементы из-за разных озвучек. Поэтому таким образом можно получать список (возможно неполный) доступных озвучек.
 
-Запрос: `https://kodikapi.com/search?token=your_token&shikimori_id=20` <br>
+Запрос: `https://kodik-api.com/search?token=your_token&shikimori_id=20` <br>
 Ответ:
 ```json
 {
@@ -503,14 +503,14 @@ data = initial.results[0].get_episodes_and_translations()
 
 обратите внимание, что в дополнение к данным, в ответе добавлены параметры `next_page` и `prev_page` с помощью которых можно "листать" список и элементы не будут повторяться.
 
-Пример запроса: `https://kodikapi.com/list?token=your_token`<br>
+Пример запроса: `https://kodik-api.com/list?token=your_token`<br>
 Пример ответа:
 ```json
 {
     "time": "15ms",
     "total": 63887,
     "prev_page": null,
-    "next_page": "https://kodikapi.com/list?token=447d179e875efe44217f20d1ee2146be&next=WzE3MzU2MTkwNjcwMDAsInNlcmlhbC02MzY5NSJd",
+    "next_page": "https://kodik-api.com/list?token=447d179e875efe44217f20d1ee2146be&next=WzE3MzU2MTkwNjcwMDAsInNlcmlhbC02MzY5NSJd",
     "results": [
         {
             "id": "movie-108152",
