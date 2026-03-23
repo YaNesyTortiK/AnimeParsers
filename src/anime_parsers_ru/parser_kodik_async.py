@@ -67,7 +67,7 @@ class KodikParserAsync:
         for item, val in parameters.items():
             payload[item] = val
 
-        url = f"https://kodikapi.com/{endpoint}"
+        url = f"https://kodik-api.com/{endpoint}"
         data = await self.requests.post(url, data=payload)
         try:
             data = data.json()
@@ -460,11 +460,11 @@ class KodikParserAsync:
         if self.TOKEN is None:
             raise errors.TokenError('Токен kodik не указан')
         if id_type == "shikimori":
-            serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={self.TOKEN}&shikimoriID={id}"
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={self.TOKEN}&shikimoriID={id}"
         elif id_type == "kinopoisk":
-            serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&kinopoiskID={id}"
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&kinopoiskID={id}"
         elif id_type == "imdb":
-            serv = f"https://kodikapi.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&imdbID={id}"
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&imdbID={id}"
         else:
             raise ValueError("Неизвестный тип id")
         data = await self.requests.get(serv)
@@ -480,7 +480,10 @@ class KodikParserAsync:
             raise errors.ServiceError(f"Произошла ошибка при запросе к kodik api. Ошибка: {data['error']}")
         if not data['found']:
             raise errors.NoResults(f'Нет данных по {id_type} id "{id}"')
-        return 'https:'+data['link'] if https else 'http:'+data['link']
+        if 'http' in data['link'][0:5]:
+            return data['link'] if https else data['link'].replace('https://', 'http://')
+        else:
+            return 'https:'+data['link'] if https else 'http:'+data['link']
     
     async def get_info(self, id: str, id_type: str) -> dict:
         """
@@ -548,10 +551,10 @@ class KodikParserAsync:
             raise errors.UnexpectedBehavior('Ссылка на данные не была распознана как ссылка на сериал или фильм')
     
     def _is_serial(self, iframe_url: str) -> bool:
-        return True if iframe_url[iframe_url.find(".info/")+6] == "s" else False
+        return True if iframe_url[iframe_url.find("kodikplayer.com/")+16] == "s" else False
 
     def _is_video(self, iframe_url: str) -> bool:
-        return True if iframe_url[iframe_url.find(".info/")+6] == "v" else False
+        return True if iframe_url[iframe_url.find("kodikplayer.com/")+16] == "v" else False
     
     def _generate_translations_dict(self, translations_div: Soup | None) -> dict:
         if not isinstance(translations_div, Soup) and translations_div != None:
@@ -635,9 +638,9 @@ class KodikParserAsync:
 
             if media_id and media_hash:
                 if is_serial_page:
-                    url = f'https://kodik.info/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+                    url = f'https://kodikplayer.com/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
                 else:
-                    url = f'https://kodik.info/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
+                    url = f'https://kodikplayer.com/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}'
 
                 data = await self.requests.get(url)
                 if data.status_code != 200:
@@ -685,7 +688,7 @@ class KodikParserAsync:
         }
 
         post_link = await self._get_post_link(script_url)
-        target_url = f'https://kodik.info{post_link}'
+        target_url = f'https://kodikplayer.com{post_link}'
 
         if self.proxy:
             if self.proxy.startswith('socks'):
@@ -704,7 +707,7 @@ class KodikParserAsync:
             if resp_status != 200 and script_url in self._cached_post_link:
                 del self._cached_post_link[script_url]
                 post_link = await self._get_post_link(script_url)
-                target_url = f'https://kodik.info{post_link}'
+                target_url = f'https://kodikplayer.com{post_link}'
                 if self.proxy.startswith('socks'):
                     connector = ProxyConnector.from_url(self.proxy)
                     async with aiohttp.ClientSession(connector=connector) as session:
@@ -727,7 +730,7 @@ class KodikParserAsync:
             if data.status_code != 200 and script_url in self._cached_post_link:
                 del self._cached_post_link[script_url]
                 post_link = await self._get_post_link(script_url)
-                data = await self.requests.post(f'https://kodik.info{post_link}', data=params, headers=headers)
+                data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
             try:
                 data = data.json()
             except Exception as ex:
@@ -853,7 +856,7 @@ class KodikParserAsync:
         if script_url in self._cached_post_link:
             return self._cached_post_link[script_url]
 
-        data = await self.requests.get('https://kodik.info'+script_url)
+        data = await self.requests.get('https://kodikplayer.com'+script_url)
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
         try:

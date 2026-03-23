@@ -1306,7 +1306,7 @@ class Api:
             for item, val in parameters.items():
                 payload[item] = val
 
-            url = f"https://kodikapi.com/{self._endpoint}"
+            url = f"https://kodik-api.com/{self._endpoint}"
             data = requests.post(url, data=payload)
         else:
             url = link
@@ -1357,7 +1357,7 @@ class Api:
             payload = {"token": self.token}
             for item, val in parameters.items():
                 payload[item] = val
-            url = f"https://kodikapi.com/{self._endpoint}"
+            url = f"https://kodik-api.com/{self._endpoint}"
             data = await AsyncSession().post(url, data=payload)
         else:
             url = link
