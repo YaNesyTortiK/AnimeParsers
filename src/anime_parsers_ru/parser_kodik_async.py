@@ -12,9 +12,7 @@ from base64 import b64decode
 try:
     from . import errors # Импорт если библиотека установлена
     from .internal_tools import AsyncSession
-    import aiohttp
 except ImportError:
-    import aiohttp
     import errors # Импорт если библиотека не установлена и файл лежит локально
     from internal_tools import AsyncSession
 
