@@ -195,3 +195,6 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.5
 - Fix links for kodik
+
+## To 1.13.6
+- Temporary fix for bad ssl certificates for `get_token` function in KodikParser

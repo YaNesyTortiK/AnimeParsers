@@ -825,8 +825,13 @@ class KodikParser:
         Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
         """
         # Получение токена который не работает для поиска и списков
-        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-        data = requests.get(script_url).text
+        try:
+            script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+            data = requests.get(script_url).text
+        except requests.exceptions.SSLError:
+            # Если проблема с сертификатом
+            script_url = 'http://kodik-add.com/add-players.min.js?v=2'
+            data = requests.get(script_url, verify=False).text
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token

@@ -12,7 +12,9 @@ from base64 import b64decode
 try:
     from . import errors # Импорт если библиотека установлена
     from .internal_tools import AsyncSession
+    import aiohttp
 except ImportError:
+    import aiohttp
     import errors # Импорт если библиотека не установлена и файл лежит локально
     from internal_tools import AsyncSession
 
@@ -823,8 +825,11 @@ class KodikParserAsync:
         req = AsyncSession()
 
         # Получение токена который не работает для поиска и списков
-        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-        data = await req.get(script_url)
+        try:
+            script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+            data = await req.get(script_url)
+        except Exception as ex:
+            raise errors.ServiceError(f"\n\n!!! Невозможно получить токен из файлов кодика. Возможно проблема в сертификатах сервера. Воспользуйтесь синхронным вариантом функции.\nException: {ex}")
         data = data.text
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
@@ -840,8 +845,13 @@ class KodikParserAsync:
         """
 
         # Получение токена который не работает для поиска и списков
-        script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-        data = requests.get(script_url).text
+        try:
+            script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+            data = requests.get(script_url).text
+        except requests.exceptions.SSLError:
+            # Если проблема с сертификатом
+            script_url = 'http://kodik-add.com/add-players.min.js?v=2'
+            data = requests.get(script_url, verify=False).text
         token = data[data.find('token=')+7:]
         token = token[:token.find('"')]
         return token
