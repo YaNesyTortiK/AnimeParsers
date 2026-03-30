@@ -198,3 +198,6 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.6
 - Temporary fix for bad ssl certificates for `get_token` function in KodikParser
+
+## To 1.13.7
+- Removed unnecessary import
