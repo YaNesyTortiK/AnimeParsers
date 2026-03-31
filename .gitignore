@@ -6,3 +6,4 @@ dist
 venv10
 .vscode
 .venv
+test_tokens.py

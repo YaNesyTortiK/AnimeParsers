@@ -12,9 +12,11 @@ from base64 import b64decode
 try:
     from . import errors # Импорт если библиотека установлена
     from .internal_tools import AsyncSession
+    from .parser_kodik import KodikParser
 except ImportError:
     import errors # Импорт если библиотека не установлена и файл лежит локально
     from internal_tools import AsyncSession
+    from parser_kodik import KodikParser
 
 class KodikParserAsync:
     """
@@ -26,10 +28,8 @@ class KodikParserAsync:
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
         """
-        if token is None and validate_token:
-            raise errors.TokenError("Для использования данного класса требуется указать токен для kodik. " \
-            "Вы можете воспользоваться токеном с ограниченным функционалом, для этого при инициализации класса укажите параметр " \
-            "validate_token=False и в параметр токен укажите KodikParserAsync.get_token_sync().")
+        if token is None:
+            token = KodikParserAsync.get_token_sync() # Попытка получения токена автоматически
         self.TOKEN = token
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
@@ -815,85 +815,118 @@ class KodikParserAsync:
     @staticmethod
     async def get_token() -> str:
         """
-        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции может не работать для некоторых 
-            запросов к апи из-за, предположительно, удаления данного токена из валидных.
-        Попытка получения токена.
-        Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
+        ! ВНИМАНИЕ ! Данная функция делает запрос на оф. репозиторий библиотеки для получения списка токенов.
+        После этого происходит поиск рабочих токенов методом перебора, это займет некоторое время, так как частота запросов ограничена 
+        для предотвращения превышения лимита по запросам.
+        Рекомендуется после первого применения функции записать полученный токен и при инициализации класса передавать токен
         """
         req = AsyncSession()
 
-        # Получение токена который не работает для поиска и списков
-        try:
-            script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-            data = await req.get(script_url)
-        except Exception as ex:
-            raise errors.ServiceError(f"\n\n!!! Невозможно получить токен из файлов кодика. Возможно проблема в сертификатах сервера. Воспользуйтесь синхронным вариантом функции.\nException: {ex}")
-        data = data.text
-        token = data[data.find('token=')+7:]
-        token = token[:token.find('"')]
-        return token
+        def decrypt_token(tkn: str) -> str:
+            p1 = tkn[:len(tkn)//2][::-1]
+            p2 = tkn[len(tkn)//2:][::-1]
+            p1 = b64decode(p1.encode('utf-8'))
+            p1 = p1.decode('utf-8')
+            p2 = b64decode(p2.encode('utf-8'))
+            p2 = p2.decode('utf-8')
+            return p2+p1
+
+        data = requests.get("https://raw.githubusercontent.com/YaNesyTortiK/AnimeParsers/refs/heads/main/kdk_tokns/tokens.json")
+        __gh_tokens = json.loads(data.text)
+
+        _tmp_parser = KodikParserAsync(token=None, validate_token=False)
+
+        # Проверка stable
+        for token in __gh_tokens['stable']:
+            _tmp_parser.TOKEN = decrypt_token(token["tokn"])
+            try:
+                if _tmp_parser.validate_token(print_info=False):
+                    return _tmp_parser.TOKEN
+            except errors.TokenError:
+                pass
+            await req.sleep(2)
+        
+        # Проверка unstable
+        for token in __gh_tokens['unstable']:
+            _tmp_parser.TOKEN = decrypt_token(token["tokn"])
+            try:
+                if _tmp_parser.validate_token(print_info=False):
+                    return _tmp_parser.TOKEN
+            except errors.TokenError:
+                pass
+            await req.sleep(2) # Задержка между проверками
+
+        # legacy проверять не имеет смысла, т.к. там все равно не пройдет валидация
+        if len(__gh_tokens['legacy']) == 0:
+            
+            # Получение токена который не работает для поиска и списков
+            try:
+                script_url = 'https://kodik-add.com/add-players.min.js?v=2'
+                data = await req.get(script_url)
+            except Exception as ex:
+                raise errors.ServiceError(f"\n\n!!! Невозможно получить токен из файлов кодика. Возможно проблема в сертификатах сервера. Воспользуйтесь синхронным вариантом функции.\nException: {ex}")
+            token = data[data.find('token=')+7:]
+            token = token[:token.find('"')]
+            print("[KodikParser] No fully working tokens were found! Using legacy token with restrictions to api functions!")
+            return token
+        else:
+            print("[KodikParser] No fully working tokens were found! Using legacy token with restrictions to api functions!")
+            return decrypt_token(__gh_tokens['legacy'][0]["tokn"])
 
     @staticmethod
     def get_token_sync() -> str:
         """
-        ! ВНИМАНИЕ ! Токен полученный с помощью этой функции может не работать для некоторых 
-            запросов к апи из-за, предположительно, удаления данного токена из валидных.
-        Попытка получения токена.
-        Обратите внимание, что эта функция может не работать из-за изменений кодиком ссылок.
+        ! ВНИМАНИЕ ! Данная функция делает запрос на оф. репозиторий библиотеки для получения списка токенов.
+        После этого происходит поиск рабочих токенов методом перебора, это займет некоторое время, так как частота запросов ограничена 
+        для предотвращения превышения лимита по запросам.
+        Рекомендуется после первого применения функции записать полученный токен и при инициализации класса передавать токен
         """
-
-        # Получение токена который не работает для поиска и списков
-        try:
-            script_url = 'https://kodik-add.com/add-players.min.js?v=2'
-            data = requests.get(script_url).text
-        except requests.exceptions.SSLError:
-            # Если проблема с сертификатом
-            script_url = 'http://kodik-add.com/add-players.min.js?v=2'
-            data = requests.get(script_url, verify=False).text
-        token = data[data.find('token=')+7:]
-        token = token[:token.find('"')]
-        return token
-
+        return KodikParser.get_token()
     
-    async def validate_token(self) -> bool:
+    
+    async def validate_token(self, print_info: bool = True) -> bool:
         if self.TOKEN:
             res = True
             try:
                 await self.base_search("Кулинарные скитания", limit=1, include_material_data=False)
             except errors.TokenError:
-                print("[Token validation] Токен неверен для функции base_search")
+                if print_info:
+                    print("[Token validation] Токен неверен для функции base_search")
                 res = False
             except Exception as ex:
                 raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
             try:
                 await self.base_search_by_id("53446", "shikimori", limit=1, include_material_data=False)
             except errors.TokenError:
-                print("[Token validation] Токен неверен для функции base_search_by_id")
+                if print_info:
+                    print("[Token validation] Токен неверен для функции base_search_by_id")
                 res = False
             except Exception as ex:
                 raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
             try:
                 await self.get_info("53446", "shikimori")
             except errors.TokenError:
-                print("[Token validation] Токен неверен для функции get_info")
+                if print_info:
+                    print("[Token validation] Токен неверен для функции get_info")
                 res = False
             except Exception as ex:
                 raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
             try:
                 await self.get_list(limit_per_page=1, pages_to_parse=1, include_material_data=False)
             except errors.TokenError:
-                print("[Token validation] Токен неверен для функции get_list")
+                if print_info:
+                    print("[Token validation] Токен неверен для функции get_list")
                 res = False
             except Exception as ex:
                 raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
             try:
                 await self.get_link("53446", "shikimori", 1, "610")
             except errors.TokenError:
-                print("[Token validation] Токен неверен для функции get_link")
+                if print_info:
+                    print("[Token validation] Токен неверен для функции get_link")
                 res = False
             except Exception as ex:
                 raise errors.UnexpectedBehavior(f"[Token validation] Произошла непредвиденная ошибка при валидации токена: {ex}")
             return res
         else:
             raise errors.TokenError(f"Для валидации токена он должен быть указан при инициализации или получен автоматически. Текущий токен: {self.TOKEN}")
-

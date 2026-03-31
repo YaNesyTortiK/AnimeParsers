@@ -50,3 +50,6 @@ class AsyncSession:
                 url=response.url.human_repr()
             )
         return res
+    
+    async def sleep(time: float): # Чтобы потом не импортировать asyncio отдельно
+        await asyncio.sleep(time)

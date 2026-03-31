@@ -201,3 +201,9 @@ Thx to @nichind for pointing these out
 
 ## To 1.13.7
 - Removed unnecessary import
+
+## To 1.14.0
+- Reworked getter for kodik token, now all tokens are stored in repository and checked when got
+- Added back automatic token getting for kodik parser if token is None
+- Fixed Readme for kodik parser
+- Added readme for kodik tokens
