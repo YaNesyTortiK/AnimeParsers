@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.13.7
+Version: 1.14.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -109,6 +109,12 @@ pip install lxml
     parser = KodikParserAsync(<ваш api ключ>)
     ```
 
+
+> [!IMPORTANT]
+> Если у вас нет токена для кодика, то оставьте параметр token при инициализации равным None. Парсер попробует получить токен автоматически.
+> После получения токена, настоятельно рекомендуется сохранить этот токен и, для избегания задержек на получение токена и проверки, при следующей инициализации парсера, указать этот токен.
+> Как это работает вы можете прочитать здесь: [TOKENS.md](kdk_tokns/TOKENS.md)
+
 1. Поиск аниме по названию
     ```python
     parser.search(title="Наруто", limit=None, include_material_data=True, anime_status=None, strict=False, only_anime=False) # список словарей
@@ -140,7 +146,7 @@ pip install lxml
             "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
             В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
         },
-        "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+        "link": "ссылка на kodikplayer.com (Пример: //kodikplayer.com/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
     },
     ]
     ```
@@ -173,7 +179,7 @@ pip install lxml
             "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
             В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
         },
-        "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+        "link": "ссылка на kodikplayer.com (Пример: //kodikplayer.com/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
     },
     ]
     ```
@@ -190,7 +196,7 @@ pip install lxml
     ```
     Возвращает:
     ```json
-    (
+    {
         [
         {
             "title": "Название",
@@ -210,11 +216,11 @@ pip install lxml
                 "Здесь будут все данные о сериале имеющиеся у кодика. (None если указан параметр include_material_data=False)
                 В том числе оценки на шикимори, статус выхода, даты анонсов, выхода, все возможные названия, жанры, студии и многое другое."
             },
-            "link": "ссылка на kodik.info (Пример: //kodik.info/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
+            "link": "ссылка на kodikplayer.com (Пример: //kodikplayer.com/video/20609/e8fd5bc1190b7eb1ee1a3e1c3aec5f62/720p)"
         },
         ],
         "next_page_id": "id следующей страницы (для последовательного парсинга нескольких страниц) (может быть None, если след. страниц нет)"
-    )
+    }
     ```
 
 4. Получить информацию об аниме
@@ -228,14 +234,15 @@ pip install lxml
     {
         "series_count": 220, 
         "translations": [
-            {"id": "735", "type": "Озвучка", "name": "2x2 (220 эп.)"}, 
-            {"id": "609", "type": "Озвучка", "name": "AniDUB (220 эп.)"}, 
-            {"id": "869", "type": "Субтитры", "name": "Субтитры (220 эп.)"}, 
-            {"id": "958", "type": "Озвучка", "name": "AniRise (135 эп.)"}, 
-            {"id": "2550", "type": "Озвучка", "name": "ANI.OMNIA (8 эп.)"}
+            {"id": "735", "type": "Озвучка", "name": "2x2 (220 эп.)", "series_range": [1, 220]}, 
+            {"id": "609", "type": "Озвучка", "name": "AniDUB (220 эп.)", "series_range": [1, 220]}, 
+            {"id": "869", "type": "Субтитры", "name": "Субтитры (220 эп.)", "series_range": [1, 220]}, 
+            {"id": "958", "type": "Озвучка", "name": "AniRise (135 эп.)", "series_range": [1, 135]}, 
+            {"id": "2550", "type": "Озвучка", "name": "ANI.OMNIA (8 эп.)", "series_range": [1, 8]}
         ]
     }
     ```
+    series_range - тип tuple
 
     - Получить отдельно кол-во серий:
         ```python
@@ -254,13 +261,13 @@ pip install lxml
         translation_id="609") # Кортеж
     # id - id медиа
     # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
-    # seria_num - номер серии (если фильм или одно видео - 0)
+    # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     ```
-    Возвращает кортеж: `("//cloud.kodik-storage.com/useruploads/67b6e546-e51d-43d2-bb11-4d8bfbedc2d7/d6f4716bc90bd30694cf09b0062d07a2:2024062705/", 720)`
+    Возвращает кортеж: `('//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/',720)`
     
     1. Ссылка
-    Пример: `//cloud.kodik-storage.com/useruploads/67b6e546-e51d-43d2-bb11-4d8bfbedc2d7/d6f4716bc90bd30694cf09b0062d07a2:2024062705/`
+    Пример: `//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/`
     К данной ссылке в начале нужно добавить `http:` или `https:`, а в конце качество.mp4 (`720.mp4`) (Обычно доступны следующие варианты качества: `360`, `480`, `720`)
     2. Максимально возможное качество
     Прим: `720` (1280x720)
@@ -275,12 +282,12 @@ pip install lxml
         quality=480) # Для "Наруто" нет 720p, хотя сервер и возвращает 720 в списке источников
     # id - id медиа
     # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
-    # seria_num - номер серии (если фильм или одно видео - 0)
+    # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     # quality - Желаемое качество (360, 480, 720). Если указанное качество будет больше, чем максимально доступное, вернется ссылка с максимально доступным качеством. По умолчанию: 720
     ```
     Возвращает строку вида:
-    `https://cloud.kodik-storage.com/.../.../720.mp4:hls:manifest.m3u8`
+    `https://cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/480.mp4:hls:manifest.m3u8`
 
 7. Текстовое содержание m3u8 плейлиста
     ```python
@@ -292,7 +299,7 @@ pip install lxml
         quality=480) # Для "Наруто" нет 720p, хотя сервер и возвращает 720 в списке источников
     # id - id медиа
     # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
-    # seria_num - номер серии (если фильм или одно видео - 0)
+    # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     # quality - Желаемое качество (360, 480, 720). Если указанное качество будет больше, чем максимально доступное, вернется ссылка с максимально доступным качеством. По умолчанию: 720
     ```
@@ -347,7 +354,7 @@ pip install lxml
     # Или
     KodikParser.get_token()
     ```
-    Использует один из скриптов кодика в котором указан api ключ, поэтому может не работать из-за внесенных изменений
+    Как это работает вы можете прочитать здесь: [TOKENS.md](kdk_tokns/TOKENS.md)
 
 ## AniBoom инструкция
 0. Установите и импортируйте библиотеку
