@@ -724,12 +724,22 @@ class KodikParserAsync:
                 async with aiohttp.ClientSession(connector=connector) as session:
                     async with session.post(target_url, data=params, headers=headers) as response:
                         resp_status = response.status
-                        resp_data = await response.json(content_type=None)
+                        try:
+                            resp_data = await response.json(content_type=None)
+                        except Exception as ex:
+                            if resp_status != 200:
+                                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
+                            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
             else:
                 async with aiohttp.ClientSession() as session:
                     async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
                         resp_status = response.status
-                        resp_data = await response.json(content_type=None)
+                        try:
+                            resp_data = await response.json(content_type=None)
+                        except Exception as ex:
+                            if resp_status != 200:
+                                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
+                            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
             
             # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
             if resp_status != 200 and script_url in self._cached_post_link:
@@ -741,12 +751,22 @@ class KodikParserAsync:
                     async with aiohttp.ClientSession(connector=connector) as session:
                         async with session.post(target_url, data=params, headers=headers) as response:
                             resp_status = response.status
-                            resp_data = await response.json(content_type=None)
+                            try:
+                                resp_data = await response.json(content_type=None)
+                            except Exception as ex:
+                                if resp_status != 200:
+                                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
+                                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
                 else:
                     async with aiohttp.ClientSession() as session:
                         async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
                             resp_status = response.status
-                            resp_data = await response.json(content_type=None)
+                            try:
+                                resp_data = await response.json(content_type=None)
+                            except Exception as ex:
+                                if resp_status != 200:
+                                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
+                                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
             
             if resp_status != 200:
                 raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')

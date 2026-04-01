@@ -3,5 +3,6 @@ aiohttp-socks==0.11.0
 beautifulsoup4==4.14.3
 build==1.4.2
 lxml==6.0.2
+PySocks==1.7.1
 requests==2.33.1
 twine==6.2.0
