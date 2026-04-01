@@ -843,7 +843,7 @@ class KodikParser:
         data = requests.get("https://raw.githubusercontent.com/YaNesyTortiK/AnimeParsers/refs/heads/main/kdk_tokns/tokens.json")
         __gh_tokens = json.loads(data.text)
 
-        _tmp_parser = KodikParser(token=None, validate_token=False)
+        _tmp_parser = KodikParser(token="", validate_token=False)
 
         # Проверка stable
         for token in __gh_tokens['stable']:
