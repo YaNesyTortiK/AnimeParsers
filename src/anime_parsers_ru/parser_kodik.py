@@ -34,6 +34,8 @@ class KodikParser:
         self.USE_LXML = use_lxml
         self._crypt_step = None
         self._cached_post_link = {}
+        self._cached_link_to_info = {}
+        self._cached_iframe_html = {}
         if validate_token and not self.validate_token():
             raise errors.TokenError("Ошибка валидации токена. Одна или несколько функций недоступны с данным токеном. "\
                                     "Чтобы пропустить валидацию, укажите параметр validate_token=False")
@@ -450,6 +452,11 @@ class KodikParser:
         """
         if self.TOKEN is None:
             raise errors.TokenError('Токен kodik не указан')
+            
+        cache_key = f"{id}_{id_type}_{https}"
+        if cache_key in self._cached_link_to_info:
+            return self._cached_link_to_info[cache_key]
+
         if id_type == "shikimori":
             serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={self.TOKEN}&shikimoriID={id}"
         elif id_type == "kinopoisk":
@@ -473,9 +480,12 @@ class KodikParser:
         if not data['found']:
             raise errors.NoResults(f'Нет данных по {id_type} id "{id}"')
         if 'http' in data['link'][0:5]:
-            return data['link'] if https else data['link'].replace('https://', 'http://')
+            result_link = data['link'] if https else data['link'].replace('https://', 'http://')
         else:
-            return 'https:'+data['link'] if https else 'http:'+data['link']
+            result_link = 'https:'+data['link'] if https else 'http:'+data['link']
+            
+        self._cached_link_to_info[cache_key] = result_link
+        return result_link
     
     def get_info(self, id: str, id_type: str) -> dict:
         """
@@ -614,14 +624,19 @@ class KodikParser:
             )
 
         link = self._link_to_info(id, id_type)
-        data = requests.get(link)
-        if data.status_code != 200:
-            raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-        try:
-            data = data.text
-        except Exception as ex:
-            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
+        if link in self._cached_iframe_html:
+            data = self._cached_iframe_html[link]
+        else:
+            resp = requests.get(link)
+            if resp.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp.status_code}"')
+            try:
+                data = resp.text
+            except Exception as ex:
+                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+            self._cached_iframe_html[link] = data
+
         soup = Soup(data, "lxml") if self.USE_LXML else Soup(data, "html.parser")
         urlParams = data[data.find("urlParams") + 13 :]
         urlParams = json.loads(urlParams[: urlParams.find(";") - 1])
