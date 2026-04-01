@@ -495,6 +495,7 @@ class KodikParserAsync:
                     'id': id перевода/субтитров/озвучки
                     'type': тип (voice/subtitles)
                     'name': Имя автора озвучки/субтитров
+                    'series_range': (Первый доступный эпизод, последний доступный эпизод)
                 },
                 ...
             ]
@@ -563,10 +564,22 @@ class KodikParserAsync:
                 elif a['type'] == 'subtitles':
                     a['type'] = "Субтитры"
                 a['name'] = translation.text
+                a['series_range'] = self._get_series_range(a['name'])
                 translations.append(a)
         else:
-            translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно"}]
+            translations = [{"id": "0", "type": "Неизвестно", "name": "Неизвестно", "series_range": (0, 0)}]
         return translations
+    
+    def _get_series_range(self, translation: str) -> tuple[int, int]:
+        if ' эп.)' not in translation:
+            return (0, 0)
+        s_range = translation[translation.rfind('(')+1:translation.rfind(' эп.)')]
+        indx = s_range.find('-')
+        if indx == -1:
+            return (1, int(s_range))
+        else:
+            return (int(s_range[:indx]), int(s_range[indx+1:]))
+
 
     async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
         """
@@ -575,7 +588,7 @@ class KodikParserAsync:
 
         :id: id медиа
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
-        :seria_num: номер серии (если фильм или одно видео, укажите 0)
+        :seria_num: номер серии (если фильм или одно видео, укажите 0, также 0 корректен если есть нулевой эпизод)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
         :crypted: Используется ли шифрование ссылки кодиком. По умолчанию False.
 
@@ -612,7 +625,7 @@ class KodikParserAsync:
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
         urlParams = json.loads(urlParams[:urlParams.find(';')-1])
-        if translation_id != "0" and seria_num != 0: # Обычный сериал с известной озвучкой на более чем 1 серию
+        if (translation_id != "0" and (seria_num != 0 or (seria_num == 0 and self._is_serial(link)))):  # Обычный сериал с известной озвучкой на более чем 1 серию
             container = soup.find('div', {'class': 'serial-translations-box'}).find('select')
             media_hash = None
             media_id = None
@@ -631,7 +644,7 @@ class KodikParserAsync:
                 raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
             
             soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
-        elif translation_id != "0" and seria_num == 0: # Фильм/одна серия с несколькими переводами
+        elif translation_id != "0" and seria_num == 0:  # Фильм/одна серия с несколькими переводами
             container = soup.find('div', {'class': 'movie-translations-box'}).find('select')
             media_hash = None
             media_id = None

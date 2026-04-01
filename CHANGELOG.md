@@ -207,3 +207,5 @@ Thx to @nichind for pointing these out
 - Added back automatic token getting for kodik parser if token is None
 - Fixed Readme for kodik parser
 - Added readme for kodik tokens
+- Fixed kodik parser for seria 0 (additional check to distinguish serial or video is added)
+- Improved `get_info` for kodik parser, added seria range for every translation
