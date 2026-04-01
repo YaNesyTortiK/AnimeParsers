@@ -18,19 +18,22 @@ class KodikParser:
     """
     Парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = True) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = True, proxy: str|None = None) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию True). Проверяет все функции парсера на наличие ошибки по токену.
+        :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
         """
         if token is None:
             token = KodikParser.get_token() # Попытка получения токена автоматически
         self.TOKEN = token
+        self.proxies = {"http": proxy, "https": proxy} if proxy else None
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
         self._crypt_step = None
+        self._cached_post_link = {}
         if validate_token and not self.validate_token():
             raise errors.TokenError("Ошибка валидации токена. Одна или несколько функций недоступны с данным токеном. "\
                                     "Чтобы пропустить валидацию, укажите параметр validate_token=False")
@@ -697,7 +700,13 @@ class KodikParser:
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         post_link = self._get_post_link(script_url)
-        data = requests.post(f"https://kodikplayer.com{post_link}", data=params, headers=headers)
+        data = requests.post(f"https://kodikplayer.com{post_link}", data=params, headers=headers, proxies=self.proxies)
+
+        # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+        if data.status_code != 200 and script_url in self._cached_post_link:
+            del self._cached_post_link[script_url]
+            post_link = self._get_post_link(script_url)
+            data = requests.post(f"https://kodikplayer.com{post_link}", data=params, headers=headers, proxies=self.proxies)
         try:
             data = data.json()
         except Exception as ex:
@@ -712,6 +721,14 @@ class KodikParser:
         
         data_url = data["links"]["360"][0]["src"]
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
+        
+        if "/s/m/" in url:
+            raise errors.ServiceError(
+                'Получена прокси-ссылка (/s/m/). Вероятнее всего ваш IP заблокирован кодиком. '
+                'Используйте параметр proxy при инициализации парсера: '
+                'KodikParser(token="...", proxy="socks5://user:pass@host:port")'
+            )
+
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
@@ -811,6 +828,9 @@ class KodikParser:
             raise errors.DecryptionFailure
 
     def _get_post_link(self, script_url: str):
+        if script_url in self._cached_post_link:
+            return self._cached_post_link[script_url]
+
         data = requests.get("https://kodikplayer.com" + script_url)
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
@@ -820,7 +840,9 @@ class KodikParser:
             raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         url = data[data.find("$.ajax") + 30 : data.find("cache:!1") - 3]
-        return b64decode(url.encode()).decode()
+        result = b64decode(url.encode()).decode()
+        self._cached_post_link[script_url] = result
+        return result
 
     @staticmethod
     def get_token() -> str:

@@ -8,6 +8,8 @@ else:
 import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
+import aiohttp
+from aiohttp_socks import ProxyConnector
 
 try:
     from . import errors # Импорт если библиотека установлена
@@ -22,20 +24,23 @@ class KodikParserAsync:
     """
     Асинхронный парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False, proxy: str|None = None) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
+        :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
         """
         if token is None:
             token = KodikParserAsync.get_token_sync() # Попытка получения токена автоматически
         self.TOKEN = token
+        self.proxy = proxy
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
         self.requests = AsyncSession()
         self._crypt_step = None
+        self._cached_post_link = {}
         if validate_token:
             print("\n[KodikParserAsync] Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
                   "Или вызовите функцию `await validate_token()` отдельно.")
@@ -590,16 +595,12 @@ class KodikParserAsync:
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         :seria_num: номер серии (если фильм или одно видео, укажите 0, также 0 корректен если есть нулевой эпизод)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
-        :crypted: Используется ли шифрование ссылки кодиком. По умолчанию False.
 
         Возвращает ссылку в стиле:
-        //cloud.kodik-storage.com/useruploads/351182fc-e1ac-4521-a9e3-261303e69687/ba18e7c1a8ac055a61b0d2e528f9eb8c:2024062702/
-        В конце ссылки нужно добавить качество видео: 720.mp4 / 480.mp4 / 360.mp4
-        В начале ссылки нужно добавить: http: / https:
-
-        И максимально возможное качество.
+        //cloud.kodik-storage.com/useruploads/<uuid>/<hash>:<ts>/
+        В конце ссылки нужно добавить качество: 720.mp4 / 480.mp4 / 360.mp4
+        В начале добавить: http: / https:
         """
-        # Проверка переданных параметров на правильность типа
         if type(id) == int:
             id = str(id)
         elif type(id) != str:
@@ -699,13 +700,55 @@ class KodikParserAsync:
         }
 
         post_link = await self._get_post_link(script_url)
-        data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
-        try:
-            data = data.json()
-        except Exception as ex:
-            if data.status_code != 200:
-                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        target_url = f'https://kodikplayer.com{post_link}'
+
+        if self.proxy:
+            if self.proxy.startswith('socks'):
+                connector = ProxyConnector.from_url(self.proxy)
+                async with aiohttp.ClientSession(connector=connector) as session:
+                    async with session.post(target_url, data=params, headers=headers) as response:
+                        resp_status = response.status
+                        resp_data = await response.json(content_type=None)
+            else:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
+                        resp_status = response.status
+                        resp_data = await response.json(content_type=None)
+            
+            # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+            if resp_status != 200 and script_url in self._cached_post_link:
+                del self._cached_post_link[script_url]
+                post_link = await self._get_post_link(script_url)
+                target_url = f'https://kodikplayer.com{post_link}'
+                if self.proxy.startswith('socks'):
+                    connector = ProxyConnector.from_url(self.proxy)
+                    async with aiohttp.ClientSession(connector=connector) as session:
+                        async with session.post(target_url, data=params, headers=headers) as response:
+                            resp_status = response.status
+                            resp_data = await response.json(content_type=None)
+                else:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
+                            resp_status = response.status
+                            resp_data = await response.json(content_type=None)
+            
+            if resp_status != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
+            data = resp_data
+        else:
+            data = await self.requests.post(target_url, data=params, headers=headers)
+
+            # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+            if data.status_code != 200 and script_url in self._cached_post_link:
+                del self._cached_post_link[script_url]
+                post_link = await self._get_post_link(script_url)
+                data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
+            try:
+                data = data.json()
+            except Exception as ex:
+                if data.status_code != 200:
+                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
@@ -714,6 +757,14 @@ class KodikParserAsync:
         
         data_url = data["links"]["360"][0]["src"]
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
+        
+        if "/s/m/" in url:
+            raise errors.ServiceError(
+                'Получена прокси-ссылка (/s/m/). Вероятнее всего ваш IP заблокирован кодиком. '
+                'Используйте параметр proxy при инициализации парсера: '
+                'KodikParserAsync(token="...", proxy="socks5://user:pass@host:port")'
+            )
+
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
@@ -814,6 +865,9 @@ class KodikParserAsync:
             raise errors.DecryptionFailure
 
     async def _get_post_link(self, script_url: str):
+        if script_url in self._cached_post_link:
+            return self._cached_post_link[script_url]
+
         data = await self.requests.get('https://kodikplayer.com'+script_url)
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
@@ -823,7 +877,9 @@ class KodikParserAsync:
             raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
-        return b64decode(url.encode()).decode()
+        result = b64decode(url.encode()).decode()
+        self._cached_post_link[script_url] = result
+        return result
 
     @staticmethod
     async def get_token() -> str:
