@@ -1,8 +1,9 @@
-beautifulsoup4>=4.12
-requests>=2.32
+beautifulsoup4>=4.14.0
+requests[socks]>=2.32.0
 
 [async]
-aiohttp>=3.9.5
+aiohttp>=3.10.0
+aiohttp-socks>=0.11.0
 
 [lxml]
-lxml>=5.2
+lxml>=6.0.0
