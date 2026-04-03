@@ -13,36 +13,40 @@ from aiohttp_socks import ProxyConnector
 
 try:
     from . import errors # Импорт если библиотека установлена
-    from .internal_tools import AsyncSession
+    from .internal_tools import AsyncSession, TTLCache
     from .parser_kodik import KodikParser
 except ImportError:
     import errors # Импорт если библиотека не установлена и файл лежит локально
-    from internal_tools import AsyncSession
+    from internal_tools import AsyncSession, TTLCache
     from parser_kodik import KodikParser
 
 class KodikParserAsync:
     """
     Асинхронный парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False, proxy: str|None = None) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False, proxy: str|None = None, use_cache: bool = False, cache_ttl: int = 3600, cache_maxsize: int = 100) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
         :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
+        :use_cache: кеширование результатов запросов (LRU + TTL)
+        :cache_ttl: время жизни элемента в кэше в секундах (по умолчанию 3600)
+        :cache_maxsize: максимальный размер кэша (по умолчанию 100)
         """
         if token is None:
             token = KodikParserAsync.get_token_sync() # Попытка получения токена автоматически
         self.TOKEN = token
         self.proxy = proxy
+        self.use_cache = use_cache
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
-        self.requests = AsyncSession()
+        self.requests = AsyncSession(proxy=proxy)
         self._crypt_step = None
-        self._cached_post_link = {}
-        self._cached_link_to_info = {}
-        self._cached_iframe_html = {}
+        self._cached_post_link = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
+        self._cached_link_to_info = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
+        self._cached_iframe_html = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
         if validate_token:
             print("\n[KodikParserAsync] Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
                   "Или вызовите функцию `await validate_token()` отдельно.")
@@ -463,7 +467,7 @@ class KodikParserAsync:
             raise errors.TokenError('Токен kodik не указан')
             
         cache_key = f"{id}_{id_type}_{https}"
-        if cache_key in self._cached_link_to_info:
+        if self.use_cache and cache_key in self._cached_link_to_info:
             return self._cached_link_to_info[cache_key]
 
         if id_type == "shikimori":
@@ -492,7 +496,8 @@ class KodikParserAsync:
         else:
             result_link = 'https:'+data['link'] if https else 'http:'+data['link']
             
-        self._cached_link_to_info[cache_key] = result_link
+        if self.use_cache:
+            self._cached_link_to_info[cache_key] = result_link
         return result_link
     
     async def get_info(self, id: str, id_type: str) -> dict:
@@ -626,7 +631,7 @@ class KodikParserAsync:
 
         link = await self._link_to_info(id, id_type)
 
-        if link in self._cached_iframe_html:
+        if self.use_cache and link in self._cached_iframe_html:
             data = self._cached_iframe_html[link]
 
         else:
@@ -637,7 +642,9 @@ class KodikParserAsync:
                 data = resp.text
             except Exception as ex:
                 raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
-            self._cached_iframe_html[link] = data
+            
+            if self.use_cache:
+                self._cached_iframe_html[link] = data
         
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
@@ -718,73 +725,19 @@ class KodikParserAsync:
         post_link = await self._get_post_link(script_url)
         target_url = f'https://kodikplayer.com{post_link}'
 
-        if self.proxy:
-            if self.proxy.startswith('socks'):
-                connector = ProxyConnector.from_url(self.proxy)
-                async with aiohttp.ClientSession(connector=connector) as session:
-                    async with session.post(target_url, data=params, headers=headers) as response:
-                        resp_status = response.status
-                        try:
-                            resp_data = await response.json(content_type=None)
-                        except Exception as ex:
-                            if resp_status != 200:
-                                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
-                            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
-            else:
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
-                        resp_status = response.status
-                        try:
-                            resp_data = await response.json(content_type=None)
-                        except Exception as ex:
-                            if resp_status != 200:
-                                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
-                            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
-            
-            # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
-            if resp_status != 200 and script_url in self._cached_post_link:
-                del self._cached_post_link[script_url]
-                post_link = await self._get_post_link(script_url)
-                target_url = f'https://kodikplayer.com{post_link}'
-                if self.proxy.startswith('socks'):
-                    connector = ProxyConnector.from_url(self.proxy)
-                    async with aiohttp.ClientSession(connector=connector) as session:
-                        async with session.post(target_url, data=params, headers=headers) as response:
-                            resp_status = response.status
-                            try:
-                                resp_data = await response.json(content_type=None)
-                            except Exception as ex:
-                                if resp_status != 200:
-                                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
-                                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
-                else:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.post(target_url, data=params, headers=headers, proxy=self.proxy) as response:
-                            resp_status = response.status
-                            try:
-                                resp_data = await response.json(content_type=None)
-                            except Exception as ex:
-                                if resp_status != 200:
-                                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
-                                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
-            
-            if resp_status != 200:
-                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp_status}"')
-            data = resp_data
-        else:
-            data = await self.requests.post(target_url, data=params, headers=headers)
+        data = await self.requests.post(target_url, data=params, headers=headers)
 
-            # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
-            if data.status_code != 200 and script_url in self._cached_post_link:
-                del self._cached_post_link[script_url]
-                post_link = await self._get_post_link(script_url)
-                data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
-            try:
-                data = data.json()
-            except Exception as ex:
-                if data.status_code != 200:
-                    raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+        if data.status_code != 200 and self.use_cache and script_url in self._cached_post_link:
+            del self._cached_post_link[script_url]
+            post_link = await self._get_post_link(script_url)
+            data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         if 'error' in data.keys() and data['error'] == 'Отсутствует или неверный токен':
             raise errors.TokenError('Отсутствует или неверный токен')
@@ -873,8 +826,6 @@ class KodikParserAsync:
             return char
 
     def _convert(self, string: str):
-        # Декодирование строки со ссылкой
-
         if self._crypt_step:
             crypted_url = "".join([self._convert_char(i, self._crypt_step) for i in string])
             padding = (4 - (len(crypted_url) % 4)) % 4
@@ -901,7 +852,7 @@ class KodikParserAsync:
             raise errors.DecryptionFailure
 
     async def _get_post_link(self, script_url: str):
-        if script_url in self._cached_post_link:
+        if self.use_cache and script_url in self._cached_post_link:
             return self._cached_post_link[script_url]
 
         data = await self.requests.get('https://kodikplayer.com'+script_url)
@@ -914,7 +865,8 @@ class KodikParserAsync:
         
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
         result = b64decode(url.encode()).decode()
-        self._cached_post_link[script_url] = result
+        if self.use_cache:
+            self._cached_post_link[script_url] = result
         return result
 
     @staticmethod
