@@ -16,15 +16,15 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = [
-  "beautifulsoup4>=4.12",
-  "requests>=2.32"
+  "beautifulsoup4>=4.14.0",
+  "requests[socks]>=2.32.0"
 ]
 license-files = ["LICENSE"]
 keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "shikimori", "kodikapi", "kodik api", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори", "кодик апи"]
 
 [project.optional-dependencies]
-async = ["aiohttp>=3.9.5"]
-lxml = ["lxml>=5.2"]
+async = ["aiohttp>=3.10.0", "aiohttp-socks>=0.11.0"]
+lxml = ["lxml>=6.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/YaNesyTortiK/AnimeParsers"

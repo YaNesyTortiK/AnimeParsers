@@ -8,34 +8,45 @@ else:
 import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
+import aiohttp
+from aiohttp_socks import ProxyConnector
 
 try:
     from . import errors # Импорт если библиотека установлена
-    from .internal_tools import AsyncSession
+    from .internal_tools import AsyncSession, TTLCache
     from .parser_kodik import KodikParser
 except ImportError:
     import errors # Импорт если библиотека не установлена и файл лежит локально
-    from internal_tools import AsyncSession
+    from internal_tools import AsyncSession, TTLCache
     from parser_kodik import KodikParser
 
 class KodikParserAsync:
     """
     Асинхронный парсер для плеера Kodik
     """
-    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False) -> None:
+    def __init__(self, token: str|None = None, use_lxml: bool = False, validate_token: bool = False, proxy: str|None = None, use_cache: bool = False, cache_ttl: int = 3600, cache_maxsize: int = 100) -> None:
         """
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
+        :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
+        :use_cache: кеширование результатов запросов (LRU + TTL)
+        :cache_ttl: время жизни элемента в кэше в секундах (по умолчанию 3600)
+        :cache_maxsize: максимальный размер кэша (по умолчанию 100)
         """
         if token is None:
             token = KodikParserAsync.get_token_sync() # Попытка получения токена автоматически
         self.TOKEN = token
+        self.proxy = proxy
+        self.use_cache = use_cache
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
-        self.requests = AsyncSession()
+        self.requests = AsyncSession(proxy=proxy)
         self._crypt_step = None
+        self._cached_post_link = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
+        self._cached_link_to_info = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
+        self._cached_iframe_html = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl) if use_cache else {}
         if validate_token:
             print("\n[KodikParserAsync] Внимание! Для автоматической валидации токена используйте синхронный вариант данного класса! "\
                   "Или вызовите функцию `await validate_token()` отдельно.")
@@ -454,6 +465,11 @@ class KodikParserAsync:
         """
         if self.TOKEN is None:
             raise errors.TokenError('Токен kodik не указан')
+            
+        cache_key = f"{id}_{id_type}_{https}"
+        if self.use_cache and cache_key in self._cached_link_to_info:
+            return self._cached_link_to_info[cache_key]
+
         if id_type == "shikimori":
             serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FshikimoriID%3D{id}&token={self.TOKEN}&shikimoriID={id}"
         elif id_type == "kinopoisk":
@@ -476,9 +492,13 @@ class KodikParserAsync:
         if not data['found']:
             raise errors.NoResults(f'Нет данных по {id_type} id "{id}"')
         if 'http' in data['link'][0:5]:
-            return data['link'] if https else data['link'].replace('https://', 'http://')
+            result_link = data['link'] if https else data['link'].replace('https://', 'http://')
         else:
-            return 'https:'+data['link'] if https else 'http:'+data['link']
+            result_link = 'https:'+data['link'] if https else 'http:'+data['link']
+            
+        if self.use_cache:
+            self._cached_link_to_info[cache_key] = result_link
+        return result_link
     
     async def get_info(self, id: str, id_type: str) -> dict:
         """
@@ -590,16 +610,12 @@ class KodikParserAsync:
         :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
         :seria_num: номер серии (если фильм или одно видео, укажите 0, также 0 корректен если есть нулевой эпизод)
         :translation_id: id перевода (прим: Anilibria = 610, если неизвестно - 0)
-        :crypted: Используется ли шифрование ссылки кодиком. По умолчанию False.
 
         Возвращает ссылку в стиле:
-        //cloud.kodik-storage.com/useruploads/351182fc-e1ac-4521-a9e3-261303e69687/ba18e7c1a8ac055a61b0d2e528f9eb8c:2024062702/
-        В конце ссылки нужно добавить качество видео: 720.mp4 / 480.mp4 / 360.mp4
-        В начале ссылки нужно добавить: http: / https:
-
-        И максимально возможное качество.
+        //cloud.kodik-storage.com/useruploads/<uuid>/<hash>:<ts>/
+        В конце ссылки нужно добавить качество: 720.mp4 / 480.mp4 / 360.mp4
+        В начале добавить: http: / https:
         """
-        # Проверка переданных параметров на правильность типа
         if type(id) == int:
             id = str(id)
         elif type(id) != str:
@@ -614,13 +630,21 @@ class KodikParserAsync:
             raise ValueError(f'Для translation_id ожидался тип str, получен "{type(translation_id)}"')
 
         link = await self._link_to_info(id, id_type)
-        data = await self.requests.get(link)
-        if data.status_code != 200:
-            raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
-        try:
-            data = data.text
-        except Exception as ex:
-            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+
+        if self.use_cache and link in self._cached_iframe_html:
+            data = self._cached_iframe_html[link]
+
+        else:
+            resp = await self.requests.get(link)
+            if resp.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{resp.status_code}"')
+            try:
+                data = resp.text
+            except Exception as ex:
+                raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
+            
+            if self.use_cache:
+                self._cached_iframe_html[link] = data
         
         soup = Soup(data, 'lxml') if self.USE_LXML else Soup(data, 'html.parser')
         urlParams = data[data.find('urlParams')+13:]
@@ -699,7 +723,15 @@ class KodikParserAsync:
         }
 
         post_link = await self._get_post_link(script_url)
-        data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
+        target_url = f'https://kodikplayer.com{post_link}'
+
+        data = await self.requests.post(target_url, data=params, headers=headers)
+
+        # Если запрос не удался и мы использовали кэш — сбрасываем и пробуем заново
+        if data.status_code != 200 and self.use_cache and script_url in self._cached_post_link:
+            del self._cached_post_link[script_url]
+            post_link = await self._get_post_link(script_url)
+            data = await self.requests.post(f'https://kodikplayer.com{post_link}', data=params, headers=headers)
         try:
             data = data.json()
         except Exception as ex:
@@ -714,6 +746,14 @@ class KodikParserAsync:
         
         data_url = data["links"]["360"][0]["src"]
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
+        
+        if "/s/m/" in url:
+            raise errors.ServiceError(
+                'Получена прокси-ссылка (/s/m/). Вероятнее всего ваш IP заблокирован кодиком. '
+                'Используйте параметр proxy при инициализации парсера: '
+                'KodikParserAsync(token="...", proxy="socks5://user:pass@host:port")'
+            )
+
         max_quality = max([int(x) for x in data["links"].keys()])
 
         return url, max_quality
@@ -786,8 +826,6 @@ class KodikParserAsync:
             return char
 
     def _convert(self, string: str):
-        # Декодирование строки со ссылкой
-
         if self._crypt_step:
             crypted_url = "".join([self._convert_char(i, self._crypt_step) for i in string])
             padding = (4 - (len(crypted_url) % 4)) % 4
@@ -814,6 +852,9 @@ class KodikParserAsync:
             raise errors.DecryptionFailure
 
     async def _get_post_link(self, script_url: str):
+        if self.use_cache and script_url in self._cached_post_link:
+            return self._cached_post_link[script_url]
+
         data = await self.requests.get('https://kodikplayer.com'+script_url)
         if data.status_code != 200:
             raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
@@ -823,7 +864,10 @@ class KodikParserAsync:
             raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ текстового вида, при попытке получения произошла непредвиденная ошибка: {ex}")
         
         url = data[data.find("$.ajax")+30:data.find("cache:!1")-3]
-        return b64decode(url.encode()).decode()
+        result = b64decode(url.encode()).decode()
+        if self.use_cache:
+            self._cached_post_link[script_url] = result
+        return result
 
     @staticmethod
     async def get_token() -> str:
