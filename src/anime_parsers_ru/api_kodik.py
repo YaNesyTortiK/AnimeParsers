@@ -578,21 +578,23 @@ class Api:
         """
         pass
 
-    def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}, _endpoint: str | None = None):
+    def __init__(self, token: str | None = None, allow_warnings: bool = True, proxy: str | None = None,_args: dict = {}, _endpoint: str | None = None):
         """
         :token: Указать кастомный токен для апи кодика. По умолчанию None и токен будет подставляться автоматически.
         :allow_warnings: Разрешить вывод в консоль предупреждений о неправильно/некорректно используемых параметрах. По умолчанию True.
+        :proxy: прокси для обхода геобана, применяется ко всем запросам к кодику (прим: 'socks5://user:pass@host:port' или 'http://host:port')
         :_args: Используется для передачи данных между классами.
         :_parser: Используется для передачи объекта парсера между классами. (Чтобы каждый раз не инициализировать заново и не ждать автоматического поиска токена)
         :_endpoint: Указывается конец ссылки для апи (search/list/translations). По умолчанию None, т.к. для каждого эндпоинта есть свои условия, которые предусмотрены в классах Search, List соответственно. 
         """
         if token is None:
-            self.token = parser_kodik.KodikParser.get_token()
+            self.token = parser_kodik.KodikParser.get_token(proxy=proxy)
         else:
             self.token = token
         if not async_available and allow_warnings:
             print('При попытке импорта внутренних инструментов библиотеки anime-parsers-ru произошла ошибка и AsyncSession не доступен. Вы не сможете использовать асинхронные функции.')
         self._args = _args
+        self.proxy=proxy
         self.allow_warnings = allow_warnings
         self._endpoint = _endpoint
         self._next_link = None
@@ -606,7 +608,7 @@ class Api:
         Функция для создания нового класса, с новыми данными, после каждого добавленного условия. 
         (Вынесено отдельно, чтобы не загружать каждую функцию одинаковым кодом)
         """
-        return Api(token=self.token, allow_warnings=self.allow_warnings, _args=self._args, _endpoint=self._endpoint)
+        return Api(token=self.token, allow_warnings=self.allow_warnings, proxy=self.proxy, _args=self._args, _endpoint=self._endpoint)
     
     def title(self, title: str) -> 'Api':
         """
@@ -1307,10 +1309,10 @@ class Api:
                 payload[item] = val
 
             url = f"https://kodik-api.com/{self._endpoint}"
-            data = requests.post(url, data=payload)
+            data = requests.post(url, data=payload, proxies={"http": self.proxy, "https": self.proxy} if self.proxy else None)
         else:
             url = link
-            data = requests.post(url)
+            data = requests.post(url, proxies={"http": self.proxy, "https": self.proxy} if self.proxy else None)
 
         try:
             data = data.json()
@@ -1358,10 +1360,10 @@ class Api:
             for item, val in parameters.items():
                 payload[item] = val
             url = f"https://kodik-api.com/{self._endpoint}"
-            data = await AsyncSession().post(url, data=payload)
+            data = await AsyncSession(proxy=self.proxy).post(url, data=payload)
         else:
             url = link
-            data = await AsyncSession().post(url)
+            data = await AsyncSession(proxy=self.proxy).post(url)
         
         try:
             data = data.json()
@@ -1546,8 +1548,8 @@ class KodikSearch(Api):
     data = query.execute()
 
     """
-    def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}):
-        super().__init__(token, allow_warnings, _args, _endpoint='search')
+    def __init__(self, token: str | None = None, allow_warnings: bool = True, proxy: str | None = None, _args: dict = {}):
+        super().__init__(token, allow_warnings, proxy, _args, _endpoint='search')
 
     def order(self, *args):
         """
@@ -1562,8 +1564,8 @@ class KodikSearch(Api):
         raise errors.PostArgumentsError('Для запроса list параметр sort не доступен.') 
 
 class KodikList(Api):
-    def __init__(self, token: str | None = None, allow_warnings: bool = True, _args: dict = {}):
-        super().__init__(token, allow_warnings, _args, _endpoint='list')
+    def __init__(self, token: str | None = None, proxy: str | None = None, allow_warnings: bool = True, _args: dict = {}):
+        super().__init__(token, allow_warnings, proxy, _args, _endpoint='list')
 
 
     def title(self, *args):

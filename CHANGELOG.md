@@ -209,3 +209,11 @@ Thx to @nichind for pointing these out
 - Added readme for kodik tokens
 - Fixed kodik parser for seria 0 (additional check to distinguish serial or video is added)
 - Improved `get_info` for kodik parser, added seria range for every translation
+
+## To 1.14.1
+- Merged pr [#30](https://github.com/YaNesyTortiK/AnimeParsers/pull/30) from @arabikCC
+    - Добавлена поддержка прокси в парсер кодика
+    - Уведомление о возможной блокировке ip кодиком (на /s/m/ ссылки)
+    - Добавлен TTLCache для post_link и опциональный кэш для iframe_html и link_to_info (по умолчанию отключен) в парсер кодика
+    - Обновлены зависимости
+- Добавлена обработка ошибок получения данных о токенах кодика из репозитория

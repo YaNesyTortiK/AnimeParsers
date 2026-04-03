@@ -29,13 +29,13 @@ class KodikParserAsync:
         :token: токен kodik для поиска по его базе. Если не указан будет произведена попытка автоматического получения токена
         :use_lxml: использовать lxml парсер (в некоторых случаях lxml может не работать)
         :validate_token: валидация токена (по умолчанию False). Для валидации токена воспользуйтесь функцией validate_token
-        :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
-        :use_cache: кеширование результатов запросов (LRU + TTL)
+        :proxy: прокси для обхода геобана, применяется ко всем запросам к кодику (прим: 'socks5://user:pass@host:port' или 'http://host:port')
+        :use_cache: кеширование результатов запросов (LRU + TTL) (по умолчанию False)
         :cache_ttl: время жизни элемента в кэше в секундах (по умолчанию 3600)
         :cache_maxsize: максимальный размер кэша (по умолчанию 100)
         """
         if token is None:
-            token = KodikParserAsync.get_token_sync() # Попытка получения токена автоматически
+            token = KodikParserAsync.get_token_sync(proxy=proxy) # Попытка получения токена автоматически
         self.TOKEN = token
         self.proxy = proxy
         self.use_cache = use_cache
@@ -748,7 +748,7 @@ class KodikParserAsync:
         url = data_url if "mp4:hls:manifest" in data_url else self._convert(data_url)
         
         if "/s/m/" in url:
-            raise errors.ServiceError(
+            print(
                 'Получена прокси-ссылка (/s/m/). Вероятнее всего ваш IP заблокирован кодиком. '
                 'Используйте параметр proxy при инициализации парсера: '
                 'KodikParserAsync(token="...", proxy="socks5://user:pass@host:port")'
@@ -870,14 +870,16 @@ class KodikParserAsync:
         return result
 
     @staticmethod
-    async def get_token() -> str:
+    async def get_token(proxy: str | None = None) -> str:
         """
         ! ВНИМАНИЕ ! Данная функция делает запрос на оф. репозиторий библиотеки для получения списка токенов.
         После этого происходит поиск рабочих токенов методом перебора, это займет некоторое время, так как частота запросов ограничена 
         для предотвращения превышения лимита по запросам.
         Рекомендуется после первого применения функции записать полученный токен и при инициализации класса передавать токен
+
+        :proxy: прокси для обхода геобана (прим: 'socks5://user:pass@host:port' или 'http://host:port')
         """
-        req = AsyncSession()
+        req = AsyncSession(proxy=proxy)
 
         def decrypt_token(tkn: str) -> str:
             p1 = tkn[:len(tkn)//2][::-1]
@@ -887,17 +889,25 @@ class KodikParserAsync:
             p2 = b64decode(p2.encode('utf-8'))
             p2 = p2.decode('utf-8')
             return p2+p1
+        try:
+            data = await req.get("https://raw.githubusercontent.com/YaNesyTortiK/AnimeParsers/refs/heads/main/kdk_tokns/tokens.json")
+        except Exception as ex:
+            await req.close()
+            raise errors.UnexpectedBehavior(f"Произошла ошибка при попытке получения данных о токена с гитхаб репозитория.\nException: {ex}")
+        try:
+            __gh_tokens = json.loads(data.text)
+        except json.JSONDecodeError as ex:
+            raise errors.UnexpectedBehavior(f"Произошла ошибка при получении dict из json файла с токенами полученного с репозитория.\nException: {ex}")
 
-        data = requests.get("https://raw.githubusercontent.com/YaNesyTortiK/AnimeParsers/refs/heads/main/kdk_tokns/tokens.json")
-        __gh_tokens = json.loads(data.text)
-
-        _tmp_parser = KodikParserAsync(token="", validate_token=False)
+        _tmp_parser = KodikParserAsync(token="", validate_token=False, proxy=proxy)
 
         # Проверка stable
         for token in __gh_tokens['stable']:
             _tmp_parser.TOKEN = decrypt_token(token["tokn"])
             try:
-                if _tmp_parser.validate_token(print_info=False):
+                if await _tmp_parser.validate_token(print_info=False):
+                    await _tmp_parser.close_async_session()
+                    await req.close()
                     return _tmp_parser.TOKEN
             except errors.TokenError:
                 pass
@@ -908,11 +918,14 @@ class KodikParserAsync:
             _tmp_parser.TOKEN = decrypt_token(token["tokn"])
             try:
                 if _tmp_parser.validate_token(print_info=False):
+                    await _tmp_parser.close_async_session()
+                    await req.close()
                     return _tmp_parser.TOKEN
             except errors.TokenError:
                 pass
             await req.sleep(2) # Задержка между проверками
 
+        await _tmp_parser.close_async_session()
         # legacy проверять не имеет смысла, т.к. там все равно не пройдет валидация
         if len(__gh_tokens['legacy']) == 0:
             
@@ -921,24 +934,27 @@ class KodikParserAsync:
                 script_url = 'https://kodik-add.com/add-players.min.js?v=2'
                 data = await req.get(script_url)
             except Exception as ex:
+                await req.close()
                 raise errors.ServiceError(f"\n\n!!! Невозможно получить токен из файлов кодика. Возможно проблема в сертификатах сервера. Воспользуйтесь синхронным вариантом функции.\nException: {ex}")
             token = data[data.find('token=')+7:]
             token = token[:token.find('"')]
             print("[KodikParser] No fully working tokens were found! Using legacy token with restrictions to api functions!")
+            await req.close()
             return token
         else:
             print("[KodikParser] No fully working tokens were found! Using legacy token with restrictions to api functions!")
+            await req.close()
             return decrypt_token(__gh_tokens['legacy'][0]["tokn"])
 
     @staticmethod
-    def get_token_sync() -> str:
+    def get_token_sync(proxy: str | None = None) -> str:
         """
         ! ВНИМАНИЕ ! Данная функция делает запрос на оф. репозиторий библиотеки для получения списка токенов.
         После этого происходит поиск рабочих токенов методом перебора, это займет некоторое время, так как частота запросов ограничена 
         для предотвращения превышения лимита по запросам.
         Рекомендуется после первого применения функции записать полученный токен и при инициализации класса передавать токен
         """
-        return KodikParser.get_token()
+        return KodikParser.get_token(proxy=proxy)
     
     
     async def validate_token(self, print_info: bool = True) -> bool:
@@ -987,3 +1003,6 @@ class KodikParserAsync:
             return res
         else:
             raise errors.TokenError(f"Для валидации токена он должен быть указан при инициализации или получен автоматически. Текущий токен: {self.TOKEN}")
+        
+    async def close_async_session(self):
+        await self.requests.close()
