@@ -16,14 +16,16 @@ class JutsuParser:
     """
     Парсер jut.su
     """
-    def __init__(self, use_lxml: bool = False, mirror: str|None = None) -> None:
+    def __init__(self, use_lxml: bool = False, mirror: str|None = None, proxy: str | None = None) -> None:
         """
         :use_lxml: Использовать lxml парсер. В некоторых случаях может не работать, однако работает значительно быстрее стандартного.
         :mirror: В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net"
+        :proxy: http или socks5 прокси (`http://host:port` или `socks5://user:pass@host:port`) по умолчанию None
         """
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.USE_LXML = use_lxml
+        self.proxies = {"http": proxy, "https": proxy} if proxy else None
         if mirror: # Если есть зеркало, то меняем домен на него
             self._dmn = mirror
         else:
@@ -43,7 +45,7 @@ class JutsuParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0',
         }
-        response = requests.get(link, headers=headers)
+        response = requests.get(link, headers=headers, proxies=self.proxies)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
@@ -97,7 +99,7 @@ class JutsuParser:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0',
         }
-        response = requests.get(link, headers=headers)
+        response = requests.get(link, headers=headers, proxies=self.proxies)
         if response.status_code != 200:
             raise errors.ServiceError(f'Сервер не вернул ожидаемый код 200. Код: "{response.status_code}"')
         response = response.text
