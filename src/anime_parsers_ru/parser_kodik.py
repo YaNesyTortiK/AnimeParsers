@@ -589,7 +589,7 @@ class KodikParser:
     def _get_series_range(self, translation: str) -> tuple[int, int]:
         if ' эп.)' not in translation:
             return (0, 0)
-        s_range = translation[translation.rfind('(')+1:translation.rfind(' эп.)')]
+        s_range = translation[translation.rfind('(') + 1:translation.rfind(' эп.)')].replace('~', '-')
         indx = s_range.find('-')
         if indx == -1:
             return (1, int(s_range))
