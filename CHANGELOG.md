@@ -220,3 +220,7 @@ Thx to @nichind for pointing these out
 - Добавлен параметр proxy для shikimori парсера
 - Добавлен параметр proxy для jutsu парсера
 - Вырезан aniboom плеер, так как забанен уже долгое время
+
+## To 1.15.1
+- Merged pr [#30](https://github.com/YaNesyTortiK/AnimeParsers/pull/31) from @FakeFu1ure
+    - Исправлена ошибка ValueError для series_range. Для некоторых тайтлов использовалась тильда вместо тире

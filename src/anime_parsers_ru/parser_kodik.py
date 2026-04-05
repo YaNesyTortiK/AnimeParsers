@@ -591,10 +591,13 @@ class KodikParser:
             return (0, 0)
         s_range = translation[translation.rfind('(') + 1:translation.rfind(' эп.)')].replace('~', '-')
         indx = s_range.find('-')
-        if indx == -1:
-            return (1, int(s_range))
-        else:
-            return (int(s_range[:indx]), int(s_range[indx+1:]))
+        try:
+            if indx == -1:
+                return (1, int(s_range))
+            else:
+                return (int(s_range[:indx]), int(s_range[indx+1:]))
+        except ValueError:
+            return (0, 0)
 
     def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
         """
