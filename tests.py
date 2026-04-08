@@ -1017,7 +1017,388 @@ class TestKodikApi(unittest.TestCase):
         self.assertIsInstance(data.results[0].seasons[r[0]], Response.Season)
         t = list(data.results[0].seasons[r[0]].episodes.keys())
         self.assertIsInstance(data.results[0].seasons[r[0]].episodes[t[0]], Response.Season.Episode)
-        
+
+# Тестовое аниме: "Баскетбол Куроко"
+_TEST_ANIME = {'id': '531'}
+_TEST_SEASON = 1
+_TEST_EPISODE = 1
+
+
+class TestAniboomPlayerAsync(unittest.IsolatedAsyncioTestCase):
+    """
+    Тесты для AniboomPlayerAsync (player_aniboom.py).
+
+    Проверяемые методы:
+    - test_import              — импорт класса и модуля errors
+    - test_init                — создание экземпляра
+    - test_search              — поиск аниме на AnimeGO (смежный метод)
+    - test_get_voices          — получение списка озвучек (смежный метод)
+    - test_get_player_html     — приватный хелпер: HTML плеера конкретного эпизода
+    - test_get_stream_for_voice — получение потока для Aniboom-озвучки
+    - test_get_stream_direct   — низкоуровневый get_stream() напрямую по embed-ссылке
+    """
+
+    def test_import(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+
+    def test_init(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        parser = AniboomPlayerAsync()
+        self.assertIsNotNone(parser)
+
+    async def test_search(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        async with AniboomPlayerAsync() as parser:
+            # Гарантированно существующий запрос
+            results = await parser.search('Волчица и пряности')
+            self.assertIsInstance(results, list)
+            self.assertGreater(len(results), 0)
+            self.assertIsInstance(results[0], dict)
+            self.assertIn('id', results[0])
+            self.assertIn('slug', results[0])
+            self.assertIn('title', results[0])
+
+            # Гарантированно несуществующий запрос — ожидаем NoResults
+            try:
+                await parser.search('xzxzxzxz_no_such_anime_12345')
+            except errors.NoResults:
+                pass
+            except Exception as ex:
+                raise AssertionError(f'search() с несуществующим запросом вернул неожиданную ошибку: {ex}')
+
+    async def test_get_voices(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        async with AniboomPlayerAsync() as parser:
+            # Волчица и пряности — гарантированно несколько озвучек
+            data = await parser.get_voices(_TEST_ANIME)
+            self.assertIsInstance(data, dict)
+            self.assertIn('voices', data)
+            self.assertIn('total_episodes', data)
+            self.assertIsInstance(data['voices'], list)
+            self.assertGreater(len(data['voices']), 0)
+            self.assertIsInstance(data['voices'][0], dict)
+            self.assertIn('label', data['voices'][0])
+            self.assertIn('translation_id', data['voices'][0])
+            # Сериал — total_episodes должен быть числом
+            self.assertIsInstance(data['total_episodes'], int)
+            self.assertGreater(data['total_episodes'], 0)
+
+            # Несуществующий id — ожидаем NoResults или ServiceError
+            try:
+                await parser.get_voices({'id': '9999999'})
+            except (errors.NoResults, errors.ServiceError):
+                pass
+            except Exception as ex:
+                raise AssertionError(f'get_voices() с несуществующим id вернул неожиданную ошибку: {ex}')
+
+    async def test_get_player_html(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        async with AniboomPlayerAsync() as parser:
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            self.assertGreater(len(voices_data['voices']), 0)
+
+            # Запрашиваем HTML плеера для первой доступной озвучки
+            translation_id = voices_data['voices'][0]['translation_id']
+            player_html = await parser._get_player_html(
+                _TEST_ANIME['id'], _TEST_EPISODE, translation_id
+            )
+            self.assertIsInstance(player_html, str)
+            self.assertGreater(len(player_html), 0)
+
+    async def test_get_stream_for_voice(self):
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        async with AniboomPlayerAsync() as parser:
+            import re
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            self.assertGreater(len(voices_data['voices']), 0)
+
+            # Ищем озвучку с Aniboom-плеером (data-player содержит "aniboom")
+            aniboom_voice = None
+            for voice in voices_data['voices']:
+                player_html = await parser._get_player_html(
+                    _TEST_ANIME['id'], _TEST_EPISODE, voice['translation_id']
+                )
+                if re.search(r'data-player="[^"]*aniboom[^"]*"', player_html):
+                    aniboom_voice = voice
+                    break
+
+            if aniboom_voice is None:
+                self.skipTest(
+                    'Aniboom-плеер не найден ни в одной озвучке для тестового аниме. '
+                    'Тест get_stream_for_voice пропущен.'
+                )
+
+            stream = await parser.get_stream_for_voice(
+                voice_entry=aniboom_voice,
+                season=_TEST_SEASON,
+                episode=_TEST_EPISODE,
+                anime=_TEST_ANIME
+            )
+            self.assertIsInstance(stream, dict)
+            self.assertIn('kind', stream)
+            self.assertIn(stream['kind'], ('MPD', 'HLS'))
+            # MPD возвращает content, HLS — url
+            if stream['kind'] == 'MPD':
+                self.assertIn('content', stream)
+                self.assertIsInstance(stream['content'], str)
+                self.assertGreater(len(stream['content']), 0)
+            else:
+                self.assertIn('url', stream)
+                self.assertIsInstance(stream['url'], str)
+                self.assertTrue(stream['url'].startswith('http'))
+
+    async def test_get_stream_direct(self):
+        """
+        Низкоуровневый get_stream() по embed-ссылке.
+        Берём embed-URL из HTML плеера и проверяем что метод возвращает валидный стрим.
+        """
+        from src.anime_parsers_ru import AniboomPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        import re
+        async with AniboomPlayerAsync() as parser:
+            voices_data = await parser.get_voices(_TEST_ANIME)
+
+            # Ищем Aniboom-озвучку с embed-ссылкой
+            embed_url = None
+            for voice in voices_data['voices']:
+                player_html = await parser._get_player_html(
+                    _TEST_ANIME['id'], _TEST_EPISODE, voice['translation_id']
+                )
+                import html as html_lib
+                m = re.search(r'data-player="([^"]*aniboom[^"]*)"', player_html)
+                if m:
+                    raw_url = html_lib.unescape(m.group(1))
+                    embed_url = "https:" + raw_url if raw_url.startswith("//") else raw_url
+                    embed_url = re.sub(r'episode=\d+', f'episode={_TEST_EPISODE}', embed_url)
+                    break
+
+            if embed_url is None:
+                self.skipTest('Embed-ссылка Aniboom не найдена. Тест get_stream_direct пропущен.')
+
+            stream = await parser.get_stream(embed_url)
+            self.assertIsInstance(stream, dict)
+            self.assertIn('kind', stream)
+            self.assertIn(stream['kind'], ('MPD', 'HLS'))
+
+
+class TestCVHPlayerAsync(unittest.IsolatedAsyncioTestCase):
+    """
+    Тесты для CVHPlayerAsync (player_cvh.py).
+
+    Проверяемые методы:
+    - test_import               — импорт класса и модуля errors
+    - test_init                 — создание экземпляра
+    - test_search               — поиск аниме на AnimeGO (смежный метод)
+    - test_get_voices           — получение списка озвучек (смежный метод)
+    - test_get_player_html      — приватный хелпер: HTML плеера конкретного эпизода
+    - test_get_stream_for_voice — получение потока для CVH-озвучки
+    - test_get_playlist         — получение плейлиста по cvh_id
+    - test_get_stream           — получение потока по vk_id
+
+    Примечание: тесты CVH-специфичных методов автоматически пропускаются (skipTest),
+    если тестовое аниме не использует CVH-плеер ни в одной из озвучек.
+    """
+
+    def test_import(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+
+    def test_init(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        parser = CVHPlayerAsync()
+        self.assertIsNotNone(parser)
+
+    async def test_search(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        async with CVHPlayerAsync() as parser:
+            # Гарантированно существующий запрос
+            results = await parser.search('Волчица и пряности')
+            self.assertIsInstance(results, list)
+            self.assertGreater(len(results), 0)
+            self.assertIsInstance(results[0], dict)
+            self.assertIn('id', results[0])
+            self.assertIn('slug', results[0])
+            self.assertIn('title', results[0])
+
+            # Гарантированно несуществующий запрос — ожидаем NoResults
+            try:
+                await parser.search('xzxzxzxz_no_such_anime_12345')
+            except errors.NoResults:
+                pass
+            except Exception as ex:
+                raise AssertionError(f'search() с несуществующим запросом вернул неожиданную ошибку: {ex}')
+
+    async def test_get_voices(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        async with CVHPlayerAsync() as parser:
+            # Волчица и пряности — гарантированно несколько озвучек
+            data = await parser.get_voices(_TEST_ANIME)
+            self.assertIsInstance(data, dict)
+            self.assertIn('voices', data)
+            self.assertIn('total_episodes', data)
+            self.assertIsInstance(data['voices'], list)
+            self.assertGreater(len(data['voices']), 0)
+            self.assertIsInstance(data['voices'][0], dict)
+            self.assertIn('label', data['voices'][0])
+            self.assertIn('translation_id', data['voices'][0])
+            self.assertIsInstance(data['total_episodes'], int)
+            self.assertGreater(data['total_episodes'], 0)
+
+            # Несуществующий id — ожидаем NoResults или ServiceError
+            try:
+                await parser.get_voices({'id': '9999999'})
+            except (errors.NoResults, errors.ServiceError):
+                pass
+            except Exception as ex:
+                raise AssertionError(f'get_voices() с несуществующим id вернул неожиданную ошибку: {ex}')
+
+    async def test_get_player_html(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        async with CVHPlayerAsync() as parser:
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            self.assertGreater(len(voices_data['voices']), 0)
+
+            translation_id = voices_data['voices'][0]['translation_id']
+            player_html = await parser._get_player_html(
+                _TEST_ANIME['id'], _TEST_EPISODE, translation_id
+            )
+            self.assertIsInstance(player_html, str)
+            self.assertGreater(len(player_html), 0)
+
+    async def test_get_stream_for_voice(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        import re
+        async with CVHPlayerAsync() as parser:
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            self.assertGreater(len(voices_data['voices']), 0)
+
+            # Ищем озвучку с CVH-плеером
+            cvh_voice = None
+            for voice in voices_data['voices']:
+                player_html = await parser._get_player_html(
+                    _TEST_ANIME['id'], _TEST_EPISODE, voice['translation_id']
+                )
+                for pattern in [
+                    r'data-id="\d+"[^>]*data-provider="[Cc][Vv][Hh]"',
+                    r'data-provider="[Cc][Vv][Hh]"[^>]*data-id="\d+"',
+                    r'cdn-iframe/\d+/',
+                ]:
+                    if re.search(pattern, player_html):
+                        cvh_voice = voice
+                        break
+                if cvh_voice:
+                    break
+
+            if cvh_voice is None:
+                self.skipTest(
+                    'CVH-плеер не найден ни в одной озвучке для тестового аниме. '
+                    'Тест get_stream_for_voice пропущен.'
+                )
+
+            stream = await parser.get_stream_for_voice(
+                voice_entry=cvh_voice,
+                season=_TEST_SEASON,
+                episode=_TEST_EPISODE,
+                anime=_TEST_ANIME
+            )
+            self.assertIsInstance(stream, dict)
+            self.assertIn('kind', stream)
+            self.assertIn(stream['kind'], ('HLS', 'DASH', 'MP4'))
+            self.assertIn('url', stream)
+            self.assertIsInstance(stream['url'], str)
+            self.assertTrue(stream['url'].startswith('http'))
+
+    async def test_get_playlist(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        import re
+        async with CVHPlayerAsync() as parser:
+            # Ищем cvh_id в HTML плеера тестового аниме
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            cvh_id = None
+            for voice in voices_data['voices']:
+                player_html = await parser._get_player_html(
+                    _TEST_ANIME['id'], _TEST_EPISODE, voice['translation_id']
+                )
+                for pattern in [
+                    r'data-id="(\d+)"[^>]*data-provider="[Cc][Vv][Hh]"',
+                    r'data-provider="[Cc][Vv][Hh]"[^>]*data-id="(\d+)"',
+                    r'cdn-iframe/(\d+)/',
+                ]:
+                    m = re.search(pattern, player_html)
+                    if m:
+                        cvh_id = m.group(1)
+                        break
+                if cvh_id:
+                    break
+
+            if cvh_id is None:
+                self.skipTest(
+                    'CVH-плеер не найден для тестового аниме. '
+                    'Тест get_playlist пропущен.'
+                )
+
+            items = await parser.get_playlist(cvh_id)
+            self.assertIsInstance(items, list)
+            self.assertGreater(len(items), 0)
+            self.assertIsInstance(items[0], dict)
+
+            # Несуществующий cvh_id — ожидаем NoResults или ServiceError
+            try:
+                await parser.get_playlist('0000000')
+            except (errors.NoResults, errors.ServiceError):
+                pass
+            except Exception as ex:
+                raise AssertionError(f'get_playlist() с несуществующим id вернул неожиданную ошибку: {ex}')
+
+    async def test_get_stream(self):
+        from src.anime_parsers_ru import CVHPlayerAsync
+        import src.anime_parsers_ru.errors as errors
+        import re
+        async with CVHPlayerAsync() as parser:
+            # Ищем cvh_id и берём vkId первого эпизода
+            voices_data = await parser.get_voices(_TEST_ANIME)
+            cvh_id = None
+            for voice in voices_data['voices']:
+                player_html = await parser._get_player_html(
+                    _TEST_ANIME['id'], _TEST_EPISODE, voice['translation_id']
+                )
+                for pattern in [
+                    r'data-id="(\d+)"[^>]*data-provider="[Cc][Vv][Hh]"',
+                    r'data-provider="[Cc][Vv][Hh]"[^>]*data-id="(\d+)"',
+                    r'cdn-iframe/(\d+)/',
+                ]:
+                    m = re.search(pattern, player_html)
+                    if m:
+                        cvh_id = m.group(1)
+                        break
+                if cvh_id:
+                    break
+
+            if cvh_id is None:
+                self.skipTest('CVH-плеер не найден для тестового аниме. Тест get_stream пропущен.')
+
+            items = await parser.get_playlist(cvh_id)
+            vk_id = next((it.get('vkId') for it in items if it.get('vkId')), None)
+
+            if vk_id is None:
+                self.skipTest('Ни один элемент плейлиста CVH не содержит vkId. Тест пропущен.')
+
+            stream = await parser.get_stream(vk_id)
+            self.assertIsInstance(stream, dict)
+            self.assertIn('kind', stream)
+            self.assertIn(stream['kind'], ('HLS', 'DASH', 'MP4'))
+            self.assertIn('url', stream)
+            self.assertIsInstance(stream['url'], str)
+            self.assertTrue(stream['url'].startswith('http'))
+
 
 if __name__ == "__main__":
     GLOBAL_USE_LXML = True
