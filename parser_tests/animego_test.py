@@ -237,6 +237,48 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         print('[OK] episodes_info 385')
     sleep(delay)
 
+    try:
+        data = await parser.get_anime_updates()
+        if type(data) != list:
+            raise AssertionError(f'data is not list. Actual type: {type(data)}')
+        if type(data[0]) != dict:
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] anime_updates. Exception: {ex}. Exception type: {type(ex)}')
+    else:
+        print('[OK] anime_updates')
+    sleep(delay)
+
+    try:
+        data = await parser.get_schedule()
+        if type(data) != dict:
+            raise AssertionError(f'data is not dict. Actual type: {type(data)}')
+        if type(data['schedule']) != dict:
+            raise AssertionError(f'data[schedule] is not dict. Actual type: {type(data)}')
+        if type(data['schedule_dates']) != dict:
+            raise AssertionError(f'data[schedule_dates] is not dict. Actual type: {type(data)}')
+        if type(data['schedule']['Понедельник']) != list:
+            raise AssertionError(f'data[schedule][Понедельник] is not list. Actual type: {type(data)}')
+        if type(data['schedule']['Понедельник'][0]) != dict:
+            raise AssertionError(f'data[schedule][Понедельник][0] is not dict. Actual type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_schedule. Exception: {ex}. Exception type: {type(ex)}')
+    else:
+        print('[OK] get_schedule')
+    sleep(delay)
+
+    try:
+        data = await parser.get_anime_from_current_season()
+        if type(data) != list:
+            raise AssertionError(f'data is not list. Actual type: {type(data)}')
+        if type(data[0]) != dict:
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_anime_from_current_season. Exception: {ex}. Exception type: {type(ex)}')
+    else:
+        print('[OK] get_anime_from_current_season')
+    sleep(delay)
+
     await parser.close()
 
 if __name__ == "__main__":

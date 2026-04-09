@@ -396,6 +396,159 @@ class AnimegoParserAsync:
             is_released = True if divs[div_i+3].find('div') else False
             res.append({"seria": num, "title": title, "air_date": date, "is_released": is_released})
         return sorted(res, key=lambda x: x['seria'])
+    
+    async def _get_main_page(self) -> BeautifulSoup:
+        """
+        Получение информации с домашней страницы, возвращает объект BeautifulSoup
+        """
+
+        resp = await self._session.get(self._ANIMEGO_BASE, headers={
+            "User-Agent": self._PLAYER_HEADERS["User-Agent"]
+        })
+
+        # Cloudflare блокировка — 403/503 или JS-challenge в теле ответа
+        if resp.status_code in (403, 503) or "Cloudflare" in resp.text:
+            raise errors.ServiceError(
+                f'AnimeGO вернул статус {resp.status_code} при поиске. '
+                f'Возможна блокировка Cloudflare. Попробуйте позже.'
+            )
+        if resp.status_code != 200:
+            raise errors.ServiceError(
+                f'Ошибка при запросе на AnimeGO. '
+                f'Ожидался код 200, получен: {resp.status_code}'
+            )
+
+        return BeautifulSoup(resp.text, "lxml") if self.use_lxml else BeautifulSoup(resp.text, "html.parser")
+    
+    async def get_schedule(self) -> dict:
+        """
+        Возвращает расписание на текущую неделю.
+
+        Возвращает словарь вида:
+        {
+            'schedule': {
+                'Понедельник': [
+                    {   'episode': 'Номер эпизода',
+                        'image': 'Ссылка на картинку',
+                        'link': 'Ссылка на аниме на animego',
+                        'time': 'Время выхода',
+                        'title': 'Название'
+                    },
+                    ...
+                ],
+                'Вторник': ...
+            },
+            'schedule_dates': {
+                'Понедельник': 'дата (либо: Сегодня, Завтра)',
+                'Вторник': ...
+            }
+        }
+        """
+        soup = await self._get_main_page()
+        res = {}
+        res['schedule'] = {'Понедельник': [], 'Вторник': [], 'Среда': [], 'Четверг': [], 'Пятница': [], 'Суббота': [], 'Воскресенье': []}
+        res['schedule_dates'] = {'Понедельник': None, 'Вторник': None, 'Среда': None, 'Четверг': None, 'Пятница': None, 'Суббота': None, 'Воскресенье': None}
+
+        for day in soup.find_all('div', {'class': 'aw-day'}):
+            day_title = day.find('span', {'class': 'schedule-day'}).text.strip()
+            day_date = day.find('span', {'class': re.compile(r'schedule-(tomorrow|date|today)')}).text.strip()
+            data = self._get_entries_from_container(day.find('div', {'class': 'collapse'}))
+            res['schedule'][day_title] = data
+            res['schedule_dates'][day_title] = day_date
+        return res
+    
+    async def get_anime_updates(self) -> list:
+        """
+        Возвращает список последних обновлений аниме на сайте.
+
+        Возвращает список вида:
+        [
+            {
+                'episode': 'номер эпизода',
+                'image': 'Ссылка на картинку',
+                'link': 'Ссылка на аниме на animego',
+                'time': 'Время',
+                'title': 'Название',
+                'translation': 'Студия озвучки/субтитры'
+            },
+            ...
+        ]
+        """
+        soup = await self._get_main_page()
+        return self._get_entries_from_updates_container(soup.find('div', {'class': 'updates-body'}))
+    
+    async def get_anime_from_current_season(self) -> list:
+        """
+        Возвращает список аниме из текущего сезона.
+
+        Возвращает список вида:
+        [
+            {
+                'image': 'Ссылка на картинку',
+                'link': 'Ссылка на аниме на animego',
+                'other_title': 'Другое (оригинальное) название',
+                'score': 'Оценка',
+                'title': 'Название'
+            },
+        ]
+        """
+        soup = await self._get_main_page()
+        season_section = soup.find('section', {'class': 'season-section'})
+        res = []
+        if season_section:
+            for el in season_section.find_all('div', {'class': 'ani-grid__item'}):
+                try:
+                    a = el.find('a')
+                    res.append({
+                        'title': x.text.strip() if (x := el.find('div', {'class': 'ani-grid__item-title'})) else None,
+                        'other_title': x.text.strip() if (x := el.find('div', {'class': 'fw-lighter'})) else None,
+                        'image': x.get('src') if (x := a.find('img')) else None,
+                        'link': self._ANIMEGO_BASE+a.get('href'),
+                        'score': x.text.strip() if (x := el.find('div', {'class': 'rating-badge'})) else None
+                    })
+                except:
+                    pass
+        return res
+    
+    def _get_entries_from_container(self, container: BeautifulSoup) -> list:
+        res = []
+        for el in container.find_all('a', {'class': 'aw-item'}):
+            try:
+                meta = x.text.strip() if (x := el.find('div', {'class': 'aw-meta'})) else None 
+                res.append({
+                    'link': self._ANIMEGO_BASE+el.get('href'),
+                    'image': x.get('src') if (x := el.find('img')) else None,
+                    'title': x.text.strip() if (x := el.find('div', {'class': 'aw-name'})) else None,
+                    'episode': meta[meta.find('Серия')+5:(meta.find('(из') if '(из' in meta else meta.find('—'))].strip() if meta and 'Серия' in meta else None,
+                    'time': meta[meta.rfind('—')+1:].strip() if meta else None
+                })
+            except:
+                pass
+        return res
+    
+    def _get_entries_from_updates_container(self, container: BeautifulSoup) -> list:
+        res = []
+        for el in container.find_all('a', {'class': 'aw-item'}):
+            try:
+                meta = x.text.strip() if (x := el.find('div', {'class': 'aw-meta'})) else None 
+                res.append({
+                    'link': self._ANIMEGO_BASE+el.get('href').replace('#player', ''),
+                    'image': x.get('src') if (x := el.find('img')) else None,
+                    'title': x.text.strip() if (x := el.find('div', {'class': 'aw-name'})) else None,
+                    'episode': meta[meta.find('Серия')+5:meta.find('·')].strip() if meta and 'Серия' in meta else None,
+                    'time': meta[meta.rfind('—')+1:].strip() if meta else None,
+                    'translation': meta[meta.find('· ')+2:meta.find('—')].strip() if meta and 'Серия' in meta else None,
+                })
+            except:
+                pass
+        return res
+    
+    @staticmethod
+    def get_id_from_link(link: str) -> str:
+        """
+        Возвращает id из ссылки
+        """
+        return link[link.rfind('-')+1:]
 
     async def get_voices(self, anime_id: str, episode: int = 1) -> dict:
         """
