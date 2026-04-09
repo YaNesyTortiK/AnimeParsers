@@ -222,5 +222,16 @@ Thx to @nichind for pointing these out
 - Вырезан aniboom плеер, так как забанен уже долгое время
 
 ## To 1.15.1
-- Merged pr [#30](https://github.com/YaNesyTortiK/AnimeParsers/pull/31) from @FakeFu1ure
+- Merged pr [#32](https://github.com/YaNesyTortiK/AnimeParsers/pull/32) from @FakeFu1ure
     - Исправлена ошибка ValueError для series_range. Для некоторых тайтлов использовалась тильда вместо тире
+
+## To 1.16.0
+- Merged pr [#31](https://github.com/YaNesyTortiK/AnimeParsers/pull/31) from @idkwhyimalive
+    - Добавлены асинхронные парсеры aniboom и cvh
+- Переработаны парсеры aniboom и cvh
+    - Объединены в один файл, так как используют animego для поиска
+    - Изменены аргументы функций
+    - Изменена некоторая логика
+- Обновлен поиск по animego (добавлены дополнительные получаемые параметры)
+- Добавлена функция получения информации об аниме
+- Добавлены параметры mirror и proxy для animego
