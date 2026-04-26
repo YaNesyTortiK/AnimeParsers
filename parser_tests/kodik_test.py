@@ -2,7 +2,7 @@ import unittest
 import asyncio
 from time import sleep
 
-def api_test(TOKEN: str, proxy: str | None = None):
+def api_test(delay: float, TOKEN: str, proxy: str | None = None):
     from src.anime_parsers_ru import KodikList
     from src.anime_parsers_ru import KodikSearch
     from src.anime_parsers_ru.api_kodik import Response, Api
@@ -40,7 +40,7 @@ def api_test(TOKEN: str, proxy: str | None = None):
     else:
         print('[OK] List')
 
-    sleep(2)
+    sleep(delay)
 
     try:
         s = KodikList(token=TOKEN, proxy=proxy).anime_status('ongoing').limit(2).with_material_data().with_episodes_data()
@@ -72,12 +72,12 @@ def api_test(TOKEN: str, proxy: str | None = None):
         try_errors += 1
     else:
         print('[OK] Search')
-    sleep(2)
+    sleep(delay)
 
     return try_errors
         
 
-def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
+def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
     from src.anime_parsers_ru import KodikParser
     import src.anime_parsers_ru.errors as errors
 
@@ -94,7 +94,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] Token')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.base_search('Наруто', limit=2, include_material_data=False)
@@ -107,7 +107,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] base_search')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.base_search_by_id('z20', 'shikimori', limit=2, include_material_data=False)
@@ -120,7 +120,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] base_search_by_id')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_list(limit_per_page=10, pages_to_parse=1, include_material_data=False)
@@ -137,7 +137,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_list')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.search('Наруто', limit=2, include_material_data=False)
@@ -150,7 +150,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] search')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.search_by_id('z20', 'shikimori', limit=2)
@@ -163,7 +163,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] search_by_id')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('z20', 'shikimori')
@@ -182,7 +182,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info shiki')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('283290', 'kinopoisk')
@@ -201,7 +201,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('tt0409591', 'imdb')
@@ -220,7 +220,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info imdb')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('2472', 'shikimori')
@@ -239,7 +239,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info shiki video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('283418', 'kinopoisk')
@@ -258,7 +258,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_info('tt0988982', 'imdb')
@@ -277,7 +277,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_info imdb video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_link('z20', 'shikimori', 1, '609')
@@ -292,7 +292,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_link serial')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_link('2472', 'shikimori', 0, '609')
@@ -307,7 +307,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_link video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_link('51179', 'shikimori', 0, '609')
@@ -322,7 +322,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_link seria 0')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_m3u8_playlist_link('z20', 'shikimori', 1, '609', 480)
@@ -335,7 +335,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist_link')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_m3u8_playlist('z20', 'shikimori', 1, '609', 480)
@@ -350,7 +350,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = parser.get_calendar()
@@ -363,7 +363,7 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_calendar as class method')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = KodikParser.get_calendar()
@@ -376,12 +376,12 @@ def main_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION
         try_errors += 1
     else:
         print('[OK] get_calendar as static method')
-    sleep(2)
+    sleep(delay)
 
     return try_errors
 
 
-async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
+async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
     from src.anime_parsers_ru import KodikParserAsync
     import src.anime_parsers_ru.errors as errors
 
@@ -401,7 +401,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] Token')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.base_search('Наруто', limit=2, include_material_data=False)
@@ -414,7 +414,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] base_search')
-    sleep(2)
+    sleep(delay)
     
     try:
         data = await parser.base_search_by_id('z20', 'shikimori', limit=2, include_material_data=False)
@@ -427,7 +427,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] base_search_by_id')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_list(limit_per_page=10, pages_to_parse=1, include_material_data=False)
@@ -444,7 +444,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_list')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.search('Наруто', limit=2, include_material_data=False)
@@ -457,7 +457,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] search')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.search_by_id('z20', 'shikimori', limit=2)
@@ -470,7 +470,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] search_by_id')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('z20', 'shikimori')
@@ -489,7 +489,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info shiki')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('283290', 'kinopoisk')
@@ -508,7 +508,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('tt0409591', 'imdb')
@@ -527,7 +527,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info imdb')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('2472', 'shikimori')
@@ -546,7 +546,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info shiki video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('283418', 'kinopoisk')
@@ -565,7 +565,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_info('tt0988982', 'imdb')
@@ -584,7 +584,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_info imdb video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_link('z20', 'shikimori', 1, '609')
@@ -599,7 +599,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_link serial')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_link('2472', 'shikimori', 0, '609')
@@ -614,7 +614,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_link video')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_link('51179', 'shikimori', 0, '609')
@@ -629,7 +629,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_link seria 0')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_m3u8_playlist_link('z20', 'shikimori', 1, '609', 480)
@@ -642,7 +642,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist_link')
-    sleep(2)
+    sleep(delay)
 
     try:
         data = await parser.get_m3u8_playlist('z20', 'shikimori', 1, '609', 480)
@@ -657,7 +657,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist')
-    sleep(2)
+    sleep(delay)
     
     try:
         data = await parser.get_calendar()
@@ -670,7 +670,7 @@ async def async_test(TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VAL
         try_errors += 1
     else:
         print('[OK] get_calendar as class method')
-    sleep(2)
+    sleep(delay)
     
     await parser.close_async_session()
     return try_errors
