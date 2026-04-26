@@ -1,6 +1,6 @@
 [project]
 name = "anime_parsers_ru"
-version = "1.15.1"
+version = "1.16.0"
 authors = [
   { name="YaNesyTortiK", email="ya.nesy.tortik.email@gmail.com"},
 ]
@@ -20,7 +20,7 @@ dependencies = [
   "requests[socks]>=2.32.0"
 ]
 license-files = ["LICENSE"]
-keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "jutsu", "shikimori", "kodikapi", "kodik api", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори", "кодик апи"]
+keywords = ["anime", "parser", "kodik", "parsing", "aniboom", "animego", "cvh", "jutsu", "shikimori", "kodikapi", "kodik api", "аниме", "парсинг", "кодик", "парсер", "анибум", "анимего", "джутсу", "шикимори", "кодик апи"]
 
 [project.optional-dependencies]
 async = ["aiohttp>=3.10.0", "aiohttp-socks>=0.11.0"]
