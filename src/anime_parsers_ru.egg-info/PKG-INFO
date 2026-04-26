@@ -1,12 +1,12 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.15.1
+Version: 1.16.0
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Project-URL: Homepage, https://github.com/YaNesyTortiK/AnimeParsers
 Project-URL: Issues, https://github.com/YaNesyTortiK/AnimeParsers/issues
-Keywords: anime,parser,kodik,parsing,aniboom,animego,jutsu,shikimori,kodikapi,kodik api,аниме,парсинг,кодик,парсер,анибум,анимего,джутсу,шикимори,кодик апи
+Keywords: anime,parser,kodik,parsing,aniboom,animego,cvh,jutsu,shikimori,kodikapi,kodik api,аниме,парсинг,кодик,парсер,анибум,анимего,джутсу,шикимори,кодик апи
 Classifier: Development Status :: 4 - Beta
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
@@ -32,12 +32,12 @@ Dynamic: license-file
 Актуальная стабильная версия доступна на [pypi](https://pypi.org/project/anime-parsers-ru/) или в [релизах](https://github.com/YaNesyTortiK/AnimeParsers/releases) на гитхабе 
 
 ## Что есть на данный момент
-- [x] Парсер Kodik (__требуется api ключ__)
-- [x] Асинхронный парсер Kodik
-- [ ] Парсер Aniboom (плеер забанен, в процессе переработки)
+- [x] Парсер Kodik (__требуется api ключ__) (+ асинхронный)
+- [x] Парсер Animego (api ключ не требуется)(+ асинхронный)
+    [x] Парсер плеера Aniboom
+    [x] Парсер плеера CVH
 - [x] Парсер JutSu (без функции поиска, не требует api ключей) (доступно через прокси)
-- [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей)
-- [x] Асинхронный парсер Shikimori
+- [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей) (+ асинхронный)
 
 ## Установка
 - Стандартная установка:
@@ -63,7 +63,7 @@ pip install lxml
 
 ## Оглавление
 - [Kodik инструкция](#kodik-инструкция)
-- [AniBoom инструкция](#aniboom-инструкция)
+- [AnimeGO инструкция](#animego-инструкция)
 - [JutSu инструкция](#jutsu-инструкция)
 - [Shikimori инструкция](#shikimori-инструкция)
 - [Типы Исключений](#типы-исключений)
@@ -328,11 +328,53 @@ pip install lxml
 
     Ключевое отличие от плейлиста который скачивается просто по ссылке (полученной в п.6) в том, что данная функция добавляет полную ссылку до сегментов. В изначальном файле ссылки содержатся в виде `./480.mp4...` что будет работать если ссылка открыта, например, в браузере, но не будет работать если файл открыт локально. С добавлением полной ссылки можно сохранить файл локально и запускать любым плеером который поддерживает m3u8 плейлисты (например VLC).
 
+8. Получение расписания выхода
+    Скорее всего синхронизируется с шикимори с периодом синхронизации 1-3 часа. Не требуется Api ключ.
+    Для синхронного варианта:
+    ```python
+    parser.get_calendar(
+        proxy="http://{host}:{port}" # Не обязательный параметр
+    )
+    # Или (без инициализации экземпляра)
+    KodikParser.get_calendar(
+        proxy="http://{host}:{port}" # Не обязательный параметр
+    )
+    ```
+    Для асинхронного варианта:
+    ```python
+    await parser.get_calendar()
+    ```
+    Возвращает список словарей вида:
+    ```json
+    [
+        {
+        "aired_on": "YYYY-mm-dd",
+        "anime": {"id": "shikimori id",
+                    "image": {"original": "ссылка на оригинальный постер на шикимори (jpeg)",
+                            "preview": "ссылка на превью постера на шикимори (webp)",
+                            "x24": "ссылка на уменьшенную версию постера на шикимори (webp)",
+                            "x48": "ссылка на уменьшенную версию постера на шикимори (webp)",
+                            "x96": "ссылка на уменьшенную версию постера на шикимори (webp)"},
+                    "name": "Оригинальное название",
+                    "russian": "Русское название"},
+        "duration": 0,
+        "episodes": 8,
+        "episodes_aired": 0,
+        "kind": "тип аниме (movie, tv, ...)",
+        "next_episode": 1,
+        "next_episode_at": "YYYY-mm-ddTHH:MM:SSZ",
+        "released_on": "YYYY-mm-dd",
+        "score": 0.0,
+        "status": "статус (anons, ongoing)"
+        },
+        ...
+    ]
+    ```
 
 > [!IMPORTANT]
 > В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`. В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`
 
-6. Прямое обращение к апи кодика
+9. Прямое обращение к апи кодика
     Рекомендуется использовать модули KodikSearch и KodikList для обращения к апи.
     ```python
     parser.api_request (
@@ -355,7 +397,7 @@ pip install lxml
 > [!IMPORTANT]
 > Если при попытке получения токена будет отловлено исключение по SSL сертификату, то будет попытка получения без валидации сертификата и библиотека requests будет писать в консоль предупреждения. Для асинхронной версии функции нет возможности отключить валидацию на достаточном уровне, поэтому будет выходить исключение о необходимости использовать синхронный вариант.
 
-7. Получить токен
+10. Получить токен
     ```python
     parser.get_token() # строка
     # Или
@@ -363,10 +405,301 @@ pip install lxml
     ```
     Как это работает вы можете прочитать здесь: [TOKENS.md](kdk_tokns/TOKENS.md)
 
-## AniBoom инструкция
+## AnimeGO инструкция
+0. Установите и импортируйте библиотеку
+    ```commandline
+    pip install anime-parsers-ru
+    ```
+    ```python
+    from anime_parsers_ru import AnimegoParser
 
-> [!WARNING]
-> Плеер забанен. 
+    parser = AnimegoParser(
+        mirror="домен зеркало", # Не обязательный параметр, по умолчанию None
+        proxy="`http://host:port` или 'socks5://user:pass@host:port'", # Не обязательный параметр, по умолчанию None
+        use_lxml=False, # Использовать ли lxml парсер (требуется отдельная установка), по умолчанию False
+        use_cache=True, # Использовать ли кэш для страниц плееров (рекомендуется использовать), по умолчанию True
+        cache_maxsize=300, # Максимальное количество объектов в кэше, по умолчанию 300
+        cache_ttl=36000, # Срок жизни кэша в секундах, по умолчанию 36000 (10 часов)
+    )
+    ```
+
+1. Поиск по сайту
+    ```python
+    parser.search(
+        query="Название"
+    )
+    ```
+    Возвращает список словарей вида:
+    ```json
+    [
+        {
+            "link": "Ссылка на страницу аниме",
+            "id": "Числовой ID аниме на animego.org",
+            "slug": "slug-из-url (прим: naruto-shippuuden)",
+            "title": "Название аниме",
+            "original_title": "Оригинальное название (если есть, иначе None)",
+            "image": "Ссылка на постер (если есть, иначе None)",
+            "rating": "Оценка аниме (если есть, иначе None)"
+        },
+        ...
+    ]
+    ```
+
+2. Информация об аниме
+    ```python
+    parser.anime_info(
+        url="ссылка", # Ссылка на страницу аниме. Прим: https://animego.me/anime/kulinarnye-skitaniya-v-parallelnom-mire-2239
+    )
+    ```
+    Возвращает словарь вида:
+    Некоторые поля могут отсутствовать на странице аниме и в таком случае их значение будет установлено в None
+    ```json
+    {
+        "aired_at": "даты выхода",
+        "anime_season": "аниме сезон",
+        "author": "автор",
+        "description": "Описание",
+        "director": "Режиссёр",
+        "duration": "длительность",
+        "episodes": "эпизодов (если онгоинг, то вышло / всего)",
+        "genres": ["список жанров"],
+        "image": "ссылка на картинку",
+        "main_characters": [{"character": "Персонаж",
+                            "voice_actor": "Актер озвучки в оригинале"}],
+        "minimal_age": "минимальный возраст зрителя",
+        "mpaa_rating": "рейтинг MPAA",
+        "next_episode": "дата выхода следующего эпизода (если онгоинг)",
+        "original_source": "первоисточник",
+        "other_titles": "другие названия",
+        "related": [{"image": "Ссылка на картинку",
+                    "link": "Ссылка на animego",
+                    "relation": "связь (предыстория, продолжение...)",
+                    "title": "Название",
+                    "type": "Тип",
+                    "year": "Год выхода"}],
+        "score": "Оценка на анимего",
+        "screenshots": ["список ссылок на скриншоты"],
+        "status": "Статус (Вышел, Онгоинг...)",
+        "studio": "Студия анимации",
+        "theme": "Тема",
+        "title": "Название",
+        "translations": ["Список студий озвучки"],
+        "type": "Тип"
+    }
+    ```
+
+3. Информация об эпизодах
+    ```python
+    parser.get_episodes_info(
+        anime_id="id аниме", # Прим: 2239
+    )
+    ```
+    Возвращает список словарей вида:
+    ```json
+    [
+        {
+            "air_date": "дата выхода",
+            "is_released": false, // вышло или нет (bool),
+            "seria": 1, // номер серии,
+            "title": "Название серии (или --- если не указано)"
+        }
+    ]
+    ```
+
+4. Получить расписание аниме
+    ```python
+    parser.get_schedule()
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        "schedule": {
+            "Понедельник": [
+                {   "episode": "Номер эпизода",
+                    "image": "Ссылка на картинку",
+                    "link": "Ссылка на аниме на animego",
+                    "time": "Время выхода",
+                    "title": "Название"
+                },
+                ...
+            ],
+            "Вторник": ...
+        },
+        "schedule_dates": {
+            "Понедельник": "дата (либо: Сегодня, Завтра)",
+            "Вторник": // ...
+        }
+    }
+    ```
+
+5. Обновления аниме
+    (Новые озвучки на сайте)
+    ```python
+    parser.get_anime_updates()
+    ```
+    Возвращает список словарей вида:
+    ```json
+    [
+        {
+            "episode": "номер эпизода",
+            "image": "Ссылка на картинку",
+            "link": "Ссылка на аниме на animego",
+            "time": "Время", // Время когда озвучка была добавлена на сайт
+            "title": "Название",
+            "translation": "Студия озвучки/субтитры"
+        },
+        ...
+    ]
+    ```
+
+6. Получить аниме из текущего сезона
+    ```python
+    parser.get_anime_from_current_season()
+    ```
+    Возвращает список словарей вида:
+    ```json
+    {   
+        "image": "Ссылка на картинку",
+        "link": "Ссылка на аниме на animego",
+        "title": "Название",
+        "other_title": "Оригинальное название",
+        "score": "Оценка"
+    },
+    ```
+
+7. Получить id из ссылки (staticmethod)
+    ```python
+    AnimegoParser.get_id_from_link(
+        link="ссылка" # Ссылка на страницу аниме. Пример: https://animego.me/anime/kulinarnye-skitaniya-v-parallelnom-mire-2239 
+    )
+    ```
+    Возвращает строку:
+    ```python
+    '2239' # Для ссылки: https://animego.me/anime/kulinarnye-skitaniya-v-parallelnom-mire-2239
+    ```
+
+8. Получить список доступных озвучек и эпизодов
+    Общее число эпизодов возвращается только при запросе первого эпизода!
+    Для эпизодов больше 1, если не включен кэш, могут быть задержки.
+    ```python
+    parser.get_voices(
+        anime_id="id аниме", # Прим: '2239'
+        episode=1, # Номер эпизода
+    )
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        "voices": [
+            {
+                "label": "Название озвучки",
+                "translation_id": "ID для передачи в aniboom_get_stream_for_voice()",
+                "player": "Тип плеера (kodik, aniboom, cvh, ...)",
+                "embed": "Ссылка на embed",
+                "cvh_id": "id для получения плейлиста CVH (только для cvh-плеера, иначе None)"
+            },
+            ...
+        ],
+        "total_episodes": 12 // None если не удалось определить или не первая серия
+    }
+    ```
+
+9. Получить поток aniboom для определенной озвучки
+    ```python
+    parser.aniboom_get_stream_for_voice(
+        translation_id="id перевода", # translation_id из функции get_voices
+        episode=1, # Номер эпизода
+        anime_id='id аниме' # Прим: '2239'
+    )
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        "url": "https://.../.mpd", // или "https://.../.m3u8"
+        "content": "Содержимое файла"
+    }
+    ```
+
+10. Получить поток aniboom через embed ссылку
+    ```python
+    parser.aniboom_get_stream(
+        embed_url="embed ссылка" # Embed ссылка из функции get_voices
+    )
+    ```
+    Два варианта ответа:
+    * Для MPD (приоритетный формат)
+        ```json
+        {
+            "content": "<содержимое MPD-файла с абсолютными URL сегментов>",
+            "kind": "MPD"
+        }
+        ```
+    * Для HLS (если mpd не доступен)
+        ```json
+        {
+            "url": "https://.../.m3u8",
+            "kind": "HLS"
+        }
+        ```
+11. Получить cvh плейлист
+    Получает список эпизодов для указанного cvh_id
+    ```python
+    parser.cvh_get_playlist(
+        cvh_id="cvh_id", # Из функции get_voices
+    )
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        1: { // Номер сезона
+            1: [ // Номер серии
+                {
+                    "cvh_id": "019d...11",
+                    "episode": 1, // Номер эпизода
+                    "season": 1, // Номер сезона
+                    "name": "Название серии (обычно пустое)",
+                    "vkId": "ID видео в системе CVH, нужен для получения ссылок на потоки через cvh_get_stream()",
+                    "voiceStudio": "Название студии озвучки (напр. AnilibriaTV)",
+                    "voiceType": "Тип озвучки/субтитры"
+                }
+            ]
+        }
+    }
+    ```
+
+12. Получить поток cvh
+    Если уже известен vkId (например если до этого был сделан запрос на получение плейлиста), то рекомендуется использовать получение потока по vkId вместо данной функции для быстродействия.
+    ```python
+    parser.cvh_get_stream(
+        cvh_id="cvh_id", # Из функции get_voices или cvh_get_playlist
+        season=1, # Номер сезона (если будет найден только один сезон, данное значение будет проигнорировано)
+        episode=1, # Номер эпизода
+        translation="Название студии озвучки" # Прим: Anilibria.TV (может быть не точным, проводится fuzzy сравнение)
+    )
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        "HLS": "https://.../.m3u8", // или None
+        "DASH": "https://.../.mpd", // или None,
+        "MP4s": ["https://.../360p.mp4", "https://.../720p.mp4"] // или []
+    }
+    ```
+
+13. Получить поток cvh по vkId
+    ```python
+    parser.cvh_get_stream_by_id(
+        vkId="ID видео в системе CVH" # Из функции cvh_get_playlist
+    )
+    ```
+    Возвращает словарь вида:
+    ```json
+    {
+        "HLS": "https://.../.m3u8", // или None
+        "DASH": "https://.../.mpd", // или None,
+        "MP4s": ["https://.../360p.mp4", "https://.../720p.mp4"] // или []
+    }
+    ```
 
 ## JutSu инструкция
 0. Установите и импортируйте библиотеку
