@@ -874,6 +874,51 @@ class KodikParser:
         return result
 
     @staticmethod
+    def get_calendar(self = None, proxy: str | None = None) -> dict:
+        """
+        Возвращает расписание выхода аниме.
+        :self: Необязательно, но можно вызвать эту функцию при инициализированном парсере
+        :proxy: прокси для обхода геобана, применяется ко всем запросам к кодику (прим: 'socks5://user:pass@host:port' или 'http://host:port'). Если функция вызывается с указанием self и не указывать proxy дополнительно, то proxy будет использоваться из вызывающего экземпляра парсера.
+ 
+        Возвращает список словарей вида:
+        [
+            {
+            'aired_on': 'YYYY-mm-dd',
+            'anime': {'id': 'shikimori id',
+                        'image': {'original': 'ссылка на оригинальный постер на шикимори (jpeg)',
+                                'preview': 'ссылка на превью постера на шикимори (webp)',
+                                'x24': 'ссылка на уменьшенную версию постера на шикимори (webp)',
+                                'x48': 'ссылка на уменьшенную версию постера на шикимори (webp)',
+                                'x96': 'ссылка на уменьшенную версию постера на шикимори (webp)'},
+                        'name': 'Оригинальное название',
+                        'russian': 'Русское название'},
+            'duration': 0,
+            'episodes': 8,
+            'episodes_aired': 0,
+            'kind': 'тип аниме (movie, tv, ...)',
+            'next_episode': 1,
+            'next_episode_at': 'YYYY-mm-ddTHH:MM:SSZ',
+            'released_on': 'YYYY-mm-dd',
+            'score': 0.0,
+            'status': 'статус (anons, ongoing)'
+            },
+            ...
+        ]
+        """
+        if not(proxy is None) or self is None:
+            proxies = {"http": proxy, "https": proxy} if proxy else None
+        else:
+            proxies = self.proxies
+        data = requests.get(f'https://dumps.kodikres.com/calendar.json', proxies=proxies)
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        return data
+
+    @staticmethod
     def get_token(proxy: str | None = None) -> str:
         """
         ! ВНИМАНИЕ ! Данная функция делает запрос на оф. репозиторий библиотеки для получения списка токенов.

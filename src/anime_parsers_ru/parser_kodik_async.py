@@ -8,8 +8,14 @@ else:
 import json
 from bs4 import BeautifulSoup as Soup
 from base64 import b64decode
-import aiohttp
-from aiohttp_socks import ProxyConnector
+
+try:
+    import aiohttp
+    from aiohttp_socks import ProxyConnector
+except ImportError:
+    ASYNC_WORKS = False
+else:
+    ASYNC_WORKS = True
 
 try:
     from . import errors # Импорт если библиотека установлена
@@ -34,6 +40,8 @@ class KodikParserAsync:
         :cache_ttl: время жизни элемента в кэше в секундах (по умолчанию 3600)
         :cache_maxsize: максимальный размер кэша (по умолчанию 100)
         """
+        if not ASYNC_WORKS:
+            raise ImportError("Для использования данного класса требуется установка библиотек aiohttp и aiohttp-socks.")
         if token is None:
             token = KodikParserAsync.get_token_sync(proxy=proxy) # Попытка получения токена автоматически
         self.TOKEN = token
@@ -872,6 +880,44 @@ class KodikParserAsync:
         if self.use_cache:
             self._cached_post_link[script_url] = result
         return result
+    
+    async def get_calendar(self) -> dict:
+        """
+        Возвращает расписание выхода аниме.
+
+        Возвращает список словарей вида:
+        [
+            {
+            'aired_on': 'YYYY-mm-dd',
+            'anime': {'id': 'shikimori id',
+                        'image': {'original': 'ссылка на оригинальный постер на шикимори (jpeg)',
+                                'preview': 'ссылка на превью постера на шикимори (webp)',
+                                'x24': 'ссылка на уменьшенную версию постера на шикимори (webp)',
+                                'x48': 'ссылка на уменьшенную версию постера на шикимори (webp)',
+                                'x96': 'ссылка на уменьшенную версию постера на шикимори (webp)'},
+                        'name': 'Оригинальное название',
+                        'russian': 'Русское название'},
+            'duration': 0,
+            'episodes': 8,
+            'episodes_aired': 0,
+            'kind': 'тип аниме (movie, tv, ...)',
+            'next_episode': 1,
+            'next_episode_at': 'YYYY-mm-ddTHH:MM:SSZ',
+            'released_on': 'YYYY-mm-dd',
+            'score': 0.0,
+            'status': 'статус (anons, ongoing)'
+            },
+            ...
+        ]
+        """
+        data = await self.requests.get(f'https://dumps.kodikres.com/calendar.json')
+        try:
+            data = data.json()
+        except Exception as ex:
+            if data.status_code != 200:
+                raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
+            raise errors.ServiceError(f"Произошла ошибка при запросе. Ожидался ответ json, при попытке получения произошла непредвиденная ошибка: {ex}")
+        return data
 
     @staticmethod
     async def get_token(proxy: str | None = None) -> str:
