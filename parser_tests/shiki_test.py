@@ -6,6 +6,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
     from src.anime_parsers_ru import ShikimoriParser
 
     try_errors = 0
+    try_succes = 0
 
     parser = ShikimoriParser(GLOBAL_USE_LXML, mirror=mirror, proxy=proxy)
 
@@ -22,6 +23,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Search "Кулинарные скитания"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -37,6 +39,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Search "Наруто"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -52,6 +55,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Search "Класс превосходства"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -67,6 +71,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Search "Клинок рассекающий демонов"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -78,6 +83,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Info "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -89,6 +95,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Info "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -100,6 +107,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Info "58426"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -111,6 +119,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -122,6 +131,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     # Проверка на ограничение по возрасту (все поудаляли, не актуально)
@@ -135,6 +145,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[FAIL] Info "53725". Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
+        try_succes += 1
     sleep(delay)
     """    
     
@@ -149,6 +160,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Additional info "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -160,6 +172,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Additional info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -173,6 +186,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Additional info "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -184,6 +198,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Link by id "20"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -195,6 +210,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Link by id "40456"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -206,6 +222,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Link by id "58426"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -217,6 +234,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Link by id "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -230,6 +248,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Id by link "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -243,6 +262,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Id by link "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -256,6 +276,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Id by link "58426"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -271,6 +292,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -286,6 +308,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list ongoing')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -301,6 +324,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list released')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -316,6 +340,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list released & ongoing')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -333,6 +358,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -350,6 +376,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type movie')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -367,6 +394,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type movie | tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -384,6 +412,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -401,6 +430,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv with pages and sort')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -418,6 +448,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv with pages, sort, pg rating, genres')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -433,6 +464,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Deep search')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -446,6 +478,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
         try_errors += 1
     else:
         print('[OK] Deep info')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка на несуществующем id
@@ -456,19 +489,22 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = 
             raise AssertionError
     except errors.NoResults:
         print('[OK] Deep info with unknown id')
+        try_succes += 1
     except Exception as ex:
         print(f'[FAIL] Deep info with unknown id. Exception: {ex}')
         try_errors += 1
     else:
         print(f'[FAIL] Deep info with unknown id. Expected NoResults exception but no exception was triggered')
+        try_errors += 1
     sleep(delay)
 
-    return try_errors
+    return (try_errors, try_succes)
 
 async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | None = None, proxy: str | None = None):
     from src.anime_parsers_ru import ShikimoriParserAsync
 
     try_errors = 0
+    try_succes = 0
 
     parser = ShikimoriParserAsync(GLOBAL_USE_LXML, mirror=mirror, proxy=proxy)
 
@@ -485,6 +521,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Search "Кулинарные скитания"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -500,6 +537,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Search "Наруто"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -515,6 +553,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Search "Класс превосходства"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -530,6 +569,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Search "Клинок рассекающий демонов"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -541,6 +581,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Info "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -552,6 +593,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Info "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -563,6 +605,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Info "58426"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -574,6 +617,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -585,6 +629,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     # Проверка на ограничение по возрасту (все поудаляли, не актуально)
@@ -598,6 +643,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[FAIL] Info "53725". Обработка ограниченного по возрасту аниме не вернуло ошибку. Ожидалось: "AgeRestricted"')
+        try_succes += 1
     sleep(delay)
     """
     try:
@@ -611,6 +657,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Additional info "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -622,6 +669,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Additional info "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -635,6 +683,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Additional info "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -646,6 +695,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Link by id "20"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -657,6 +707,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Link by id "40456"')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -668,6 +719,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Link by id "58426"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -679,6 +731,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Link by id "53446"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -692,6 +745,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Id by link "z20"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -705,6 +759,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Id by link "z40456"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -718,6 +773,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Id by link "58426"')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -733,6 +789,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -748,6 +805,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list ongoing')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -763,6 +821,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list released')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -778,6 +837,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list released & ongoing')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -795,6 +855,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -812,6 +873,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type movie')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -829,6 +891,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type movie | tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -846,6 +909,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -863,6 +927,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv with pages and sort')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -880,6 +945,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Anime list type ongoing tv with pages, sort, pg rating, genres')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -895,6 +961,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Deep search')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -908,6 +975,7 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print('[OK] Deep info')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка на несуществующем id
@@ -923,7 +991,8 @@ async def async_test(delay: float, GLOBAL_USE_LXML: bool = False, mirror: str | 
         try_errors += 1
     else:
         print(f'[FAIL] Deep info with unknown id. Expected NoResults exception but no exception was triggered')
+        try_succes += 1
     sleep(delay)
 
-    parser.close_async_session()
-    return try_errors
+    await parser.close_async_session()
+    return (try_errors, try_succes)

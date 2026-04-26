@@ -6,6 +6,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
     import src.anime_parsers_ru.errors as errors
 
     try_errors = 0
+    try_succes = 0
 
     parser = JutsuParser(GLOBAL_USE_LXML, proxy=proxy)
 
@@ -28,6 +29,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
         try_errors += 1
     else:
         print('[OK] One season')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка на аниме с несколькими сезонами
@@ -49,6 +51,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
         try_errors += 1
     else:
         print('[OK] Multi season')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка на аниме с фильмами
@@ -74,6 +77,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
         try_errors += 1
     else:
         print('[OK] Multi season with films')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка без сезонов
@@ -89,6 +93,7 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
         try_errors += 1
     else:
         print('[OK] get link no seasons')
+        try_succes += 1
     sleep(delay)
 
     try: # Проверка с сезонами
@@ -104,5 +109,6 @@ def sync_test(delay: float, GLOBAL_USE_LXML: bool = False, proxy: str | None = N
         try_errors += 1
     else:
         print('[OK] get link with seasons')
+        try_succes += 1
     sleep(delay)
-    return try_errors
+    return (try_errors, try_succes)

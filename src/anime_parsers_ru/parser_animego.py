@@ -3,6 +3,7 @@ import json
 import re
 from urllib.parse import quote
 from bs4 import BeautifulSoup
+import requests
 
 try:
     import lxml
@@ -13,15 +14,15 @@ else:
 
 try:
     from . import errors                        # Импорт при установленной библиотеке
-    from .internal_tools import AsyncSession, TTLCache
+    from .internal_tools import TTLCache
 except ImportError:
     import errors                               # Импорт при локальном запуске
-    from internal_tools import AsyncSession, TTLCache
+    from internal_tools import TTLCache
 
 
-class AnimegoParserAsync:
+class AnimegoParser:
     """
-    Асинхронный парсер сайта AnimeGO. Плееры aniboom и cvh
+    Асинхронный парсер сайта AnimeGO. Плееры aniboom и cvh.
     """
 
     # Базовый домен AnimeGO
@@ -85,14 +86,13 @@ class AnimegoParserAsync:
         if not LXML_WORKS and use_lxml:
             raise ImportWarning('Параметр use_lxml установлен в true, однако при попытке импорта lxml произошла ошибка')
         self.use_lxml = use_lxml
-        self._session = AsyncSession(proxy=proxy)
         if mirror:
             self._ANIMEGO_BASE = f"https://{mirror}"
         self.use_cache = use_cache
         self._player_url_cache = TTLCache(cache_maxsize, cache_ttl) if use_cache else {}
 
 
-    async def search(self, query: str) -> list:
+    def search(self, query: str) -> list:
         """
         Поиск аниме по названию на animego.org.
         :query: Строка поиска (название аниме)
@@ -116,7 +116,7 @@ class AnimegoParserAsync:
         - errors.NoResults    — поиск не дал результатов
         """
         url = f"{self._ANIMEGO_BASE}/search/anime?q={quote(query)}"
-        resp = await self._session.get(url, headers={
+        resp = requests.get(url, headers={
             "User-Agent": self._PLAYER_HEADERS["User-Agent"]
         })
 
@@ -192,7 +192,7 @@ class AnimegoParserAsync:
 
         return results
     
-    async def anime_info(self, url: str) -> dict:
+    def anime_info(self, url: str) -> dict:
         """
         Возвращает данные об аниме.
         :url: Ссылка на страницу аниме на animego (прим: https://animego.me/anime/kulinarnyye-skitaniya-v-parallel-nom-mire-2-3261)
@@ -229,7 +229,7 @@ class AnimegoParserAsync:
  'translations': ['Список студий озвучки'],
  'type': 'Тип'}
         """
-        resp = await self._session.get(url, headers={
+        resp = requests.get(url, headers={
             "User-Agent": self._PLAYER_HEADERS["User-Agent"]
         })
 
@@ -335,7 +335,7 @@ class AnimegoParserAsync:
 
         return res
 
-    async def get_episodes_info(self, anime_id: str) -> list:
+    def get_episodes_info(self, anime_id: str) -> list:
         """
         Получение информации по эпизодам для аниме
 
@@ -352,7 +352,7 @@ class AnimegoParserAsync:
         ]
         """
         url = f"https://animego.me/anime/{anime_id}/9999999/schedule/load"
-        resp = await self._session.get(url, headers={
+        resp = requests.get(url, headers={
             "User-Agent": self._PLAYER_HEADERS["User-Agent"],
             "X-Requested-With": "XMLHttpRequest",
             "Referer": "https://animego.me"
@@ -391,12 +391,12 @@ class AnimegoParserAsync:
             res.append({"seria": num, "title": title, "air_date": date, "is_released": is_released})
         return sorted(res, key=lambda x: x['seria'])
     
-    async def _get_main_page(self) -> BeautifulSoup:
+    def _get_main_page(self) -> BeautifulSoup:
         """
         Получение информации с домашней страницы, возвращает объект BeautifulSoup
         """
 
-        resp = await self._session.get(self._ANIMEGO_BASE, headers={
+        resp = requests.get(self._ANIMEGO_BASE, headers={
             "User-Agent": self._PLAYER_HEADERS["User-Agent"]
         })
 
@@ -414,7 +414,7 @@ class AnimegoParserAsync:
 
         return BeautifulSoup(resp.text, "lxml") if self.use_lxml else BeautifulSoup(resp.text, "html.parser")
     
-    async def get_schedule(self) -> dict:
+    def get_schedule(self) -> dict:
         """
         Возвращает расписание на текущую неделю.
 
@@ -438,7 +438,7 @@ class AnimegoParserAsync:
             }
         }
         """
-        soup = await self._get_main_page()
+        soup = self._get_main_page()
         res = {}
         res['schedule'] = {'Понедельник': [], 'Вторник': [], 'Среда': [], 'Четверг': [], 'Пятница': [], 'Суббота': [], 'Воскресенье': []}
         res['schedule_dates'] = {'Понедельник': None, 'Вторник': None, 'Среда': None, 'Четверг': None, 'Пятница': None, 'Суббота': None, 'Воскресенье': None}
@@ -451,7 +451,7 @@ class AnimegoParserAsync:
             res['schedule_dates'][day_title] = day_date
         return res
     
-    async def get_anime_updates(self) -> list:
+    def get_anime_updates(self) -> list:
         """
         Возвращает список последних обновлений аниме на сайте.
 
@@ -468,10 +468,10 @@ class AnimegoParserAsync:
             ...
         ]
         """
-        soup = await self._get_main_page()
+        soup = self._get_main_page()
         return self._get_entries_from_updates_container(soup.find('div', {'class': 'updates-body'}))
     
-    async def get_anime_from_current_season(self) -> list:
+    def get_anime_from_current_season(self) -> list:
         """
         Возвращает список аниме из текущего сезона.
 
@@ -486,7 +486,7 @@ class AnimegoParserAsync:
             },
         ]
         """
-        soup = await self._get_main_page()
+        soup = self._get_main_page()
         season_section = soup.find('section', {'class': 'season-section'})
         res = []
         if season_section:
@@ -544,7 +544,7 @@ class AnimegoParserAsync:
         """
         return link[link.rfind('-')+1:]
 
-    async def get_voices(self, anime_id: str, episode: int = 1) -> dict:
+    def get_voices(self, anime_id: str, episode: int = 1) -> dict:
         """
         Получает список доступных озвучек и общее число эпизодов.
         :anime_id: animego id аниме 
@@ -569,8 +569,8 @@ class AnimegoParserAsync:
         - errors.UnexpectedBehavior — ответ сервера не содержит ожидаемых данных
         """
         
-        url = await self._get_player_url_for_episode(anime_id, episode)
-        content = await self._get_player_html(url)
+        url = self._get_player_url_for_episode(anime_id, episode)
+        content = self._get_player_html(url)
 
         soup = BeautifulSoup(content, "lxml") if self.use_lxml else BeautifulSoup(content, "html.parser")
 
@@ -606,7 +606,7 @@ class AnimegoParserAsync:
 
         return {"voices": voices, "total_episodes": total_episodes}
     
-    async def _get_player_url_for_episode(self, anime_id: str, episode: int = 1) -> str:
+    def _get_player_url_for_episode(self, anime_id: str, episode: int = 1) -> str:
         if episode == 1:
             return f"{self._ANIMEGO_BASE}/player/{anime_id}"
         
@@ -614,7 +614,7 @@ class AnimegoParserAsync:
         if self.use_cache and cache_key in self._player_url_cache:
             return self._player_url_cache[cache_key]
         
-        content = await self._get_player_html(f"{self._ANIMEGO_BASE}/player/{anime_id}")
+        content = self._get_player_html(f"{self._ANIMEGO_BASE}/player/{anime_id}")
         
         soup = BeautifulSoup(content, "lxml") if self.use_lxml else BeautifulSoup(content, "html.parser")
         
@@ -638,7 +638,7 @@ class AnimegoParserAsync:
         raise ValueError(f"Указанный эпизод ({episode}) отсутствует в списке эпизодов.")
 
 
-    async def aniboom_get_stream_for_voice(
+    def aniboom_get_stream_for_voice(
         self,
         translation_id: str,
         episode: int,
@@ -663,13 +663,13 @@ class AnimegoParserAsync:
         - errors.ServiceError       — HTTP-ошибка при запросе
         - errors.UnexpectedBehavior — эпизод не использует Aniboom-плеер
         """
-        data = await self.get_voices(anime_id, episode)
+        data = self.get_voices(anime_id, episode)
         for v in data['voices']:
             if v['translation_id'] == translation_id and v['player'] == 'AniBoom':
-                return await self.aniboom_get_stream(v['embed'])
+                return self.aniboom_get_stream(v['embed'])
         raise errors.UnexpectedBehavior(f"Для аниме с id \"{anime_id}\", translation_id \"{translation_id}\" и episode={episode} не найдено aniboom плеера.")
 
-    async def aniboom_get_stream(self, embed_url: str) -> dict:
+    def aniboom_get_stream(self, embed_url: str) -> dict:
         """
         Получает поток (MPD или HLS) напрямую по embed-ссылке плеера Aniboom.
         Низкоуровневый метод — можно вызывать самостоятельно если embed-URL уже известен.
@@ -698,7 +698,7 @@ class AnimegoParserAsync:
         - errors.UnexpectedBehavior — ни MPD, ни HLS нет в data-parameters
         """
         # Шаг 1: Скачиваем embed-страницу Aniboom
-        resp = await self._session.get(embed_url, headers=self._EMBED_HEADERS)
+        resp = requests.get(embed_url, headers=self._EMBED_HEADERS)
         if resp.status_code != 200:
             raise errors.ServiceError(
                 f'Ошибка при запросе embed-страницы Aniboom. '
@@ -728,7 +728,7 @@ class AnimegoParserAsync:
             try:
                 mpd_url = json.loads(data["dash"])["src"]
 
-                resp_mpd = await self._session.get(mpd_url, headers=self._DASH_HEADERS)
+                resp_mpd = requests.get(mpd_url, headers=self._DASH_HEADERS)
                 if resp_mpd.status_code != 200:
                     raise errors.ServiceError(
                         f'Ошибка при скачивании MPD-файла. '
@@ -790,7 +790,7 @@ class AnimegoParserAsync:
                 return s
         return None
 
-    async def cvh_get_playlist(self, cvh_id: str) -> list:
+    def cvh_get_playlist(self, cvh_id: str) -> list:
         """
         Получает список эпизодов (items) для заданного cvh_id.
         :cvh_id: ID медиа в системе CdnVideoHub (передаётся AnimeGO в HTML плеера)
@@ -820,7 +820,7 @@ class AnimegoParserAsync:
             f"?pub={self._PUB}&aggr={self._AGGR}&id={cvh_id}"
         )
 
-        resp = await self._session.get(url, headers=self._CVH_HEADERS)
+        resp = requests.get(url, headers=self._CVH_HEADERS)
         if resp.status_code != 200:
             raise errors.ServiceError(
                 f'Ошибка при запросе плейлиста CVH (cvh_id={cvh_id}). '
@@ -852,7 +852,7 @@ class AnimegoParserAsync:
 
         return res
     
-    async def cvh_get_stream(self, cvh_id: str, season: int, episode: int, translation: str) -> dict:
+    def cvh_get_stream(self, cvh_id: str, season: int, episode: int, translation: str) -> dict:
         """
         Получает ссылку на поток конкретного видео по cvh_id.
         :cvh_id: ID медиа в системе CVH
@@ -870,7 +870,7 @@ class AnimegoParserAsync:
         - errors.ServiceError — HTTP-ошибка или невалидный JSON
         - errors.NoResults    — ни одного рабочего URL в ответе или не найдено совпадение для озвучки
         """
-        playlist = await self.cvh_get_playlist(cvh_id)
+        playlist = self.cvh_get_playlist(cvh_id)
         if len(playlist) == 1:
             season = list(playlist.keys())[0]
         if season not in playlist.keys():
@@ -890,9 +890,9 @@ class AnimegoParserAsync:
             )
         for ep in playlist[season][episode]:
             if ep['voiceStudio'] == matched_studio:
-                return await self.cvh_get_stream_by_id(ep['vkId'])
+                return self.cvh_get_stream_by_id(ep['vkId'])
 
-    async def cvh_get_stream_by_id(self, vk_id: str) -> dict:
+    def cvh_get_stream_by_id(self, vk_id: str) -> dict:
         """
         Получает ссылку на поток конкретного видео по vk_id.
         :vk_id: ID видео в системе CVH (поле "vkId" из элемента плейлиста)
@@ -910,7 +910,7 @@ class AnimegoParserAsync:
         """
         url = f"{self._CVH_API_BASE}/video/{vk_id}"
 
-        resp = await self._session.get(url, headers=self._CVH_HEADERS)
+        resp = requests.get(url, headers=self._CVH_HEADERS)
         if resp.status_code != 200:
             raise errors.ServiceError(
                 f'Ошибка при запросе видео CVH (vk_id={vk_id}). '
@@ -948,8 +948,8 @@ class AnimegoParserAsync:
         }
         
     
-    async def _get_player_html(self, url: str) -> str:
-        resp = await self._session.get(url, headers=self._PLAYER_HEADERS)
+    def _get_player_html(self, url: str) -> str:
+        resp = requests.get(url, headers=self._PLAYER_HEADERS)
 
         if resp.status_code in (403, 503) or "Cloudflare" in resp.text:
             raise errors.ServiceError(
@@ -976,12 +976,3 @@ class AnimegoParserAsync:
                 f'Ошибка: {ex}'
             )
 
-    async def close(self) -> None:
-        """Закрывает внутреннюю HTTP-сессию."""
-        await self._session.close()
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        await self.close()

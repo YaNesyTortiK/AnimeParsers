@@ -5,3 +5,4 @@ from .parser_shikimori import ShikimoriParser
 from .parser_shikimori_async import ShikimoriParserAsync
 from .api_kodik import KodikList, KodikSearch
 from .parser_animego_async import AnimegoParserAsync
+from .parser_animego import AnimegoParser

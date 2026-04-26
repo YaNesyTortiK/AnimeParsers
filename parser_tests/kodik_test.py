@@ -8,6 +8,7 @@ def api_test(delay: float, TOKEN: str, proxy: str | None = None):
     from src.anime_parsers_ru.api_kodik import Response, Api
 
     try_errors = 0
+    try_succes = 0
 
     try:
         s = KodikSearch(token=TOKEN, proxy=proxy).title('Кулинарные скитания').limit(2).with_material_data().with_episodes_data()
@@ -39,6 +40,7 @@ def api_test(delay: float, TOKEN: str, proxy: str | None = None):
         try_errors += 1
     else:
         print('[OK] List')
+        try_succes += 1
 
     sleep(delay)
 
@@ -72,9 +74,10 @@ def api_test(delay: float, TOKEN: str, proxy: str | None = None):
         try_errors += 1
     else:
         print('[OK] Search')
+        try_succes += 1
     sleep(delay)
 
-    return try_errors
+    return (try_errors, try_succes)
         
 
 def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
@@ -82,6 +85,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
     import src.anime_parsers_ru.errors as errors
 
     try_errors = 0
+    try_succes = 0
 
     parser = KodikParser(token=TOKEN, use_lxml=GLOBAL_USE_LXML, validate_token=GLOBAL_TOKEN_VALIDATION, proxy=proxy, use_cache=True)
 
@@ -94,6 +98,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] Token')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -107,6 +112,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] base_search')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -120,6 +126,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] base_search_by_id')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -137,6 +144,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_list')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -150,6 +158,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] search')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -163,6 +172,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] search_by_id')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -182,6 +192,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info shiki')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -201,6 +212,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -220,6 +232,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info imdb')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -239,6 +252,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info shiki video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -258,6 +272,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -277,6 +292,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_info imdb video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -292,6 +308,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_link serial')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -307,6 +324,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_link video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -322,6 +340,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_link seria 0')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -335,6 +354,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist_link')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -350,6 +370,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -363,6 +384,7 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_calendar as class method')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -376,9 +398,10 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_errors += 1
     else:
         print('[OK] get_calendar as static method')
+        try_succes += 1
     sleep(delay)
 
-    return try_errors
+    return (try_errors, try_succes)
 
 
 async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TOKEN_VALIDATION: bool = False, proxy: str | None = None):
@@ -386,6 +409,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
     import src.anime_parsers_ru.errors as errors
 
     try_errors = 0
+    try_succes = 0
 
     parser = KodikParserAsync(token=TOKEN, use_lxml=GLOBAL_USE_LXML, validate_token=GLOBAL_TOKEN_VALIDATION, proxy=proxy, use_cache=True)
     
@@ -401,6 +425,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] Token')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -414,6 +439,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] base_search')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -427,6 +453,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] base_search_by_id')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -444,6 +471,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_list')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -457,6 +485,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] search')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -470,6 +499,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] search_by_id')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -489,6 +519,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info shiki')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -508,6 +539,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -527,6 +559,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info imdb')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -546,6 +579,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info shiki video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -565,6 +599,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info kinopoisk video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -584,6 +619,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_info imdb video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -599,6 +635,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_link serial')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -614,6 +651,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_link video')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -629,6 +667,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_link seria 0')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -642,6 +681,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist_link')
+        try_succes += 1
     sleep(delay)
 
     try:
@@ -657,6 +697,7 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_m3u8_playlist')
+        try_succes += 1
     sleep(delay)
     
     try:
@@ -670,7 +711,8 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_calendar as class method')
+        try_succes += 1
     sleep(delay)
     
     await parser.close_async_session()
-    return try_errors
+    return (try_errors, try_succes)
