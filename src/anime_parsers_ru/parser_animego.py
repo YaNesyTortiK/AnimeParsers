@@ -794,7 +794,7 @@ class AnimegoParser:
         """
         Получает список эпизодов (items) для заданного cvh_id.
         :cvh_id: ID медиа в системе CdnVideoHub (передаётся AnimeGO в HTML плеера)
-        Возвращает список словарь вида:
+        Возвращает словарь вида:
         {
             season_number: {
                 episode_number: [
