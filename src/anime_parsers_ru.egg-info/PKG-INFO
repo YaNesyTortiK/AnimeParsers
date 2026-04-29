@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.16.0
+Version: 1.16.1
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -34,8 +34,8 @@ Dynamic: license-file
 ## Что есть на данный момент
 - [x] Парсер Kodik (__требуется api ключ__) (+ асинхронный)
 - [x] Парсер Animego (api ключ не требуется)(+ асинхронный)
-    [x] Парсер плеера Aniboom
-    [x] Парсер плеера CVH
+    - [x] Парсер плеера Aniboom
+    - [x] Парсер плеера CVH
 - [x] Парсер JutSu (без функции поиска, не требует api ключей) (доступно через прокси)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей) (+ асинхронный)
 
@@ -162,9 +162,10 @@ pip install lxml
     ```python
     parser.search_by_id(id="20", id_type="shikimori", limit=None)
     # id - id аниме на одном из сайтов
-    # id_type - с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+    # id_type - с какого сайта id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
     # limit - количество результатов выдачи (int) (результатов будет сильно меньше чем указанное число, так как в выдаче результаты повторяются)
     ```
+    Параметр include_material_data включен по умолчанию. Если нужно использовать функцию без данного параметра, воспользуйтесь `base_search_by_id`
     Возвращает:
     ```json
     [
@@ -231,34 +232,46 @@ pip install lxml
     ```
 
 4. Получить информацию об аниме
-    ```python
-    parser.get_info(id="z20", id_type="shikimori")
-    # id - id аниме на одном из сайтов
-    # id_type - с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
-    ```
-    Возвращает:
-    ```json
-    {
-        "series_count": 220, 
-        "translations": [
-            {"id": "735", "type": "Озвучка", "name": "2x2 (220 эп.)", "series_range": [1, 220]}, 
-            {"id": "609", "type": "Озвучка", "name": "AniDUB (220 эп.)", "series_range": [1, 220]}, 
-            {"id": "869", "type": "Субтитры", "name": "Субтитры (220 эп.)", "series_range": [1, 220]}, 
-            {"id": "958", "type": "Озвучка", "name": "AniRise (135 эп.)", "series_range": [1, 135]}, 
-            {"id": "2550", "type": "Озвучка", "name": "ANI.OMNIA (8 эп.)", "series_range": [1, 8]}
-        ]
-    }
-    ```
-    series_range - тип tuple
+    1. Через id
+        ```python
+        parser.get_info(id="z20", id_type="shikimori")
+        # id - id аниме на одном из сайтов
+        # id_type - с какого сайта id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
+        ```
+        Возвращает:
+        ```json
+        {
+            "series_count": 220, 
+            "translations": [
+                {"id": "735", "type": "Озвучка", "name": "2x2 (220 эп.)", "series_range": [1, 220]}, 
+                {"id": "609", "type": "Озвучка", "name": "AniDUB (220 эп.)", "series_range": [1, 220]}, 
+                {"id": "869", "type": "Субтитры", "name": "Субтитры (220 эп.)", "series_range": [1, 220]}, 
+                {"id": "958", "type": "Озвучка", "name": "AniRise (135 эп.)", "series_range": [1, 135]}, 
+                {"id": "2550", "type": "Озвучка", "name": "ANI.OMNIA (8 эп.)", "series_range": [1, 8]}
+            ]
+        }
+        ```
+        series_range - тип tuple
 
-    - Получить отдельно кол-во серий:
+        - Получить отдельно кол-во серий:
+            ```python
+            parser.series_count("z20", "shikimori") # число
+            ```
+        - Получить отдельно переводы:
+            ```python
+            parser.translations("z20", "shikimori") # список словарей
+            ```
+        
+    2. Через embed ссылку 
+        (работает быстрее, так как при запросе через id сначала происходит поиск embed ссылки и потом вызывается эта функция)
         ```python
-        parser.series_count("z20", "shikimori") # число
+        parser.get_info_from_embed(
+            embed_link="url" # Пример embed ссылки: https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p
+        )
         ```
-    - Получить отдельно переводы:
-        ```python
-        parser.translations("z20", "shikimori") # список словарей
-        ```
+        Возвращает те же данные что и через id
+
+    
 5. Прямая ссылка на видеофайл
     ```python
     parser.get_link(
@@ -267,7 +280,7 @@ pip install lxml
         seria_num=1, 
         translation_id="609") # Кортеж
     # id - id медиа
-    # id_type - тип id (возможные: shikimori, kinopoisk, imdb)
+    # id_type - тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
     # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     ```
@@ -370,6 +383,19 @@ pip install lxml
         ...
     ]
     ```
+
+9. Получить embed ссылку
+    ```python
+    parser.get_embed_link(
+        id="z20", # id медиа
+        id_type="shikimori", # тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
+        https=True, # устанавливает будет ли в полученной ссылке https:// или http:// (По умолчанию True)
+    )
+    ```
+    Возвращает ссылку. Пример:
+    `https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p`
+
+    Данную ссылку можно использовать в iframe, чтобы добавить плеер кодика на сайт.
 
 > [!IMPORTANT]
 > В случае, если аниме является фильмом или содержит только одну серию, в параметр `seria_num` указывается значение `0`. В случае если перевод/субтитры неизвестны или нет выбора, в параметр `translation_id` указывается значение `"0"`

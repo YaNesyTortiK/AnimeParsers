@@ -401,6 +401,34 @@ def main_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GLOBAL_TO
         try_succes += 1
     sleep(delay)
 
+    try:
+        data = parser.get_embed_link('12241', 'worldart_animation')
+        if not type(data) == str:
+            raise AssertionError(f'data is not str. Type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_embed_link. Exception: {ex}')
+        try_errors += 1
+    else:
+        print('[OK] get_embed_link')
+        try_succes += 1
+    sleep(delay)
+
+    try:
+        data = parser.get_info_from_embed('https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p')
+        if not type(data) == dict:
+            raise AssertionError(f'data is not dict. Type: {type(data)}')
+        if not type(data['series_count']) == int:
+            raise AssertionError(f'series count is not int. Type: {type(data)}')
+        if not type(data['translations']) == list:
+            raise AssertionError(f'translations is not list. Type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_info_from_embed. Exception: {ex}')
+        try_errors += 1
+    else:
+        print('[OK] get_info_from_embed')
+        try_succes += 1
+    sleep(delay)
+
     return (try_errors, try_succes)
 
 
@@ -711,6 +739,34 @@ async def async_test(delay: float, TOKEN: str, GLOBAL_USE_LXML: bool = False, GL
         try_errors += 1
     else:
         print('[OK] get_calendar as class method')
+        try_succes += 1
+    sleep(delay)
+
+    try:
+        data = await parser.get_embed_link('12241', 'worldart_animation')
+        if not type(data) == str:
+            raise AssertionError(f'data is not str. Type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_embed_link. Exception: {ex}')
+        try_errors += 1
+    else:
+        print('[OK] get_embed_link')
+        try_succes += 1
+    sleep(delay)
+
+    try:
+        data = await parser.get_info_from_embed('https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p')
+        if not type(data) == dict:
+            raise AssertionError(f'data is not dict. Type: {type(data)}')
+        if not type(data['series_count']) == int:
+            raise AssertionError(f'series count is not int. Type: {type(data)}')
+        if not type(data['translations']) == list:
+            raise AssertionError(f'translations is not list. Type: {type(data)}')
+    except Exception as ex:
+        print(f'[FAIL] get_info_from_embed. Exception: {ex}')
+        try_errors += 1
+    else:
+        print('[OK] get_info_from_embed')
         try_succes += 1
     sleep(delay)
     

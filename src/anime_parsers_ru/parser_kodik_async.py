@@ -174,7 +174,7 @@ class KodikParserAsync:
         Прямой запрос к базе кодика без дополнительных преобразований
 
         :id: id аниме на одном из сайтов
-        :id_type: с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+        :id_type: с какого сайта id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
         :limit: Верхнее ограничение количества ответов
         :include_material_data: Добавлять в ответ дополнительные данные о сериале
 
@@ -219,9 +219,11 @@ class KodikParserAsync:
             ],
         }
         """
-        if id_type not in ['shikimori', 'kinopoisk', 'imdb']:
-            raise errors.PostArgumentsError(f'Поддерживаются только id shikimori, kinopoisk, imdb. Получено: {id_type}')
+        if id_type not in ['shikimori', 'kinopoisk', 'imdb', 'kodik', 'mdl', 'worldart_animation', 'worldart_cinema']:
+            raise errors.PostArgumentsError(f'Поддерживаются только id shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema. Получено: {id_type}')
         try:
+            if id_type == 'imdb' and 'tt' not in id:
+                id = 'tt'+id
             data = await self.api_request(
                 'search',
                 {
@@ -351,7 +353,7 @@ class KodikParserAsync:
         Для получения всех данных воспользуйтесь функцией base_search
 
         :id: id аниме на одном из сайтов
-        :id_type: с какого сайта id (Поддерживается: shikimori, kinopoisk, imdb)
+        :id_type: с какого сайта id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
         :limit: Верхнее ограничение количества ответов для base_search (необязательно)
 
         Возвращает список словарей в следующем виде:
@@ -435,7 +437,7 @@ class KodikParserAsync:
         Возвращает список переводов для медиафайла по id.
 
         :id: id медиа
-        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
 
         Пример возвращаемого:
         [
@@ -456,20 +458,21 @@ class KodikParserAsync:
         Возвращает количество серий для медиафайла по id.
 
         :id: id медиа
-        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
         """
         data = await self.get_info(id, id_type)
         return data['series_count']
 
-    async def _link_to_info(self, id: str, id_type: str, https: bool = True) -> str:
+    async def get_embed_link(self, id: str, id_type: str, https: bool = True) -> str:
         """
         ### Для использования требуется токен kodik
-        Получить ссылку до страницы с данными.
+        Получить ссылку на embed.
 
         :id: id медиа
-        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
+        :https: устанавливает будет ли в полученной ссылке https:// или http:// (По умолчанию True)
 
-        Возвращает ссылку
+        Пример возвращаемой embed ссылки: https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p
         """
         if self.TOKEN is None:
             raise errors.TokenError('Токен kodik не указан')
@@ -483,7 +486,18 @@ class KodikParserAsync:
         elif id_type == "kinopoisk":
             serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&kinopoiskID={id}"
         elif id_type == "imdb":
-            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%3FkinopoiskID%3D{id}&token={self.TOKEN}&imdbID={id}"
+            if 'tt' in id:
+                serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%imdbID%3D{id}&token={self.TOKEN}&imdbID={id}"
+            else:
+                serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%imdbID%3Dtt{id}&token={self.TOKEN}&imdbID=tt{id}"
+        elif id_type == "mdl":
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%mdlID%3D{id}&token={self.TOKEN}&mdlID={id}"
+        elif id_type == "kodik":
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%ID%3D{id}&token={self.TOKEN}&ID={id}"
+        elif id_type == "worldart_animation":
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%worldart_animation_id%3D{id}&token={self.TOKEN}&worldart_animation_id={id}"
+        elif id_type == "worldart_cinema":
+            serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%worldart_cinema_id%3D{id}&token={self.TOKEN}&worldart_cinema_id={id}"
         else:
             raise ValueError("Неизвестный тип id")
         data = await self.requests.get(serv)
@@ -513,7 +527,7 @@ class KodikParserAsync:
         ### Для использования требуется токен kodik
 
         :id: id медиа
-        :id_type: тип id (возможные: shikimori, kinopoisk, imdb)
+        :id_type: тип id (возможные: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema) (Для кодика нужно указывать в формате: serial-1234 / movie-1234)
         
         Возвращает данные:
         {
@@ -533,9 +547,32 @@ class KodikParserAsync:
             id = str(id)
         elif type(id) != str:
             raise ValueError(f'Для id ожидался тип str, получен "{type(id)}"')
+    
+        link = await self.get_embed_link(id, id_type)
+        return await self.get_info_from_embed(link)
+    
+    async def get_info_from_embed(self, embed_link: str) -> dict:
+        """
+        ### Для использования требуется токен kodik
 
-        link = await self._link_to_info(id, id_type)
-        data = await self.requests.get(link)
+        Получает информацию по embed ссылке.
+        Пример embed ссылки: https://kodikplayer.com/serial/73959/68e2e57cb95f7fb93655637acaca26c2/720p
+
+        Возвращает данные:
+        {
+            'series_count': количество серий (если серий нет/фильм значение будет 0)
+            'translations': [
+                {
+                    'id': id перевода/субтитров/озвучки
+                    'type': тип (voice/subtitles)
+                    'name': Имя автора озвучки/субтитров
+                    'series_range': (Первый доступный эпизод, последний доступный эпизод)
+                },
+                ...
+            ]
+        }
+        """
+        data = await self.requests.get(embed_link)
         try:
             data = data.text
         except Exception as ex:
@@ -551,7 +588,7 @@ class KodikParserAsync:
                 raise errors.ContentBlocked(f"Произошла ошибка. Ожидался плеер, получено сообщение об ошибке: \"{msg}\". Код ошибки: \"{err_code}\". Проверьте что запрос выполняется из страны в которой плеер работает.")
             else:
                 raise errors.UnexpectedBehavior(f"Произошла ошибка. Ожидался плеер, получено сообщение об ошибке: \"{msg}\". Код ошибки: \"{err_code}\".")
-        if self._is_serial(link):
+        if self._is_serial(embed_link):
             series_count = len(soup.find("div", {"class": "serial-series-box"}).find("select").find_all("option"))
             try:
                 translations_div = soup.find("div", {"class": "serial-translations-box"}).find("select").find_all("option")
@@ -561,7 +598,7 @@ class KodikParserAsync:
                 'series_count': series_count,
                 'translations': self._generate_translations_dict(translations_div)
             }
-        elif self._is_video(link):
+        elif self._is_video(embed_link):
             series_count = 0
             try:
                 translations_div = soup.find("div", {"class": "movie-translations-box"}).find("select").find_all("option")
@@ -641,7 +678,7 @@ class KodikParserAsync:
         elif type(translation_id) != str:
             raise ValueError(f'Для translation_id ожидался тип str, получен "{type(translation_id)}"')
 
-        link = await self._link_to_info(id, id_type)
+        link = await self.get_embed_link(id, id_type)
 
         if self.use_cache and link in self._cached_iframe_html:
             data = self._cached_iframe_html[link]
