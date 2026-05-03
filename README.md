@@ -786,8 +786,12 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParser
 
-    parser = ShikimoriParser()
-    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
+    parser = ShikimoriParser(
+        use_lxml=False, # Использовать lxml для парсинга html (нужно отдельно устанавливать) по умолчанию False
+        mirror=None, # В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net". По умолчанию None
+        proxy=None, # http или socks5 прокси (`http://host:port` или `socks5://user:pass@host:port`) по умолчанию None
+        graphql_mirror="shikimori.io" # Зеркало для graphql (по умолчанию shikimori.io), если не указано, то будет использоваться shikimori.one (или общее зеркало, если указано)
+    )
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -796,9 +800,13 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParserAsync
 
-    parser = ShikimoriParserAsync()
+    parser = ShikimoriParserAsync(
+        use_lxml=False, # Использовать lxml для парсинга html (нужно отдельно устанавливать) по умолчанию False
+        mirror=None, # В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net". По умолчанию None
+        proxy=None, # http или socks5 прокси (`http://host:port` или `socks5://user:pass@host:port`) по умолчанию None
+        graphql_mirror="shikimori.io" # Зеркало для graphql (по умолчанию shikimori.io), если не указано, то будет использоваться shikimori.one (или общее зеркало, если указано)
+    )
     # Далее перед всеми функциями дополнительно нужно прописывать await
-    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     Для асинхронного парсера, после окончания работы следует вызвать метод
     ```python
