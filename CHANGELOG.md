@@ -245,3 +245,8 @@ Thx to @nichind for pointing these out
 - Переработана функция _get_link_to_info в get_embed_link для получения embed ссылки
 - Добавлены почти все типы id для получения embed ссылки. (Теперь доступно: shikimori, kinopoisk, imdb, mdl, kodik, worldart_animation, worldart_cinema)
 - Добавлена функция получения информации о переводах по embed ссылке
+
+## To 1.16.2
+- Исправлен параметр mirror в animego парсере (теперь None по умолчанию, как и описано в доках)
+- исправлена функция anime_info в animego парсере
+- Добавлен параметр graphql_mirror для парсера shikimori (установлен как 'shikimori.io' по умолчанию)

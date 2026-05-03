@@ -73,7 +73,7 @@ class AnimegoParserAsync:
         ),
     }
 
-    def __init__(self, mirror: str | None, proxy: str | None = None, use_lxml: bool = False, use_cache: bool = True, cache_maxsize: int = 300, cache_ttl: int = 36000) -> None:
+    def __init__(self, mirror: str | None = None, proxy: str | None = None, use_lxml: bool = False, use_cache: bool = True, cache_maxsize: int = 300, cache_ttl: int = 36000) -> None:
         """
         :mirror: Зеркало сайта если animego.org заблокирован (по умолчанию None)
         :proxy: прокси для обхода блокировки, применяется ко всем запросам парсера (`http://host:port` или 'socks5://user:pass@host:port') (по умолчанию None)
@@ -260,7 +260,7 @@ class AnimegoParserAsync:
         res['type'] = res['studio'] = res['status'] = res['original_source'] = res['next_episode'] = res['mpaa_rating'] = res['theme'] = res['anime_season'] =\
             res['minimal_age'] = res['episodes'] = res['duration'] = res['director'] = res['aired_at'] = res['author'] = None # Добавляем все поля, чтобы избежать KeyError
         res['translations'] = res['related'] = res['main_characters'] = res['genres'] = []
-        fields = item.find('div', {'class': 'entity-field'}).find_all('div')
+        fields = item.find('div', {'class': 'entity-field'}).find_all('div', recursive=False)
         for el in range(0, len(fields), 2):
             k = fields[el].text.strip()
             v = fields[el+1].text.strip()

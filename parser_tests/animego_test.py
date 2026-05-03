@@ -4,7 +4,7 @@ from time import sleep
 def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: bool = False, delay: float | int = 2.0):
 
     try_errors = 0
-    try_succes = 0
+    try_success = 0
 
     parser = AnimegoParser(mirror, proxy, use_lxml=use_lxml)
 
@@ -25,7 +25,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] search Наруто")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -45,7 +45,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] search Кулинарные скитания")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -61,7 +61,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] get_voices 3132")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -77,7 +77,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] get_voices 3122")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -91,7 +91,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] aniboom_get_stream_for_voice: 95. Ep: 1. Id: 3286.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -105,19 +105,20 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] aniboom_get_stream_for_voice: 95. Ep: 3. Id: 3286.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
         data = parser.aniboom_get_stream_for_voice('14', 1, '3286')
     except errors.UnexpectedBehavior:
         print("[OK] no data for aniboom_get_stream_for_voice: 14. Ep: 1. Id: 3286.")
+        try_success += 1
     except Exception as ex:
         print(f'[FAIL] aniboom_get_stream_for_voice: 14. Ep: 1. Id: 3286. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print("[FAIL] Unexpected data for aniboom_get_stream_for_voice: 14. Ep: 1. Id: 3286. Expected exception but got data.")
-        try_succes += 1
+        try_errors += 1
     sleep(delay)
 
     try:
@@ -131,7 +132,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:        
         print("[OK] aniboom_get_stream.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -153,7 +154,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print("[OK] cvh_get_playlist.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -167,7 +168,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:        
         print("[OK] cvh_get_stream.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -181,7 +182,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:        
         print("[OK] cvh_get_stream_by_id.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
     
     try:
@@ -193,7 +194,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print('[OK] anime_info 3261')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -205,7 +206,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print('[OK] anime_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -217,7 +218,7 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print('[OK] anime_info 3286')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -229,7 +230,22 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         try_errors += 1
     else:
         print('[OK] anime_info 3366')
-        try_succes += 1
+        try_success += 1
+    sleep(delay)
+
+    
+    try:
+        data = parser.anime_info('https://animego.me/anime/provozhayuschaya-v-posledniy-put-friren-2430')
+        if type(data) != dict:
+            raise AssertionError(f'data is not dict. Actual type: {type(data)}')
+        if data['type'] != 'Сериал':
+            raise AssertionError(f'data[type] is not \'Сериал\'. Actual data: {data['type']}')
+    except Exception as ex:
+        print(f'[FAIL] anime_info 2430. Exception: {ex}. Exception type: {type(ex)}')
+        try_errors += 1
+    else:
+        print('[OK] anime_info 2430')
+        try_success += 1
     sleep(delay)
 
     try:
@@ -237,13 +253,13 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 3261. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 3261')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -251,13 +267,13 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 385. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -265,13 +281,13 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 385. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -279,13 +295,13 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] anime_updates. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] anime_updates')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -293,19 +309,19 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != dict:
             raise AssertionError(f'data is not dict. Actual type: {type(data)}')
         if type(data['schedule']) != dict:
-            raise AssertionError(f'data[schedule] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule] is not dict. Actual type: {type(data['schedule'])}')
         if type(data['schedule_dates']) != dict:
-            raise AssertionError(f'data[schedule_dates] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule_dates] is not dict. Actual type: {type(data['schedule_dates'])}')
         if type(data['schedule']['Понедельник']) != list:
-            raise AssertionError(f'data[schedule][Понедельник] is not list. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule][Понедельник] is not list. Actual type: {type(data['schedule']['Понедельник'])}')
         if type(data['schedule']['Понедельник'][0]) != dict:
-            raise AssertionError(f'data[schedule][Понедельник][0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule][Понедельник][0] is not dict. Actual type: {type(data['schedule']['Понедельник'][0])}')
     except Exception as ex:
         print(f'[FAIL] get_schedule. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] get_schedule')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -313,20 +329,20 @@ def sync_test(proxy: str | None = None, mirror: str | None = None, use_lxml: boo
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] get_anime_from_current_season. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] get_anime_from_current_season')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
-    return (try_errors, try_succes)
+    return (try_errors, try_success)
 
 async def async_test(proxy: str | None = None, mirror: str | None = None, use_lxml: bool = False, delay: float | int = 2.0):
     try_errors = 0
-    try_succes = 0
+    try_success = 0
 
     parser = AnimegoParserAsync(mirror, proxy, use_lxml=use_lxml)
 
@@ -347,7 +363,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] search Наруто")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -367,7 +383,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] search Кулинарные скитания")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -383,7 +399,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] get_voices 3132")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -399,7 +415,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] get_voices 3122")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -413,7 +429,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] aniboom_get_stream_for_voice: 95. Ep: 1. Id: 3286.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -427,7 +443,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] aniboom_get_stream_for_voice: 95. Ep: 3. Id: 3286.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -439,7 +455,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[FAIL] Unexpected data for aniboom_get_stream_for_voice: 14. Ep: 1. Id: 3286. Expected exception but got data.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -453,7 +469,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:        
         print("[OK] aniboom_get_stream.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -475,7 +491,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print("[OK] cvh_get_playlist.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -489,7 +505,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:        
         print("[OK] cvh_get_stream.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -503,7 +519,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:        
         print("[OK] cvh_get_stream_by_id.")
-        try_succes += 1
+        try_success += 1
     sleep(delay)
     
     try:
@@ -515,7 +531,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print('[OK] anime_info 3261')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -527,7 +543,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print('[OK] anime_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -539,7 +555,7 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print('[OK] anime_info 3286')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -551,7 +567,21 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         try_errors += 1
     else:
         print('[OK] anime_info 3366')
-        try_succes += 1
+        try_success += 1
+    sleep(delay)
+
+    try:
+        data = await parser.anime_info('https://animego.me/anime/provozhayuschaya-v-posledniy-put-friren-2430')
+        if type(data) != dict:
+            raise AssertionError(f'data is not dict. Actual type: {type(data)}')
+        if data['type'] != 'Сериал':
+            raise AssertionError(f'data[type] is not \'Сериал\'. Actual data: {data['type']}')
+    except Exception as ex:
+        print(f'[FAIL] anime_info 2430. Exception: {ex}. Exception type: {type(ex)}')
+        try_errors += 1
+    else:
+        print('[OK] anime_info 2430')
+        try_success += 1
     sleep(delay)
 
     try:
@@ -559,13 +589,13 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 3261. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 3261')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -573,13 +603,13 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 385. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -587,13 +617,13 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] episodes_info 385. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] episodes_info 385')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -601,13 +631,13 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] anime_updates. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] anime_updates')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -615,19 +645,19 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != dict:
             raise AssertionError(f'data is not dict. Actual type: {type(data)}')
         if type(data['schedule']) != dict:
-            raise AssertionError(f'data[schedule] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule] is not dict. Actual type: {type(data['schedule'])}')
         if type(data['schedule_dates']) != dict:
-            raise AssertionError(f'data[schedule_dates] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule_dates] is not dict. Actual type: {type(data['schedule_dates'])}')
         if type(data['schedule']['Понедельник']) != list:
-            raise AssertionError(f'data[schedule][Понедельник] is not list. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule][Понедельник] is not list. Actual type: {type(data['schedule']['Понедельник'])}')
         if type(data['schedule']['Понедельник'][0]) != dict:
-            raise AssertionError(f'data[schedule][Понедельник][0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[schedule][Понедельник][0] is not dict. Actual type: {type(data['schedule']['Понедельник'][0])}')
     except Exception as ex:
         print(f'[FAIL] get_schedule. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] get_schedule')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     try:
@@ -635,15 +665,15 @@ async def async_test(proxy: str | None = None, mirror: str | None = None, use_lx
         if type(data) != list:
             raise AssertionError(f'data is not list. Actual type: {type(data)}')
         if type(data[0]) != dict:
-            raise AssertionError(f'data[0] is not dict. Actual type: {type(data)}')
+            raise AssertionError(f'data[0] is not dict. Actual type: {type(data[0])}')
     except Exception as ex:
         print(f'[FAIL] get_anime_from_current_season. Exception: {ex}. Exception type: {type(ex)}')
         try_errors += 1
     else:
         print('[OK] get_anime_from_current_season')
-        try_succes += 1
+        try_success += 1
     sleep(delay)
 
     await parser.close()
-    return (try_errors, try_succes)
+    return (try_errors, try_success)
     
