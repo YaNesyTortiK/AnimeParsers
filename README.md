@@ -260,7 +260,7 @@ pip install lxml
     # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     ```
-    Возвращает кортеж: `('//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/',720)`
+    Возвращает кортеж: `('//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/',720,[[0,90],[1280,1440]])`
     
     1. Ссылка
     Пример: `//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/`
