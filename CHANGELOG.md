@@ -250,3 +250,8 @@ Thx to @nichind for pointing these out
 - Исправлен параметр mirror в animego парсере (теперь None по умолчанию, как и описано в доках)
 - исправлена функция anime_info в animego парсере
 - Добавлен параметр graphql_mirror для парсера shikimori (установлен как 'shikimori.io' по умолчанию)
+
+## To 1.16.3
+- Добавлен pr [#34](https://github.com/YaNesyTortiK/AnimeParsers/pull/34) from @IvanMixnenko2
+    - Добавлены функции получения таймкодов в парсеры Kodik и KodikAsync
+    - Функция get_link теперь также возвращает таймкоды если они есть

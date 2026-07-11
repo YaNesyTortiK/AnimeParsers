@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: anime_parsers_ru
-Version: 1.16.2
+Version: 1.16.3
 Summary: Python package for parsing russian anime players
 Author-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
 Maintainer-email: YaNesyTortiK <ya.nesy.tortik.email@gmail.com>
@@ -284,13 +284,14 @@ pip install lxml
     # seria_num - номер серии (если фильм или одно видео - 0, также 0 корректен если есть нулевой эпизод)
     # translation_id - id перевода (прим: Anilibria = 610, если неизвестно - 0)
     ```
-    Возвращает кортеж: `('//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/',720)`
+    Возвращает кортеж: `('//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/',720,[[0,90],[1280,1440]])`
     
     1. Ссылка
     Пример: `//cloud.solodcdn.com/useruploads/67b6e546-...-4d8bfbedc2d7/d10...257:20...09/`
     К данной ссылке в начале нужно добавить `http:` или `https:`, а в конце качество.mp4 (`720.mp4`) (Обычно доступны следующие варианты качества: `360`, `480`, `720`)
     2. Максимально возможное качество
     Прим: `720` (1280x720)
+    3. Массив таймкодов начала и конца опенинга и эндинга (при наличии)
 
 6. Ссылка на m3u8 плейлист
     ```python
@@ -810,8 +811,12 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParser
 
-    parser = ShikimoriParser()
-    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
+    parser = ShikimoriParser(
+        use_lxml=False, # Использовать lxml для парсинга html (нужно отдельно устанавливать) по умолчанию False
+        mirror=None, # В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net". По умолчанию None
+        proxy=None, # http или socks5 прокси (`http://host:port` или `socks5://user:pass@host:port`) по умолчанию None
+        graphql_mirror="shikimori.io" # Зеркало для graphql (по умолчанию shikimori.io), если не указано, то будет использоваться shikimori.one (или общее зеркало, если указано)
+    )
     ```
     __Для асинхронного кода__:
     ```commandline
@@ -820,9 +825,13 @@ pip install lxml
     ```python
     from anime_parsers_ru import ShikimoriParserAsync
 
-    parser = ShikimoriParserAsync()
+    parser = ShikimoriParserAsync(
+        use_lxml=False, # Использовать lxml для парсинга html (нужно отдельно устанавливать) по умолчанию False
+        mirror=None, # В случае, если оригинальный домен заблокирован, можно использовать этот параметр, чтобы заменить адрес сайта на зеркало. Пример: "1234.net". По умолчанию None
+        proxy=None, # http или socks5 прокси (`http://host:port` или `socks5://user:pass@host:port`) по умолчанию None
+        graphql_mirror="shikimori.io" # Зеркало для graphql (по умолчанию shikimori.io), если не указано, то будет использоваться shikimori.one (или общее зеркало, если указано)
+    )
     # Далее перед всеми функциями дополнительно нужно прописывать await
-    # Если вы знаете что есть актуальное зеркало сайта, можете указать его домен в параметре `mirror` при инициализации класса
     ```
     Для асинхронного парсера, после окончания работы следует вызвать метод
     ```python
