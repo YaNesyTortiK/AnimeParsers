@@ -650,7 +650,7 @@ class KodikParserAsync:
 
 
 
-    async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int]:
+    async def get_link(self, id: str, id_type: str, seria_num: int, translation_id: str) -> tuple[str, int, list[list[int]]]:
         """
         ### Для использования требуется токен kodik
         Возвращает ссылку на видео файл.
@@ -746,12 +746,46 @@ class KodikParserAsync:
         video_id = hash_container[hash_container.find('.id = \'')+7:]
         video_id = video_id[:video_id.find('\'')]
 
+        skip_segments = self._get_skip_segments(hash_container)
+
         link_data, max_quality = await self._get_link_with_data(video_type, video_hash, video_id, urlParams, script_url)
 
         download_url = str(link_data).replace("https:", "")
         download_url = download_url[: download_url.rfind("/") + 1]
-        return download_url, max_quality
-    
+        return download_url, max_quality, skip_segments
+
+    def _get_skip_segments(self, hash_container: str) -> list[list[int]]:
+        if "parseSkipButton(" not in hash_container:
+            return []
+
+        skip_str = hash_container[hash_container.find("parseSkipButton(\"") + 17:]
+        if "\"" in skip_str:
+            skip_str = skip_str[: skip_str.find("\"")]
+        else:
+            skip_str = skip_str[: skip_str.find("'")]
+
+        if not skip_str:
+            return []
+
+        segments = []
+        for segment in skip_str.split(","):
+            if "-" not in segment:
+                continue
+            try:
+                start_str, end_str = segment.split("-")
+
+                start_min, start_sec = start_str.split(":")
+                end_min, end_sec = end_str.split(":")
+
+                start_total = int(start_min) * 60 + int(start_sec)
+                end_total = int(end_min) * 60 + int(end_sec)
+
+                segments.append([start_total, end_total])
+            except (ValueError, IndexError):
+                continue
+
+        return segments
+
     async def _get_link_with_data(self, video_type: str, video_hash: str, video_id: str, urlParams: dict, script_url: str):
         params={
             "hash": video_hash,
