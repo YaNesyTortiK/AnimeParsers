@@ -15,6 +15,7 @@
 - [x] Парсер JutSu (без функции поиска, не требует api ключей) (доступно через прокси)
 - [x] Парсер Shikimori (с возможностью использовать псевдо-api, не требует api ключей) (+ асинхронный)
 - [x] API Враппер для Aniibria/Aniliberty (пока только синхронный)
+- [x] Парсер DreamCast (api ключ не требуется) (+ асинхронный)
 
 ## Установка
 - Стандартная установка:
@@ -44,6 +45,7 @@ pip install lxml
 - [JutSu инструкция](#jutsu-инструкция)
 - [Shikimori инструкция](#shikimori-инструкция)
 - [Aniliberty API инструкция](ANILIBERTY_API.md)
+- [DreamCast инструкция](#dreamcast-инструкция)
 - [Типы Исключений](#типы-исключений)
 
 ## Kodik инструкция
@@ -1125,6 +1127,131 @@ pip install lxml
         ```
         Возвращает словарь
 
+## DreamCast инструкция
+DreamCast ([dreamerscast.com](https://dreamerscast.com)) — сайт фандаб-студии, поэтому на нем только ее озвучка. Видео отдается в HLS и DASH, кодек видео — AV1 (для воспроизведения нужен плеер с его поддержкой).
+
+0. Установите и импортируйте библиотеку
+    ```commandline
+    pip install anime-parsers-ru
+    ```
+    ```python
+    from anime_parsers_ru import DreamcastParser
+
+    parser = DreamcastParser()
+    ```
+    Асинхронный вариант:
+    ```python
+    from anime_parsers_ru import DreamcastParserAsync
+
+    parser = DreamcastParserAsync()
+    # Все функции те же, только с await. По окончании работы закройте сессию: await parser.close()
+    # Или используйте async with DreamcastParserAsync() as parser: ...
+    ```
+
+Также в параметрах инициализации класса доступны параметры `mirror` (домен зеркала, если dreamerscast.com заблокирован), `proxy` (`http://host:port` или `socks5://user:pass@host:port`), `use_lxml` и параметры кеша страниц релизов `use_cache`, `cache_maxsize`, `cache_ttl` (по умолчанию 15 минут: у онгоингов часто добавляются серии)
+
+1. Поиск по названию (ищет по русскому и оригинальному названию, от 4 символов)
+    ```python
+    parser.search("Sousou no Frieren")
+    # Необязательный параметр page — номер страницы выдачи (по 16 результатов)
+    ```
+    Возвращает список словарей:
+    ```json
+    [
+        {
+            "id": "209",
+            "slug": "209-sousou-no-frieren",
+            "link": "https://dreamerscast.com/home/release/209-sousou-no-frieren",
+            "title": "Провожающая в последний путь Фрирен",
+            "original_title": "Sousou no Frieren", // или None
+            "image": "https://cache.dreamerscast.com/releases/209/....webp", // или None
+            "type": "TV", // или "OVA/ONA"
+            "year": 2023, // или None
+            "season": "Осень", // или None
+            "genres": ["Драма", "Фэнтези"],
+            "studio": "Madhouse", // или None
+            "episodes": 28, // всего серий или None
+            "released_episodes": 28, // вышло в озвучке или None
+            "voice_actors": ["Airis", "Mirona"],
+            "timing": ["RatsHero"],
+            "rating": "4,8" // или None
+        }
+    ]
+    ```
+    Если ничего не найдено — исключение `NoResults`
+
+2. Информация об аниме
+    ```python
+    parser.anime_info("https://dreamerscast.com/home/release/209-sousou-no-frieren")
+    # Вместо ссылки можно передать slug: "209-sousou-no-frieren" (так во всех функциях ниже)
+    ```
+    Возвращает словарь:
+    ```json
+    {
+        "id": "209",
+        "link": "https://dreamerscast.com/home/release/209-sousou-no-frieren",
+        "title": "Провожающая в последний путь Фрирен",
+        "original_title": "Sousou no Frieren",
+        "poster": "https://cache.dreamerscast.com/releases/209/....webp",
+        "year": 2023,
+        "season": "Осень",
+        "studio": "Madhouse",
+        "episodes": 28,
+        "released_episodes": 28,
+        "genres": ["Драма", "Фэнтези", "Сёнен", "Приключения"],
+        "voice_actors": ["Airis", "Belka"],
+        "timing": ["RatsHero"],
+        "description": "Описание"
+    }
+    ```
+
+3. Список серий со ссылками на видео
+    ```python
+    parser.get_episodes("209-sousou-no-frieren")
+    ```
+    Возвращает список словарей (отсортирован по номеру серии):
+    ```json
+    [
+        {
+            "episode": 1, // у спешлов бывает дробным, прим: 12.5
+            "title": "Серия 1",
+            "hls": "https://play.dreamerscast.com/hls/.../master.m3u8",
+            "dash": "https://play.dreamerscast.com/dash/.../manifest.mpd", // или None
+            "thumbnails": "https://cache.dreamerscast.com/media/.../thumbnails.vtt", // или None
+            "embed": "https://player.dreamerscast.com/embed/..." // или None
+        }
+    ]
+    ```
+    Если у релиза один файл (фильм, OVA или первая серия онгоинга), он будет серией 1.
+
+4. Ссылки на видео одной серии
+    ```python
+    parser.get_stream("209-sousou-no-frieren", episode=1)
+    ```
+    Возвращает словарь:
+    ```json
+    {
+        "HLS": "https://.../master.m3u8", // или None
+        "DASH": "https://.../manifest.mpd" // или None
+    }
+    ```
+
+5. Доступные качества
+    ```python
+    parser.get_qualities("ссылка на master.m3u8 из get_episodes или get_stream")
+    ```
+    Возвращает словарь (видео и звук в каждом плейлисте вместе):
+    ```json
+    {
+        "1080": "https://.../index-f1-v1-f4-a1.m3u8",
+        "720": "https://.../index-f2-v1-f4-a1.m3u8",
+        "480": "https://.../index-f3-v1-f4-a1.m3u8"
+    }
+    ```
+
+> [!NOTE]
+> Ссылки на серии DreamCast записывает в настройки плеера Playerjs в зашифрованном виде (base64 с мусорными вставками). Расшифровать их можно и отдельно: `DreamcastParser.decode_player(html_страницы_релиза)` — вернет словарь настроек плеера. Если сайт изменит формат, функции бросят исключение `DecryptionFailure`.
+
 ## Типы исключений
 В данной библиотеке добавлены следующие исключения:
 
@@ -1159,4 +1286,4 @@ pip install lxml
     Обозначает http статус 520. То есть сервер перегружен и не может ответить на запрос
 
 - DecryptionFailure
-    При попытке дешифровать ссылку от Kodik возникла ошибка
+    При попытке дешифровать ссылку от Kodik или настройки плеера DreamCast возникла ошибка

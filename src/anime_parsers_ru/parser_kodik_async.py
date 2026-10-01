@@ -1042,7 +1042,7 @@ class KodikParserAsync:
         for token in __gh_tokens['unstable']:
             _tmp_parser.TOKEN = decrypt_token(token["tokn"])
             try:
-                if _tmp_parser.validate_token(print_info=False):
+                if await _tmp_parser.validate_token(print_info=False):
                     await _tmp_parser.close_async_session()
                     await req.close()
                     return _tmp_parser.TOKEN

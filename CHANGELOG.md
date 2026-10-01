@@ -267,3 +267,12 @@ Thx to @nichind for pointing these out
 ## To 1.18.0
 - Добавлен враппер для апи Anilibria(Aniliberty) (синхронный)
 - Исправлена ошибка в функции get_translations для апи кодика
+
+## To 1.19.0
+- Добавлен парсер DreamCast (dreamerscast.com) (синхронный и асинхронный)
+    - Поиск, информация об аниме, список серий со ссылками на HLS/DASH, качества из master.m3u8
+    - Расшифровка настроек плеера Playerjs (`DreamcastParser.decode_player`)
+- Исключение DecryptionFailure теперь используется и парсером DreamCast
+- Исправлена ошибка в асинхронном `get_token` парсера Kodik: `AsyncSession.sleep` был объявлен без `self` и падал с TypeError на задержке между проверками токенов
+- Исправлена проверка токенов из списка unstable в асинхронном `get_token` парсера Kodik (не хватало `await` у `validate_token`, из-за чего возвращался первый токен без проверки)
+- Парсер Kodik теперь использует прокси во всех запросах к кодику: `get_embed_link`, `get_link`, `get_m3u8_playlist`, а также при автоматическом получении токена (`get_token` и инициализация без токена)
