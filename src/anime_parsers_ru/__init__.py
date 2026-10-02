@@ -7,3 +7,5 @@ from .api_kodik import KodikList, KodikSearch
 from .parser_animego_async import AnimegoParserAsync
 from .parser_animego import AnimegoParser
 from .api_aniliberty import AnilibertyAPI
+from .parser_dreamcast import DreamcastParser
+from .parser_dreamcast_async import DreamcastParserAsync

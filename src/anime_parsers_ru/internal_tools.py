@@ -109,5 +109,6 @@ class AsyncSession:
     async def post(self, url: str, **kwargs) -> Response:
         return await self._request('post', url, **kwargs)
     
+    @staticmethod
     async def sleep(time: float): # Чтобы потом не импортировать asyncio отдельно
         await asyncio.sleep(time)

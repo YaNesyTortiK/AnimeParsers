@@ -4,6 +4,7 @@ import parser_tests.kodik_test as kodik
 import parser_tests.jutsu_test as jutsu
 import parser_tests.shiki_test as shiki
 import parser_tests.aniliberty_test as aniliberty
+import parser_tests.dreamcast_test as dreamcast
 
 import asyncio
 import testconfig
@@ -72,6 +73,20 @@ def aniliberty_api_sync():
     try_errors += stats[0]
     try_success += stats[1]
 
+def dreamcast_sync():
+    global try_errors, try_success
+    print('\n=== DREAMCAST === SYNC TEST ===')
+    stats = dreamcast.sync_test(proxy, dreamcast_mirror, GLOBAL_USE_LXML, delay)
+    try_errors += stats[0]
+    try_success += stats[1]
+
+def dreamcast_async():
+    global try_errors, try_success
+    print('\n=== DREAMCAST === ASYNC TEST ===')
+    stats = asyncio.run(dreamcast.async_test(proxy, dreamcast_mirror, GLOBAL_USE_LXML, delay))
+    try_errors += stats[0]
+    try_success += stats[1]
+
 if __name__ == "__main__":
     proxy = None
     GLOBAL_USE_LXML = False
@@ -79,6 +94,7 @@ if __name__ == "__main__":
     GLOBAL_TOKEN_VALIDATION = False
     delay = 2
     animego_mirror = "animego.me"
+    dreamcast_mirror = None
     shiki_mirror = None
     shiki_proxy = testconfig.SHIKI_PROXY
     aniliberty_login = testconfig.ANILIBERTY_LOGIN
@@ -104,6 +120,9 @@ if __name__ == "__main__":
     jutsu_sync()
 
     aniliberty_api_sync()
+
+    dreamcast_sync()
+    dreamcast_async()
 
     t2 = time()
     print(f'\nTEST DONE!\nTotal errors: {try_errors}\nTotal success: {try_success}\nTest duration: {str(int((t2-t1)//60)).zfill(2)}:{str(int((t2-t1)%60)).zfill(2)}')

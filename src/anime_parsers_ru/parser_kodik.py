@@ -32,7 +32,7 @@ class KodikParser:
         :cache_maxsize: максимальный размер кэша (по умолчанию 100)
         """
         if token is None:
-            token = KodikParser.get_token() # Попытка получения токена автоматически
+            token = KodikParser.get_token(proxy=proxy) # Попытка получения токена автоматически
         self.TOKEN = token
         self.proxies = {"http": proxy, "https": proxy} if proxy else None
         self.use_cache = use_cache
@@ -485,7 +485,7 @@ class KodikParser:
             serv = f"https://kodik-api.com/get-player?title=Player&hasPlayer=false&url=https%3A%2F%2Fkodikdb.com%2Ffind-player%worldart_cinema_id%3D{id}&token={self.TOKEN}&worldart_cinema_id={id}"
         else:
             raise ValueError("Неизвестный тип id")
-        data = requests.get(serv)
+        data = requests.get(serv, proxies=self.proxies)
         try:
             data = data.json()
         except Exception as ex:
@@ -703,7 +703,7 @@ class KodikParser:
                     media_id = translation.get_attribute_list("data-media-id")[0]
                     break
             url = f"https://kodikplayer.com/serial/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
-            data = requests.get(url)
+            data = requests.get(url, proxies=self.proxies)
             if data.status_code != 200:
                 raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
             try:
@@ -724,7 +724,7 @@ class KodikParser:
                     media_id = translation.get_attribute_list("data-media-id")[0]
                     break
             url = f"https://kodikplayer.com/video/{media_id}/{media_hash}/720p?min_age=16&first_url=false&season=1&episode={seria_num}"
-            data = requests.get(url)
+            data = requests.get(url, proxies=self.proxies)
             if data.status_code != 200:
                 raise errors.ServiceError(f'Произошла ошибка при запросе. Ожидался код "200", получен: "{data.status_code}"')
             try:
@@ -875,7 +875,7 @@ class KodikParser:
         selected_quality = str(min(quality, link_data[1]) if quality in [360, 480, 720] else link_data[1])
         
         link = "https:"+link_data[0]+selected_quality+".mp4:hls:manifest.m3u8"
-        data = requests.get(link)
+        data = requests.get(link, proxies=self.proxies)
         if data.status_code == 404:
             raise errors.NoResults(f"Плейлист не найден. Попробуйте сменить качество.")
         elif data.status_code != 200:
@@ -1021,7 +1021,7 @@ class KodikParser:
             raise errors.UnexpectedBehavior(f"Произошла ошибка при получении dict из json файла с токенами полученного с репозитория.\nException: {ex}")
 
 
-        _tmp_parser = KodikParser(token="", validate_token=False)
+        _tmp_parser = KodikParser(token="", validate_token=False, proxy=proxy)
 
         # Проверка stable
         for token in __gh_tokens['stable']:

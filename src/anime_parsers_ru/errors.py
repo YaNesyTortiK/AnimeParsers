@@ -61,7 +61,7 @@ class ServiceIsOverloaded(Exception):
 
 
 class DecryptionFailure(Exception):
-    """При попытке дешифровать ссылку от Kodik возникла ошибка"""
+    """При попытке дешифровать ссылку от Kodik или настройки плеера DreamCast возникла ошибка"""
 
 class Unauthorized(Exception):
     """
